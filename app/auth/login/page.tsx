@@ -56,7 +56,13 @@ export default function AuthLogin() {
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
               <label className="font-['Inter'] font-semibold text-xs text-[#212121]/80">Kata Sandi</label>
-              <button type="button" className="font-['Inter'] text-xs font-medium text-[#212121]/50 hover:text-[#212121] transition-colors">Lupa sandi?</button>
+              <button 
+                type="button" 
+                onClick={() => router.push("/auth/forgot-password")} // Jalur ke halaman baru
+                className="font-['Inter'] text-xs font-medium text-[#212121]/50 hover:text-[#212121] transition-colors"
+              >
+                Lupa sandi?
+              </button>
             </div>
             <input 
               type="password" 

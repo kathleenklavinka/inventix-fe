@@ -17,7 +17,7 @@ export default function OnboardingBoarding() {
     {
       tagline: "INTEGRASI BISNIS CERDAS",
       title: "Satu Aplikasi untuk Semua Mitra Usaha",
-      description: "Inventix hadir sebagai solusi manajemen modern untuk membantu berbagai lini bisnis—dari F&B, ritel, hingga manufaktur—dalam mengelola operasional harian secara efisien.",
+      description: "Inventix hadir sebagai solusi manajemen modern untuk membantu berbagai lini bisnis dari F&B, ritel, hingga manufakturd alam mengelola operasional harian secara efisien.",
       bgImage: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       accent: "bg-[#CFDECA]"
     },
@@ -96,7 +96,6 @@ export default function OnboardingBoarding() {
 
       <div className="w-full h-full grid grid-cols-1 md:grid-cols-2">
         
-        {/* SISI KIRI: KONTEN UTAMA */}
         <div className="h-[60vh] md:h-screen p-8 sm:p-12 lg:p-20 flex flex-col justify-between bg-[#F6F5FA] z-10 relative">
           
           <div className="flex items-center justify-between w-full flex-shrink-0">
