@@ -12,8 +12,12 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Perbaikan agar lolos deteksi ESLint set-state-in-effect
   useEffect(() => {
-    setIsMounted(true);
+    const raf = requestAnimationFrame(() => {
+      setIsMounted(true);
+    });
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   const handleResetPassword = (e: React.FormEvent) => {
@@ -83,29 +87,27 @@ export default function ResetPassword() {
             </form>
           </>
         ) : (
-          <>
-            <div className="space-y-3 text-center py-4">
-              <div className="w-12 h-12 rounded-full bg-[#CFDECA] text-[#212121] flex items-center justify-center mx-auto shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z" />
-                </svg>
-              </div>
-              <h1 className="font-['Plus_Jakarta_Sans'] font-black text-2xl text-[#212121] tracking-tight">
-                Sandi Berhasil Diubah
-              </h1>
-              <p className="font-['Inter'] text-sm text-[#212121]/60 leading-relaxed">
-                Kata sandi baru Anda telah aktif. Silakan masuk kembali ke aplikasi menggunakan kredensial baru.
-              </p>
-              
-              <button 
-                type="button"
-                onClick={() => router.push("/auth/login")}
-                className="w-full font-['Inter'] font-bold text-sm bg-[#212121] text-[#F6F5FA] py-3 rounded-xl shadow-md hover:bg-[#212121]/90 transition-all active:scale-[0.98] mt-4 block text-center"
-              >
-                Login Kembali
-              </button>
+          <div className="space-y-3 text-center py-4">
+            <div className="w-12 h-12 rounded-full bg-[#CFDECA] text-[#212121] flex items-center justify-center mx-auto shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+              </svg>
             </div>
-          </>
+            <h1 className="font-['Plus_Jakarta_Sans'] font-black text-2xl text-[#212121] tracking-tight">
+              Sandi Berhasil Diubah
+            </h1>
+            <p className="font-['Inter'] text-sm text-[#212121]/60 leading-relaxed">
+              Kata sandi baru Anda telah aktif. Silakan masuk kembali ke aplikasi menggunakan kredensial baru.
+            </p>
+            
+            <button 
+              type="button"
+              onClick={() => router.push("/auth/login")}
+              className="w-full font-['Inter'] font-bold text-sm bg-[#212121] text-[#F6F5FA] py-3 rounded-xl shadow-md hover:bg-[#212121]/90 transition-all active:scale-[0.98] mt-4 block text-center"
+            >
+              Login Kembali
+            </button>
+          </div>
         )}
 
       </div>

@@ -1,27 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function AuthLogin() {
   const router = useRouter();
   const LOGO_URL = "/logo-inventix.png";
 
-  const [isMounted, setIsMounted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert(`Mencoba login dengan Email: ${email}`);
+    e.preventDefault();    
+    router.push("/dashboard"); 
   };
 
   return (
-    <div className={`min-h-screen bg-[#F6F5FA] text-[#212121] flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-y-auto select-none font-sans transition-all duration-700 ease-out ${isMounted ? "opacity-100 scale-100" : "opacity-0 scale-105"}`}>
+    <div className="min-h-screen bg-[#F6F5FA] text-[#212121] flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-y-auto select-none font-sans transition-all duration-700 ease-out opacity-100 scale-100">
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet" />
 
       <div className="bg-white rounded-2xl border border-[#D8DFE9] p-8 sm:p-10 md:p-12 max-w-md w-full shadow-xl space-y-6 transition-all duration-300">
@@ -58,7 +53,7 @@ export default function AuthLogin() {
               <label className="font-['Inter'] font-semibold text-xs text-[#212121]/80">Kata Sandi</label>
               <button 
                 type="button" 
-                onClick={() => router.push("/auth/forgot-password")} // Jalur ke halaman baru
+                onClick={() => router.push("/auth/forgot-password")}
                 className="font-['Inter'] text-xs font-medium text-[#212121]/50 hover:text-[#212121] transition-colors"
               >
                 Lupa sandi?
@@ -76,8 +71,6 @@ export default function AuthLogin() {
 
           <button 
             type="submit"
-            // Di sini nanti tempat homepage
-            onClick={handleLogin}
             className="w-full font-['Inter'] font-bold text-sm bg-[#212121] text-[#F6F5FA] py-3 rounded-xl shadow-md hover:bg-[#212121]/90 transition-all active:scale-[0.98] mt-2"
           >
             Masuk ke Aplikasi

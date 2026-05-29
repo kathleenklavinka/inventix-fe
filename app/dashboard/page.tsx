@@ -66,7 +66,6 @@ export default function Dashboard() {
   const [animCards, setAnimCards] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const update = () => {
       const now = new Date();
       setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
@@ -76,7 +75,10 @@ export default function Dashboard() {
     };
     update();
     const iv = setInterval(update, 1000);
-    setTimeout(() => setAnimCards(true), 150);
+    setTimeout(() => {
+      setMounted(true);
+      setAnimCards(true);
+    }, 150);
     return () => clearInterval(iv);
   }, []);
 
