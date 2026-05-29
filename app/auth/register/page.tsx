@@ -14,7 +14,10 @@ export default function AuthRegister() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    setIsMounted(true);
+    const raf = requestAnimationFrame(() => {
+      setIsMounted(true);
+    });
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   const handleRegister = (e: React.FormEvent) => {
@@ -26,6 +29,7 @@ export default function AuthRegister() {
     }
 
     alert(`Mencoba mendaftar Akun Baru:\nNama: ${fullName}\nEmail: ${email}`);
+    router.push("/auth/login");
   };
 
   return (

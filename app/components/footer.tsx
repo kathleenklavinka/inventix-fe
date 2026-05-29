@@ -121,7 +121,7 @@ export default function Footer({ currentSlide }: FooterProps) {
           </p>
           <div className="flex items-center gap-4 sm:gap-5">
             {bottomLinks.map((link, i) => (
-              <span key={link.href} className="flex items-center gap-4 sm:gap-5">
+              <span key={i} className="flex items-center gap-4 sm:gap-5">
                 <Link
                   href={link.href}
                   className="font-['Inter'] text-[11px] text-[#212121]/35 hover:text-[#212121] transition-colors"
