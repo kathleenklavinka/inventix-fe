@@ -40,7 +40,6 @@ export default function ResetPassword() {
 
         {!isSuccess ? (
           <>
-            {/* Tampilan 1: Form Input Password Baru */}
             <div className="space-y-2 text-center">
               <h1 className="font-['Plus_Jakarta_Sans'] font-black text-2xl sm:text-3xl text-[#212121] tracking-tight">
                 Atur Ulang Sandi
