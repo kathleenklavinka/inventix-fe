@@ -441,7 +441,7 @@ export default function OnboardingBoarding() {
                   />
                 </div>
                 <span className="font-['Plus_Jakarta_Sans'] font-black tracking-[0.18em] text-[13px] text-[#2a1f08]">
-                  inventix
+                  INVENTIX
                 </span>
               </div>
               <button onClick={handleNavigateWithTransition}
