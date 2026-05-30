@@ -26,6 +26,19 @@ const penjualanData = [
   { id: 15, kode: "#TRX-0828", waktu: "15:30", tanggal: "29 Mei 2026",   items: "Focaccia Original x1, Cold Brew x2",    total: 115000, metode: "Tunai",    status: "batal"   },
 ];
 
+// ─── Palet warna ──────────────────────────────────────────────────────────────
+// BG page/content : #FFFEF5  (krem kuning sangat pucat)
+// Hero bg         : #FEFCE8 → #FEF9C3 → #FFFDE7  (pastel kuning lembut)
+// Primary text    : #4A4530  (coklat tua hangat — harmonis dengan kuning)
+// Btn primary     : #F9E55A bg / #4A4530 text  (kuning cerah-pastel)
+// Accent mint     : #C5D9C0  (sage/hijau mint)
+// Accent peach    : #FECBA1  (peach lembut)
+// Accent lavender : #DDD6FE  (lavender)
+// Accent rose     : #FBCFE8  (rose/pink)
+// Accent sky      : #BAE6FD  (biru langit sangat pucat — bukan biru dominan)
+// Accent lemon    : #FEF08A  (lemon terang)
+// ─────────────────────────────────────────────────────────────────────────────
+
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
@@ -105,29 +118,35 @@ const IconChevronRight = ({ size = 14, color = "currentColor" }) => (
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "sukses") return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "#CFDECA", color: "#2d6a3f" }}>
-      <IconCheck size={8} color="#2d6a3f" /> Sukses
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
+      style={{ background: "#C5D9C0", color: "#2d6640" }}>
+      <IconCheck size={8} color="#2d6640" /> Sukses
     </span>
   );
   if (status === "pending") return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "#EFF0A3", color: "#92650a" }}>
-      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#92650a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pending
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
+      style={{ background: "#FECBA1", color: "#924d1a" }}>
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#924d1a" strokeWidth="2.5"
+        strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg> Pending
     </span>
   );
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "#fee2e2", color: "#dc2626" }}>
-      <IconX size={8} color="#dc2626" /> Batal
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md"
+      style={{ background: "#FBCFE8", color: "#9d174d" }}>
+      <IconX size={8} color="#9d174d" /> Batal
     </span>
   );
 }
 
 function MetodeBadge({ metode }: { metode: string }) {
   const map: Record<string, { bg: string; color: string }> = {
-    "QRIS":     { bg: "rgba(99,102,241,0.10)", color: "#4f46e5" },
-    "Tunai":    { bg: "rgba(34,197,94,0.10)",  color: "#16a34a" },
-    "Transfer": { bg: "rgba(14,165,233,0.10)", color: "#0284c7" },
+    "QRIS":     { bg: "#DDD6FE", color: "#5b21b6" },
+    "Tunai":    { bg: "#C5D9C0", color: "#2d6640" },
+    "Transfer": { bg: "#BAE6FD", color: "#075985" },
   };
-  const s = map[metode] || { bg: "rgba(33,33,33,0.07)", color: "#555" };
+  const s = map[metode] || { bg: "#e8e8e8", color: "#666" };
   return (
     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
       style={{ background: s.bg, color: s.color, letterSpacing: "0.04em" }}>
@@ -173,8 +192,7 @@ export default function PenjualanPage() {
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated  = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-  const selected = data.find(d => d.id === selectedId) ?? null;
+  const selected   = data.find(d => d.id === selectedId) ?? null;
 
   function handleDelete(item: typeof penjualanData[0]) {
     setData(prev => prev.filter(d => d.id !== item.id));
@@ -207,139 +225,139 @@ export default function PenjualanPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 
-        @keyframes fadeUp  { from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)} }
-        @keyframes slideRight { from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)} }
-        @keyframes slideIn { from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)} }
-        @keyframes fadeIn  { from{opacity:0}to{opacity:1} }
+        @keyframes fadeUp  { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes slideIn { from{opacity:0;transform:translateX(32px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
         @keyframes blobFloat {
           0%,100%{transform:translate(0,0) scale(1)}
-          33%    {transform:translate(40px,-30px) scale(1.07)}
-          66%    {transform:translate(-25px,25px) scale(0.95)}
-        }
-        @keyframes barGrow { from{width:0}to{width:var(--w)} }
-        @keyframes shimmer {
-          0%{background-position:-200% 0}
-          100%{background-position:200% 0}
+          33%    {transform:translate(38px,-28px) scale(1.06)}
+          66%    {transform:translate(-22px,22px) scale(0.96)}
         }
 
         .anim-fade-up{animation:fadeUp 0.55s cubic-bezier(.22,1,.36,1) both}
-        .d50 {animation-delay:.05s}.d100{animation-delay:.10s}.d150{animation-delay:.15s}
-        .d200{animation-delay:.20s}.d250{animation-delay:.25s}.d300{animation-delay:.30s}
-        .d350{animation-delay:.35s}.d400{animation-delay:.40s}.d450{animation-delay:.45s}
+        .d50 {animation-delay:.05s} .d100{animation-delay:.10s} .d150{animation-delay:.15s}
+        .d200{animation-delay:.20s} .d250{animation-delay:.25s} .d300{animation-delay:.30s}
+        .d350{animation-delay:.35s} .d400{animation-delay:.40s} .d450{animation-delay:.45s}
 
-        .blob {animation:blobFloat 9s ease-in-out infinite}
-        .blob2{animation:blobFloat 12s ease-in-out infinite reverse;animation-delay:3s}
+        .blob {animation:blobFloat 10s ease-in-out infinite}
+        .blob2{animation:blobFloat 13s ease-in-out infinite reverse;animation-delay:3s}
+        .blob3{animation:blobFloat 16s ease-in-out infinite;animation-delay:6s}
+        .blob4{animation:blobFloat 11s ease-in-out infinite reverse;animation-delay:1.5s}
 
+        /* ── Buttons ── */
         .btn-primary{
-          background:#2a1f08;color:#ffffff;border:none;border-radius:12px;
-          font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;
-          padding:10px 20px;font-size:13px;cursor:pointer;letter-spacing:.01em;
+          background:#F9E55A;color:#4A4530;border:none;border-radius:14px;
+          font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;
+          padding:10px 22px;font-size:13px;cursor:pointer;letter-spacing:.01em;
           transition:transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s,background .18s;
           display:inline-flex;align-items:center;gap:7px;
+          box-shadow:0 4px 18px rgba(249,229,90,0.45);
         }
-        .btn-primary:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 10px 28px rgba(42,31,8,.25);background:#3d2e0e}
+        .btn-primary:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 10px 28px rgba(249,229,90,.55);background:#fded6b}
         .btn-primary:active{transform:scale(0.97)}
 
         .btn-ghost{
-          background:rgba(33,33,33,0.06);color:#212121;border:none;border-radius:9px;
+          background:rgba(74,69,48,0.07);color:#4A4530;border:none;border-radius:10px;
           font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;
           padding:6px 12px;font-size:11.5px;cursor:pointer;
           transition:background .18s,transform .2s;
           display:inline-flex;align-items:center;gap:5px;
         }
-        .btn-ghost:hover{background:rgba(33,33,33,0.12);transform:scale(1.03)}
-        .btn-danger{
-          background:rgba(220,38,38,0.08);color:#dc2626;border:none;border-radius:9px;
-          font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;
-          padding:6px 12px;font-size:11.5px;cursor:pointer;
-          transition:background .18s,transform .2s;
-          display:inline-flex;align-items:center;gap:5px;
-        }
-        .btn-danger:hover{background:rgba(220,38,38,0.15);transform:scale(1.03)}
+        .btn-ghost:hover{background:rgba(74,69,48,0.13);transform:scale(1.03)}
 
+        .btn-danger{
+          background:#FBCFE8;color:#9d174d;border:none;border-radius:10px;
+          font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;
+          padding:6px 12px;font-size:11.5px;cursor:pointer;
+          transition:background .18s,transform .2s;
+          display:inline-flex;align-items:center;gap:5px;
+        }
+        .btn-danger:hover{background:#f9b8dc;transform:scale(1.03)}
+
+        /* ── Search ── */
         .search-input{
-          border:1.5px solid rgba(33,33,33,0.11);border-radius:11px;
-          padding:8px 13px 8px 36px;font-size:12.5px;background:rgba(255,255,255,0.75);
-          color:#212121;outline:none;width:100%;max-width:240px;
+          border:1.5px solid rgba(249,229,90,0.45);border-radius:11px;
+          padding:8px 13px 8px 36px;font-size:12.5px;
+          background:rgba(255,255,255,0.85);
+          color:#4A4530;outline:none;width:100%;max-width:240px;
           font-family:'Inter',sans-serif;transition:border-color .2s,box-shadow .2s;
         }
-        .search-input:focus{border-color:rgba(33,33,33,0.30);box-shadow:0 0 0 3px rgba(33,33,33,0.05)}
+        .search-input:focus{border-color:#F9E55A;box-shadow:0 0 0 3px rgba(249,229,90,0.20)}
+        .search-input::placeholder{color:rgba(74,69,48,0.35)}
 
+        /* ── Filter pills ── */
         .filter-pill{
-          padding:5px 13px;border-radius:99px;border:none;cursor:pointer;
+          padding:5px 14px;border-radius:99px;border:none;cursor:pointer;
           font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:10px;
-          transition:background .18s,color .18s,transform .15s;letter-spacing:.02em;
+          transition:background .18s,color .18s,transform .15s,box-shadow .18s;
+          letter-spacing:.02em;
         }
-        .filter-pill:hover{opacity:.85}
+        .filter-pill:hover{opacity:.88}
         .filter-pill:active{transform:scale(0.96)}
 
-        /* Receipt card */
+        /* ── Receipt cards ── */
         .receipt-card{
-          position:relative;background:#fff;border-radius:14px;
-          border:1.5px solid rgba(33,33,33,0.07);
+          position:relative;background:#ffffff;border-radius:16px;
+          border:1.5px solid rgba(249,229,90,0.28);
           transition:border-color .2s,box-shadow .2s,transform .25s cubic-bezier(.22,1,.36,1);
           cursor:pointer;overflow:hidden;
         }
         .receipt-card::before{
-          content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-          background:transparent;border-radius:3px 0 0 3px;
-          transition:background .2s;
+          content:'';position:absolute;left:0;top:0;bottom:0;width:3.5px;
+          background:transparent;border-radius:4px 0 0 4px;transition:background .2s;
         }
         .receipt-card:hover{
-          border-color:rgba(33,33,33,0.14);
-          box-shadow:0 8px 28px rgba(33,33,33,0.08);
+          border-color:rgba(249,229,90,0.50);
+          box-shadow:0 6px 22px rgba(249,229,90,0.18);
           transform:translateY(-1px) scale(1.005);
         }
         .receipt-card.selected{
-          border-color:rgba(42,31,8,0.22);
-          box-shadow:0 10px 32px rgba(42,31,8,0.10);
+          border-color:rgba(249,229,90,0.60);
+          box-shadow:0 8px 28px rgba(249,229,90,0.22);
         }
-        .receipt-card.selected::before{background:#2a1f08}
-        .receipt-card.status-sukses::before{background:#CFDECA}
-        .receipt-card.status-sukses.selected::before{background:#2d6a3f}
-        .receipt-card.status-pending::before{background:#EFF0A3}
-        .receipt-card.status-pending.selected::before{background:#92650a}
-        .receipt-card.status-batal::before{background:#fee2e2}
-        .receipt-card.status-batal.selected::before{background:#dc2626}
+        .receipt-card.selected::before{background:#F9E55A}
+        .receipt-card.status-sukses::before{background:#C5D9C0}
+        .receipt-card.status-sukses.selected::before{background:#5ebd80}
+        .receipt-card.status-pending::before{background:#FECBA1}
+        .receipt-card.status-pending.selected::before{background:#f97316}
+        .receipt-card.status-batal::before{background:#FBCFE8}
+        .receipt-card.status-batal.selected::before{background:#ec4899}
 
-        /* Detail panel */
+        /* ── Detail panel ── */
         .detail-panel{
-          background:#fff;border-radius:16px;border:1.5px solid rgba(33,33,33,0.08);
-          box-shadow:0 8px 32px rgba(33,33,33,0.06);
+          background:#fff;border-radius:18px;
+          border:1.5px solid rgba(249,229,90,0.30);
+          box-shadow:0 8px 32px rgba(249,229,90,0.12);
           position:sticky;top:24px;
           transition:box-shadow .3s;
         }
-        .detail-panel:hover{box-shadow:0 12px 40px rgba(33,33,33,0.10)}
+        .detail-panel:hover{box-shadow:0 12px 40px rgba(249,229,90,0.20)}
 
-        /* Receipt dashed edge */
+        /* ── Receipt edge (kuning) ── */
         .receipt-edge{
           width:100%;height:10px;position:relative;overflow:hidden;
-          background:repeating-linear-gradient(90deg,transparent,transparent 8px,#f0ece4 8px,#f0ece4 16px);
-          opacity:.6;
+          background:repeating-linear-gradient(90deg,transparent,transparent 8px,#FEFCE8 8px,#FEFCE8 16px);
+          opacity:.8;
         }
 
-        /* Bar */
+        /* ── Method bar ── */
         .method-bar{
-          height:6px;border-radius:4px;background:#e8dfc8;overflow:hidden;
-          transition:all .3s;
+          height:6px;border-radius:4px;background:#FEF9C3;overflow:hidden;
         }
-        .method-bar-fill{
-          height:100%;border-radius:4px;
-          transition:width 1s cubic-bezier(.22,1,.36,1);
-        }
+        .method-bar-fill{height:100%;border-radius:4px;transition:width 1s cubic-bezier(.22,1,.36,1)}
 
-        /* Page btn */
+        /* ── Pagination ── */
         .page-btn{
-          width:30px;height:30px;border-radius:8px;border:none;font-size:11.5px;
+          width:30px;height:30px;border-radius:9px;border:none;font-size:11.5px;
           font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;cursor:pointer;
-          display:inline-flex;align-items:center;justify-content:center;
-          transition:all .18s;
+          display:inline-flex;align-items:center;justify-content:center;transition:all .18s;
         }
-        .page-btn.active{background:#2a1f08;color:#EFF0A3}
-        .page-btn:not(.active){background:rgba(33,33,33,0.06);color:#212121}
-        .page-btn:not(.active):hover{background:rgba(33,33,33,0.13)}
+        .page-btn.active{background:#F9E55A;color:#4A4530;box-shadow:0 3px 10px rgba(249,229,90,0.45)}
+        .page-btn:not(.active){background:rgba(74,69,48,0.07);color:#4A4530}
+        .page-btn:not(.active):hover{background:rgba(249,229,90,0.25)}
         .page-btn:disabled{opacity:.3;cursor:default}
 
+        /* ── Misc ── */
         .modal-overlay{animation:fadeIn .18s ease both}
         .modal-box{animation:fadeUp .22s cubic-bezier(.22,1,.36,1) both}
         .toast{animation:slideIn .35s cubic-bezier(.22,1,.36,1) both}
@@ -347,108 +365,145 @@ export default function PenjualanPage() {
         .timeline-date-label{
           display:inline-flex;align-items:center;gap:6px;
           font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:11px;
-          color:rgba(80,65,40,0.55);letter-spacing:.06em;text-transform:uppercase;
-          padding:4px 10px;border-radius:8px;background:rgba(42,31,8,0.05);
+          color:rgba(74,69,48,0.52);letter-spacing:.06em;text-transform:uppercase;
+          padding:4px 10px;border-radius:8px;background:#FEF9C3;
         }
 
         .empty-state{
           display:flex;flex-direction:column;align-items:center;justify-content:center;
           gap:10px;padding:60px 20px;
-          color:rgba(33,33,33,0.30);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;
+          color:rgba(74,69,48,0.30);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;
         }
       `}</style>
 
-      <div className={`min-h-screen text-[#212121] font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
-        style={{ background: "#F9F9FA" }}>
-
+      <div
+        className={`min-h-screen font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
+        style={{ background: "#FFFEF5", color: "#4A4530" }}
+      >
         <Header hasNotification={false} userInitials={user.initials} />
 
         <main className="w-full">
 
-          <section className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
-            style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}>
-            <div className="absolute -top-28 -right-28 w-96 h-96 rounded-full opacity-30 blob pointer-events-none"
-              style={{ background: "#e8d5a3", filter: "blur(72px)" }} />
-            <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full opacity-20 blob2 pointer-events-none"
-              style={{ background: "#CFDECA", filter: "blur(60px)" }} />
+          <section className="w-full relative overflow-hidden pt-16 pb-12 sm:pt-20 sm:pb-14"
+            style={{ background: "linear-gradient(145deg, #FEFCE8 0%, #FEF9C3 35%, #FFFDE7 65%, #FEFCE8 100%)" }}>
+
+            <div className="absolute -top-20 -right-16 w-96 h-96 rounded-full blob pointer-events-none"
+              style={{ background: "#FBCFE8", opacity: 0.45, filter: "blur(80px)" }} />
+            <div className="absolute top-12 left-10 w-72 h-72 rounded-full blob2 pointer-events-none"
+              style={{ background: "#C5D9C0", opacity: 0.50, filter: "blur(70px)" }} />
+            <div className="absolute -bottom-10 right-1/3 w-80 h-80 rounded-full blob3 pointer-events-none"
+              style={{ background: "#DDD6FE", opacity: 0.38, filter: "blur(85px)" }} />
+            <div className="absolute bottom-0 -left-10 w-64 h-64 rounded-full blob4 pointer-events-none"
+              style={{ background: "#FECBA1", opacity: 0.42, filter: "blur(70px)" }} />
 
             <Inner>
-              <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-medium"
-                style={{ color: "rgba(80,65,40,0.45)" }}>
-                <Link href="/dashboard" className="hover:text-[#2a1f08] transition-colors">Dashboard</Link>
-                <span>/</span>
-                <span style={{ color: "#2a1f08" }} className="font-semibold">Penjualan</span>
+              <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-semibold"
+                style={{ color: "rgba(74,69,48,0.42)" }}>
+                <Link href="/dashboard" className="hover:text-[#92661a] transition-colors">Dashboard</Link>
+                <span style={{ color: "rgba(74,69,48,0.25)" }}>/</span>
+                <span style={{ color: "#92661a" }}>Penjualan</span>
               </div>
 
               <div className="anim-fade-up d100 flex flex-col sm:flex-row sm:items-end justify-between gap-5">
                 <div>
-                  <p className="text-[10px] sm:text-[11px] tracking-[0.20em] uppercase mb-1.5 font-medium"
-                    style={{ color: "rgba(80,65,40,0.42)" }}>Manajemen</p>
-                  <h1 className="font-['Plus_Jakarta_Sans'] font-black text-2xl sm:text-[2.2rem] leading-none"
-                    style={{ color: "#2a1f08" }}>Penjualan</h1>
-                  <p className="text-[11px] mt-1.5 font-medium" style={{ color: "rgba(80,65,40,0.38)" }}>{tanggal}</p>
+                  <p className="text-[10px] sm:text-[11px] tracking-[0.24em] uppercase mb-2 font-bold"
+                    style={{ color: "rgba(146,102,26,0.55)" }}>Manajemen</p>
+                  <h1 className="font-['Plus_Jakarta_Sans'] font-black text-3xl sm:text-[2.5rem] leading-none"
+                    style={{ color: "#4A4530" }}>Penjualan</h1>
+                  <p className="text-[11px] mt-2 font-medium" style={{ color: "rgba(74,69,48,0.42)" }}>{tanggal}</p>
                 </div>
                 {isAdmin && (
                   <Link href="/penjualan/tambah">
                     <button className="btn-primary">
-                      <IconPlus size={15} color="#ffffff" /> Tambah Transaksi
+                      <IconPlus size={15} color="#4A4530" /> Tambah Transaksi
                     </button>
                   </Link>
                 )}
               </div>
 
-              <div className="anim-fade-up d200 mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="anim-fade-up d200 mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: "Total Penjualan",    val: fmt(totalPenjualan),           sub: "dari transaksi sukses",       valColor: "#2a1f08",  bg: "rgba(255,255,255,0.65)", border: "rgba(200,180,130,0.22)" },
-                  { label: "Transaksi Hari Ini", val: `${totalTrxHariIni}`,          sub: "transaksi masuk hari ini",    valColor: "#2a1f08",  bg: "rgba(255,255,255,0.65)", border: "rgba(200,180,130,0.22)" },
-                  { label: "Sukses",             val: `${totalSukses}`,              sub: `dari ${data.length} total`,   valColor: "#2d6a3f",  bg: "rgba(207,222,202,0.35)", border: "rgba(45,106,63,0.15)"  },
-                  { label: "Batal & Pending",    val: `${totalBatal + totalPending}`,sub: `${totalBatal}B · ${totalPending}P`,valColor:"#92650a",bg:"rgba(239,240,163,0.35)",border:"rgba(146,101,10,0.15)"},
+                  {
+                    label: "Total Penjualan", val: fmt(totalPenjualan), sub: "dari transaksi sukses",
+                    valColor: "#92661a",
+                    bg: "linear-gradient(135deg, #FEF9C3 0%, #FEF08A 100%)",
+                    border: "rgba(249,229,90,0.55)", dot: "#F9E55A",
+                  },
+                  {
+                    label: "Transaksi Hari Ini", val: `${totalTrxHariIni}`, sub: "transaksi masuk hari ini",
+                    valColor: "#7c3d8a",
+                    bg: "linear-gradient(135deg, #F3E8FF 0%, #DDD6FE 100%)",
+                    border: "rgba(221,214,254,0.70)", dot: "#DDD6FE",
+                  },
+                  {
+                    label: "Sukses", val: `${totalSukses}`, sub: `dari ${data.length} total`,
+                    valColor: "#2d6640",
+                    bg: "linear-gradient(135deg, #DCFCE7 0%, #C5D9C0 100%)",
+                    border: "rgba(197,217,192,0.75)", dot: "#C5D9C0",
+                  },
+                  {
+                    label: "Batal & Pending", val: `${totalBatal + totalPending}`, sub: `${totalBatal}B · ${totalPending}P`,
+                    valColor: "#9d3060",
+                    bg: "linear-gradient(135deg, #FDF2F8 0%, #FBCFE8 100%)",
+                    border: "rgba(251,207,232,0.75)", dot: "#FBCFE8",
+                  },
                 ].map((s, i) => (
-                  <div key={i} className="anim-fade-up rounded-2xl px-4 py-4 border backdrop-blur-sm"
-                    style={{ background: s.bg, borderColor: s.border, animationDelay: `${0.20 + i * 0.05}s` }}>
-                    <p className="font-['Plus_Jakarta_Sans'] font-black text-xl sm:text-2xl leading-none mb-1"
+                  <div key={i} className="anim-fade-up rounded-2xl px-4 py-4 border relative"
+                    style={{ background: s.bg, borderColor: s.border, animationDelay: `${0.20 + i * 0.06}s`,
+                      boxShadow: "0 2px 14px rgba(0,0,0,0.04)" }}>
+                    <div className="w-2 h-2 rounded-full mb-3" style={{ background: s.dot }} />
+                    <p className="font-['Plus_Jakarta_Sans'] font-black text-xl sm:text-[1.55rem] leading-none mb-1.5"
                       style={{ color: s.valColor }}>{s.val}</p>
                     <p className="font-['Plus_Jakarta_Sans'] font-bold text-[10px] sm:text-[11px]"
-                      style={{ color: "rgba(80,65,40,0.55)" }}>{s.label}</p>
+                      style={{ color: "rgba(74,69,48,0.65)" }}>{s.label}</p>
                     <p className="text-[9px] mt-0.5 font-medium"
-                      style={{ color: "rgba(80,65,40,0.32)" }}>{s.sub}</p>
+                      style={{ color: "rgba(74,69,48,0.38)" }}>{s.sub}</p>
                   </div>
                 ))}
               </div>
             </Inner>
           </section>
 
-          <section className="w-full py-8 sm:py-10" style={{ background: "#fff" }}>
+          <section className="w-full py-8 sm:py-10" style={{ background: "#FFFEF5" }}>
             <Inner>
               <div className="flex flex-col lg:flex-row gap-6">
-
                 <div className="flex-1 min-w-0">
-                  <div className="anim-fade-up d200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div className="anim-fade-up d200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {(["semua","sukses","pending","batal"] as const).map(s => (
-                        <button key={s} onClick={() => { setFilterStatus(s); setPage(1); }}
-                          className="filter-pill capitalize"
-                          style={{
-                            background: filterStatus === s ? "#2a1f08" : "rgba(33,33,33,0.06)",
-                            color: filterStatus === s ? "#EFF0A3" : "rgba(33,33,33,0.45)",
-                          }}>
-                          {s}
-                        </button>
-                      ))}
-                      <span className="text-[10px] font-medium ml-1" style={{ color: "rgba(33,33,33,0.28)" }}>
+                      {(["semua","sukses","pending","batal"] as const).map(s => {
+                        const activeMap: Record<string, { bg: string; color: string; shadow: string }> = {
+                          semua:   { bg: "#F9E55A", color: "#4A4530", shadow: "0 3px 12px rgba(249,229,90,0.50)" },
+                          sukses:  { bg: "#C5D9C0", color: "#2d6640", shadow: "0 3px 12px rgba(197,217,192,0.55)" },
+                          pending: { bg: "#FECBA1", color: "#924d1a", shadow: "0 3px 12px rgba(254,203,161,0.55)" },
+                          batal:   { bg: "#FBCFE8", color: "#9d174d", shadow: "0 3px 12px rgba(251,207,232,0.55)" },
+                        };
+                        const active = filterStatus === s;
+                        return (
+                          <button key={s} onClick={() => { setFilterStatus(s); setPage(1); }}
+                            className="filter-pill capitalize"
+                            style={active
+                              ? { background: activeMap[s].bg, color: activeMap[s].color, boxShadow: activeMap[s].shadow }
+                              : { background: "rgba(74,69,48,0.07)", color: "rgba(74,69,48,0.45)" }
+                            }>
+                            {s}
+                          </button>
+                        );
+                      })}
+                      <span className="text-[10px] font-medium ml-1" style={{ color: "rgba(74,69,48,0.30)" }}>
                         {filtered.length} transaksi
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(33,33,33,0.35)" }}>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2"
+                          style={{ color: "rgba(74,69,48,0.38)" }}>
                           <IconSearch size={13} />
                         </span>
                         <input className="search-input" placeholder="Cari transaksi…" value={search}
                           onChange={e => { setSearch(e.target.value); setPage(1); }} />
                       </div>
                       <button className="btn-ghost flex-shrink-0">
-                        <IconDownload size={12} color="rgba(33,33,33,0.5)" />
+                        <IconDownload size={12} color="rgba(74,69,48,0.50)" />
                         <span className="hidden sm:inline">Export</span>
                       </button>
                     </div>
@@ -457,7 +512,8 @@ export default function PenjualanPage() {
                   <div className="anim-fade-up d300 space-y-6">
                     {filtered.length === 0 ? (
                       <div className="empty-state">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: .4 }}>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: .35 }}>
                           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                         </svg>
                         <p>Tidak ada transaksi ditemukan.</p>
@@ -466,11 +522,11 @@ export default function PenjualanPage() {
                       <div key={date}>
                         <div className="flex items-center gap-3 mb-3">
                           <span className="timeline-date-label">
-                            <IconCalendar size={10} color="rgba(80,65,40,0.5)" />
+                            <IconCalendar size={10} color="rgba(146,102,26,0.55)" />
                             {date}
                           </span>
-                          <div className="flex-1 h-px" style={{ background: "rgba(33,33,33,0.06)" }} />
-                          <span className="text-[9px] font-semibold" style={{ color: "rgba(33,33,33,0.28)" }}>
+                          <div className="flex-1 h-px" style={{ background: "rgba(249,229,90,0.30)" }} />
+                          <span className="text-[9px] font-semibold" style={{ color: "rgba(74,69,48,0.30)" }}>
                             {items.length} transaksi · {fmt(items.filter(x => x.status === "sukses").reduce((a, b) => a + b.total, 0))}
                           </span>
                         </div>
@@ -485,22 +541,28 @@ export default function PenjualanPage() {
                             >
                               <div className="px-4 py-3.5 flex items-center gap-3">
                                 <div className="flex-shrink-0 text-center w-11">
-                                  <p className="font-['Plus_Jakarta_Sans'] font-black text-sm leading-none" style={{ color: "#2a1f08" }}>{item.waktu}</p>
-                                  <p className="text-[8px] mt-0.5 font-medium" style={{ color: "rgba(33,33,33,0.30)" }}>WIB</p>
+                                  <p className="font-['Plus_Jakarta_Sans'] font-black text-sm leading-none"
+                                    style={{ color: "#4A4530" }}>{item.waktu}</p>
+                                  <p className="text-[8px] mt-0.5 font-medium"
+                                    style={{ color: "rgba(74,69,48,0.30)" }}>WIB</p>
                                 </div>
 
-                                <div className="w-px h-8 flex-shrink-0" style={{ background: "rgba(33,33,33,0.07)" }} />
+                                <div className="w-px h-8 flex-shrink-0"
+                                  style={{ background: "rgba(249,229,90,0.30)" }} />
 
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                                    <p className="font-['Plus_Jakarta_Sans'] font-black text-[12px]" style={{ color: "#212121" }}>{item.kode}</p>
+                                    <p className="font-['Plus_Jakarta_Sans'] font-black text-[12px]"
+                                      style={{ color: "#4A4530" }}>{item.kode}</p>
                                     <MetodeBadge metode={item.metode} />
                                   </div>
-                                  <p className="text-[11px] truncate" style={{ color: "rgba(33,33,33,0.50)" }}>{item.items}</p>
+                                  <p className="text-[11px] truncate"
+                                    style={{ color: "rgba(74,69,48,0.48)" }}>{item.items}</p>
                                 </div>
 
                                 <div className="flex-shrink-0 text-right">
-                                  <p className="font-['Plus_Jakarta_Sans'] font-black text-sm" style={{ color: "#212121" }}>{fmt(item.total)}</p>
+                                  <p className="font-['Plus_Jakarta_Sans'] font-black text-sm"
+                                    style={{ color: "#4A4530" }}>{fmt(item.total)}</p>
                                   <div className="mt-0.5 flex justify-end">
                                     <StatusBadge status={item.status} />
                                   </div>
@@ -509,18 +571,20 @@ export default function PenjualanPage() {
 
                               {selectedId === item.id && isAdmin && (
                                 <div className="px-4 pb-3 flex items-center justify-between border-t"
-                                  style={{ borderColor: "rgba(33,33,33,0.06)", background: "rgba(42,31,8,0.02)" }}>
-                                  <p className="text-[10px] font-medium mt-2" style={{ color: "rgba(33,33,33,0.35)" }}>
+                                  style={{ borderColor: "rgba(249,229,90,0.20)", background: "#FFFEF5" }}>
+                                  <p className="text-[10px] font-medium mt-2"
+                                    style={{ color: "rgba(74,69,48,0.35)" }}>
                                     ID: {item.id} · Klik lagi untuk tutup
                                   </p>
                                   <div className="flex items-center gap-2 mt-2">
                                     <Link href={`/penjualan/edit/${item.id}`}>
                                       <button className="btn-ghost" onClick={e => e.stopPropagation()}>
-                                        <IconEdit size={12} /> Edit
+                                        <IconEdit size={12} color="#92661a" /> Edit
                                       </button>
                                     </Link>
-                                    <button className="btn-danger" onClick={e => { e.stopPropagation(); setDeleteModal(item); }}>
-                                      <IconTrash size={12} color="#dc2626" /> Hapus
+                                    <button className="btn-danger"
+                                      onClick={e => { e.stopPropagation(); setDeleteModal(item); }}>
+                                      <IconTrash size={12} color="#9d174d" /> Hapus
                                     </button>
                                   </div>
                                 </div>
@@ -534,12 +598,13 @@ export default function PenjualanPage() {
 
                   {totalPages > 1 && (
                     <div className="anim-fade-up d400 flex items-center justify-between mt-6">
-                      <p className="text-[11px] font-medium" style={{ color: "rgba(33,33,33,0.38)" }}>
+                      <p className="text-[11px] font-medium" style={{ color: "rgba(74,69,48,0.38)" }}>
                         Hlm. {page} dari {totalPages} · {filtered.length} transaksi
                       </p>
                       <div className="flex items-center gap-1.5">
-                        <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
-                          <IconChevronLeft size={12} />
+                        <button className="page-btn" disabled={page === 1}
+                          onClick={() => setPage(p => p - 1)}>
+                          <IconChevronLeft size={12} color="#4A4530" />
                         </button>
                         {Array.from({ length: totalPages }, (_, i) => i + 1)
                           .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
@@ -548,11 +613,15 @@ export default function PenjualanPage() {
                             acc.push(p); return acc;
                           }, [])
                           .map((p, i) => p === "…"
-                            ? <span key={i} className="text-[11px] px-1" style={{ color: "rgba(33,33,33,0.30)" }}>…</span>
-                            : <button key={i} className={`page-btn${page === p ? " active" : ""}`} onClick={() => setPage(p as number)}>{p}</button>
+                            ? <span key={i} className="text-[11px] px-1"
+                                style={{ color: "rgba(74,69,48,0.30)" }}>…</span>
+                            : <button key={i}
+                                className={`page-btn${page === p ? " active" : ""}`}
+                                onClick={() => setPage(p as number)}>{p}</button>
                           )}
-                        <button className="page-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
-                          <IconChevronRight size={12} />
+                        <button className="page-btn" disabled={page === totalPages}
+                          onClick={() => setPage(p => p + 1)}>
+                          <IconChevronRight size={12} color="#4A4530" />
                         </button>
                       </div>
                     </div>
@@ -565,8 +634,10 @@ export default function PenjualanPage() {
                       <div className="px-5 pt-5 pb-1">
                         <div className="flex items-start justify-between gap-2 mb-4">
                           <div>
-                            <p className="text-[9px] font-bold tracking-[.12em] uppercase mb-1" style={{ color: "rgba(33,33,33,0.35)" }}>Detail Transaksi</p>
-                            <p className="font-['Plus_Jakarta_Sans'] font-black text-lg" style={{ color: "#2a1f08" }}>{selected.kode}</p>
+                            <p className="text-[9px] font-bold tracking-[.12em] uppercase mb-1"
+                              style={{ color: "rgba(146,102,26,0.50)" }}>Detail Transaksi</p>
+                            <p className="font-['Plus_Jakarta_Sans'] font-black text-lg"
+                              style={{ color: "#4A4530" }}>{selected.kode}</p>
                           </div>
                           <StatusBadge status={selected.status} />
                         </div>
@@ -580,9 +651,11 @@ export default function PenjualanPage() {
                           { label: "Item",    val: selected.items },
                         ].map((row, i) => (
                           <div key={i} className="flex justify-between gap-2">
-                            <p className="text-[11px] font-medium flex-shrink-0" style={{ color: "rgba(33,33,33,0.40)" }}>{row.label}</p>
+                            <p className="text-[11px] font-medium flex-shrink-0"
+                              style={{ color: "rgba(74,69,48,0.40)" }}>{row.label}</p>
                             {typeof row.val === "string"
-                              ? <p className="text-[11px] font-semibold text-right" style={{ color: "#212121" }}>{row.val}</p>
+                              ? <p className="text-[11px] font-semibold text-right"
+                                  style={{ color: "#4A4530" }}>{row.val}</p>
                               : row.val}
                           </div>
                         ))}
@@ -590,17 +663,22 @@ export default function PenjualanPage() {
                       <div className="receipt-edge" style={{ transform: "scaleX(-1)" }} />
                       <div className="px-5 py-4">
                         <div className="flex items-center justify-between">
-                          <p className="text-[11px] font-bold" style={{ color: "rgba(33,33,33,0.40)" }}>TOTAL</p>
-                          <p className="font-['Plus_Jakarta_Sans'] font-black text-lg" style={{ color: "#2a1f08" }}>{fmt(selected.total)}</p>
+                          <p className="text-[11px] font-bold"
+                            style={{ color: "rgba(74,69,48,0.40)" }}>TOTAL</p>
+                          <p className="font-['Plus_Jakarta_Sans'] font-black text-lg"
+                            style={{ color: "#92661a" }}>{fmt(selected.total)}</p>
                         </div>
                       </div>
                       {isAdmin && (
                         <div className="px-5 pb-5 flex gap-2">
                           <Link href={`/penjualan/edit/${selected.id}`} className="flex-1">
-                            <button className="btn-ghost w-full justify-center"><IconEdit size={12} /> Edit</button>
+                            <button className="btn-ghost w-full justify-center">
+                              <IconEdit size={12} color="#92661a" /> Edit
+                            </button>
                           </Link>
-                          <button className="btn-danger flex-1 justify-center" onClick={() => setDeleteModal(selected)}>
-                            <IconTrash size={12} color="#dc2626" /> Hapus
+                          <button className="btn-danger flex-1 justify-center"
+                            onClick={() => setDeleteModal(selected)}>
+                            <IconTrash size={12} color="#9d174d" /> Hapus
                           </button>
                         </div>
                       )}
@@ -608,57 +686,75 @@ export default function PenjualanPage() {
                   ) : (
                     <div className="detail-panel anim-fade-up d200">
                       <div className="px-5 pt-5 pb-3">
-                        <p className="text-[9px] font-bold tracking-[.12em] uppercase mb-3" style={{ color: "rgba(33,33,33,0.35)" }}>Ringkasan</p>
-                        <div className="rounded-xl p-4 mb-4" style={{ background: "linear-gradient(135deg,#2a1f08 0%,#4a3415 100%)" }}>
-                          <p className="text-[9px] font-bold tracking-[.10em] uppercase mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>Total Pendapatan</p>
-                          <p className="font-['Plus_Jakarta_Sans'] font-black text-xl" style={{ color: "#EFF0A3" }}>{fmt(totalPenjualan)}</p>
-                          <p className="text-[9px] mt-1 font-medium" style={{ color: "rgba(255,255,255,0.30)" }}>dari {totalSukses} transaksi sukses</p>
+                        <p className="text-[9px] font-bold tracking-[.12em] uppercase mb-3"
+                          style={{ color: "rgba(146,102,26,0.50)" }}>Ringkasan</p>
+
+                        <div className="rounded-2xl p-4 mb-4"
+                          style={{ background: "linear-gradient(135deg, #FEF9C3 0%, #FDE68A 100%)",
+                            border: "1px solid rgba(249,229,90,0.45)" }}>
+                          <p className="text-[9px] font-bold tracking-[.10em] uppercase mb-1"
+                            style={{ color: "rgba(146,102,26,0.50)" }}>Total Pendapatan</p>
+                          <p className="font-['Plus_Jakarta_Sans'] font-black text-xl"
+                            style={{ color: "#92661a" }}>{fmt(totalPenjualan)}</p>
+                          <p className="text-[9px] mt-1 font-medium"
+                            style={{ color: "rgba(74,69,48,0.45)" }}>dari {totalSukses} transaksi sukses</p>
                         </div>
 
                         <div className="space-y-2 mb-5">
                           {[
-                            { label: "Sukses",  val: totalSukses,  color: "#2d6a3f", bg: "#CFDECA" },
-                            { label: "Pending", val: totalPending, color: "#92650a", bg: "#EFF0A3" },
-                            { label: "Batal",   val: totalBatal,   color: "#dc2626", bg: "#fee2e2" },
+                            { label: "Sukses",  val: totalSukses,  textColor: "#2d6640", bg: "#C5D9C0" },
+                            { label: "Pending", val: totalPending, textColor: "#924d1a", bg: "#FECBA1" },
+                            { label: "Batal",   val: totalBatal,   textColor: "#9d174d", bg: "#FBCFE8" },
                           ].map((s, i) => (
                             <div key={i} className="flex items-center gap-2.5">
-                              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.bg, border: `1.5px solid ${s.color}` }} />
-                              <p className="text-[11px] font-medium flex-1" style={{ color: "rgba(33,33,33,0.55)" }}>{s.label}</p>
-                              <p className="font-['Plus_Jakarta_Sans'] font-black text-sm" style={{ color: s.color }}>{s.val}</p>
+                              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                style={{ background: s.bg }} />
+                              <p className="text-[11px] font-medium flex-1"
+                                style={{ color: "rgba(74,69,48,0.55)" }}>{s.label}</p>
+                              <p className="font-['Plus_Jakarta_Sans'] font-black text-sm"
+                                style={{ color: s.textColor }}>{s.val}</p>
                             </div>
                           ))}
                         </div>
 
-                        <div className="h-px mb-4" style={{ background: "rgba(33,33,33,0.07)" }} />
+                        <div className="h-px mb-4" style={{ background: "rgba(249,229,90,0.25)" }} />
 
-                        <p className="text-[9px] font-bold tracking-[.12em] uppercase mb-3" style={{ color: "rgba(33,33,33,0.35)" }}>Metode Pembayaran</p>
+                        <p className="text-[9px] font-bold tracking-[.12em] uppercase mb-3"
+                          style={{ color: "rgba(146,102,26,0.50)" }}>Metode Pembayaran</p>
                         <div className="space-y-3">
                           {metodeSummary.map((m, i) => (
                             <div key={i}>
                               <div className="flex items-center justify-between mb-1">
                                 <div className="flex items-center gap-1.5">
-                                  <IconCreditCard size={10} color="rgba(33,33,33,0.45)" />
-                                  <p className="text-[11px] font-semibold" style={{ color: "rgba(33,33,33,0.60)" }}>{m.metode}</p>
+                                  <IconCreditCard size={10} color="rgba(74,69,48,0.40)" />
+                                  <p className="text-[11px] font-semibold"
+                                    style={{ color: "rgba(74,69,48,0.60)" }}>{m.metode}</p>
                                 </div>
-                                <p className="text-[10px] font-bold" style={{ color: "#2a1f08" }}>{m.count}x</p>
+                                <p className="text-[10px] font-bold"
+                                  style={{ color: "#92661a" }}>{m.count}x</p>
                               </div>
                               <div className="method-bar">
                                 <div className="method-bar-fill"
                                   style={{
                                     width: `${(m.total / maxMetode) * 100}%`,
-                                    background: m.metode === "QRIS" ? "#818cf8" : m.metode === "Tunai" ? "#4ade80" : "#38bdf8"
+                                    background: m.metode === "QRIS"     ? "#DDD6FE"
+                                              : m.metode === "Tunai"    ? "#C5D9C0"
+                                              : "#FECBA1"
                                   }} />
                               </div>
-                              <p className="text-[9px] mt-0.5 font-medium" style={{ color: "rgba(33,33,33,0.35)" }}>{fmt(m.total)}</p>
+                              <p className="text-[9px] mt-0.5 font-medium"
+                                style={{ color: "rgba(74,69,48,0.35)" }}>{fmt(m.total)}</p>
                             </div>
                           ))}
                         </div>
 
-                        <div className="h-px my-4" style={{ background: "rgba(33,33,33,0.07)" }} />
+                        <div className="h-px my-4" style={{ background: "rgba(249,229,90,0.25)" }} />
 
-                        <div className="flex items-center gap-2 p-3 rounded-xl" style={{ background: "rgba(42,31,8,0.04)" }}>
-                          <IconTrendingUp size={14} color="#7a5c2e" />
-                          <p className="text-[10px] font-medium" style={{ color: "rgba(80,65,40,0.60)" }}>
+                        <div className="flex items-center gap-2 p-3 rounded-xl"
+                          style={{ background: "#F3E8FF" }}>
+                          <IconTrendingUp size={14} color="#7c3d8a" />
+                          <p className="text-[10px] font-medium"
+                            style={{ color: "rgba(74,69,48,0.55)" }}>
                             Klik transaksi untuk melihat detail & aksi.
                           </p>
                         </div>
@@ -667,6 +763,7 @@ export default function PenjualanPage() {
                     </div>
                   )}
                 </div>
+
               </div>
             </Inner>
           </section>
@@ -676,23 +773,30 @@ export default function PenjualanPage() {
 
         {deleteModal && (
           <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4"
-            style={{ background: "rgba(33,33,33,0.45)", backdropFilter: "blur(8px)" }}
+            style={{ background: "rgba(74,69,48,0.30)", backdropFilter: "blur(10px)" }}
             onClick={() => setDeleteModal(null)}>
             <div className="modal-box w-full max-w-sm p-6 sm:p-7 border"
-              style={{ background: "#FFFFFF", borderRadius: "20px", borderColor: "rgba(33,33,33,0.08)", boxShadow: "0 24px 64px rgba(33,33,33,0.18)" }}
+              style={{ background: "#FFFFFF", borderRadius: "22px",
+                borderColor: "rgba(251,207,232,0.55)",
+                boxShadow: "0 24px 64px rgba(251,207,232,0.35)" }}
               onClick={e => e.stopPropagation()}>
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ background: "#fee2e2" }}>
-                <IconTrash size={22} color="#dc2626" />
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+                style={{ background: "#FBCFE8" }}>
+                <IconTrash size={22} color="#9d174d" />
               </div>
-              <h2 className="font-['Plus_Jakarta_Sans'] font-black text-lg text-[#212121] mb-1.5">Hapus Transaksi?</h2>
-              <p className="text-sm mb-6" style={{ color: "rgba(33,33,33,0.55)" }}>
-                Transaksi <span className="font-semibold text-[#212121]">{deleteModal.kode}</span> akan dihapus permanen dan tidak bisa dipulihkan.
+              <h2 className="font-['Plus_Jakarta_Sans'] font-black text-lg mb-1.5"
+                style={{ color: "#4A4530" }}>Hapus Transaksi?</h2>
+              <p className="text-sm mb-6" style={{ color: "rgba(74,69,48,0.55)" }}>
+                Transaksi <span className="font-semibold" style={{ color: "#4A4530" }}>{deleteModal.kode}</span> akan
+                dihapus permanen dan tidak bisa dipulihkan.
               </p>
               <div className="flex gap-3">
-                <button className="btn-ghost flex-1 justify-center" onClick={() => setDeleteModal(null)}>Batal</button>
-                <button className="btn-danger flex-1 justify-center font-bold" style={{ padding: "10px 20px", fontSize: "13px" }}
+                <button className="btn-ghost flex-1 justify-center"
+                  onClick={() => setDeleteModal(null)}>Batal</button>
+                <button className="btn-danger flex-1 justify-center font-bold"
+                  style={{ padding: "10px 20px", fontSize: "13px" }}
                   onClick={() => handleDelete(deleteModal)}>
-                  <IconTrash size={13} color="#dc2626" /> Ya, Hapus
+                  <IconTrash size={13} color="#9d174d" /> Ya, Hapus
                 </button>
               </div>
             </div>
@@ -700,12 +804,19 @@ export default function PenjualanPage() {
         )}
 
         {toast && (
-          <div className="toast fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 shadow-2xl border"
-            style={{ background: toast.type === "success" ? "#CFDECA" : "#fee2e2", borderColor: "rgba(255,255,255,0.7)", borderRadius: "14px", minWidth: "260px" }}>
+          <div className="toast fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 border"
+            style={{
+              background: toast.type === "success" ? "#DCFCE7" : "#FBCFE8",
+              borderColor: toast.type === "success" ? "rgba(197,217,192,0.65)" : "rgba(251,207,232,0.65)",
+              borderRadius: "14px", minWidth: "260px",
+              boxShadow: "0 8px 32px rgba(249,229,90,0.20)"
+            }}>
             <span className="flex-shrink-0">
-              {toast.type === "success" ? <IconCheck size={15} color="#2d6a3f" /> : <IconX size={15} color="#dc2626" />}
+              {toast.type === "success"
+                ? <IconCheck size={15} color="#2d6640" />
+                : <IconX size={15} color="#9d174d" />}
             </span>
-            <p className="text-xs sm:text-sm font-semibold text-[#212121]">{toast.msg}</p>
+            <p className="text-xs sm:text-sm font-semibold" style={{ color: "#4A4530" }}>{toast.msg}</p>
           </div>
         )}
       </div>
