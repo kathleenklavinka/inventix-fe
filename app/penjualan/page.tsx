@@ -26,19 +26,6 @@ const penjualanData = [
   { id: 15, kode: "#TRX-0828", waktu: "15:30", tanggal: "29 Mei 2026",   items: "Focaccia Original x1, Cold Brew x2",    total: 115000, metode: "Tunai",    status: "batal"   },
 ];
 
-// ─── Palet warna ──────────────────────────────────────────────────────────────
-// BG page/content : #FFFEF5  (krem kuning sangat pucat)
-// Hero bg         : #FEFCE8 → #FEF9C3 → #FFFDE7  (pastel kuning lembut)
-// Primary text    : #4A4530  (coklat tua hangat — harmonis dengan kuning)
-// Btn primary     : #F9E55A bg / #4A4530 text  (kuning cerah-pastel)
-// Accent mint     : #C5D9C0  (sage/hijau mint)
-// Accent peach    : #FECBA1  (peach lembut)
-// Accent lavender : #DDD6FE  (lavender)
-// Accent rose     : #FBCFE8  (rose/pink)
-// Accent sky      : #BAE6FD  (biru langit sangat pucat — bukan biru dominan)
-// Accent lemon    : #FEF08A  (lemon terang)
-// ─────────────────────────────────────────────────────────────────────────────
-
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
