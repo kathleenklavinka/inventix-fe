@@ -8,7 +8,6 @@ import { useState, useEffect } from "react";
 const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
 const isAdmin = true;
 
-// ── DATA ──
 const penjualanData = [
   { id: 1,  kode: "#TRX-0842", waktu: "14:32", tanggal: "30 Mei 2026",   items: "Kopi Arabika x2, Focaccia x1",         total: 185000, metode: "QRIS",     status: "sukses"  },
   { id: 2,  kode: "#TRX-0841", waktu: "14:15", tanggal: "30 Mei 2026",   items: "Cold Brew x3, Croissant x2",            total: 225000, metode: "Tunai",    status: "sukses"  },
@@ -33,7 +32,6 @@ const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus
 
 function fmt(n: number) { return "Rp " + n.toLocaleString("id-ID"); }
 
-// ── ICONS ──
 const IconReceipt = ({ size = 18, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -305,7 +303,6 @@ export default function PenjualanPage() {
 
         <main className="w-full">
 
-          {/* ── HERO ── */}
           <section className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
             style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}>
             <div className="absolute -top-28 -right-28 w-96 h-96 rounded-full opacity-30 blob pointer-events-none"
@@ -338,7 +335,6 @@ export default function PenjualanPage() {
                 )}
               </div>
 
-              {/* Stat strip */}
               <div className="anim-fade-up d200 stat-strip mt-7">
                 {[
                   { label: "Total Penjualan",    val: fmt(totalPenjualan),            icon: <IconReceipt size={18} color="#7a5c2e" />,    iconBg: "#e8dfc8", valColor: "#2a1f08" },
@@ -360,10 +356,8 @@ export default function PenjualanPage() {
             </Inner>
           </section>
 
-          {/* ── TABLE SECTION ── */}
           <section className="w-full py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
             <Inner>
-              {/* Controls */}
               <div className="anim-fade-up d200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[11px] font-medium" style={{ color: "rgba(33,33,33,0.45)" }}>Tampilkan</span>
@@ -388,7 +382,6 @@ export default function PenjualanPage() {
                 </div>
               </div>
 
-              {/* Filter pills */}
               <div className="anim-fade-up d250 flex items-center gap-2 mb-5 flex-wrap">
                 {(["semua","sukses","pending","batal"] as const).map(s => (
                   <button key={s} onClick={() => { setFilterStatus(s); setPage(1); }}
@@ -403,11 +396,9 @@ export default function PenjualanPage() {
                 <span className="ml-auto text-[10px]" style={{ color: "rgba(33,33,33,0.28)" }}>{sorted.length} transaksi</span>
               </div>
 
-              {/* Table card */}
               <div className="anim-fade-up d300 zoom-card overflow-hidden border"
                 style={{ background: "rgba(255,255,255,0.60)", backdropFilter: "blur(22px)", borderColor: "rgba(33,33,33,0.08)", borderRadius: "18px", boxShadow: "0 8px 32px rgba(33,33,33,0.07), inset 0 1px 0 rgba(255,255,255,0.95)" }}>
 
-                {/* Desktop */}
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -477,7 +468,6 @@ export default function PenjualanPage() {
                   </table>
                 </div>
 
-                {/* Mobile */}
                 <div className="sm:hidden divide-y" style={{ borderColor: "rgba(33,33,33,0.06)" }}>
                   {paginated.length === 0 ? (
                     <div className="py-12 text-center text-sm" style={{ color: "rgba(33,33,33,0.35)" }}>Tidak ada transaksi.</div>
@@ -511,7 +501,6 @@ export default function PenjualanPage() {
                 </div>
               </div>
 
-              {/* Pagination */}
               <div className="anim-fade-up d400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-5">
                 <p className="text-[11px] font-medium" style={{ color: "rgba(33,33,33,0.40)" }}>
                   Menampilkan {Math.min((page - 1) * showCount + 1, sorted.length)}–{Math.min(page * showCount, sorted.length)} dari {sorted.length} entri
@@ -534,7 +523,6 @@ export default function PenjualanPage() {
             </Inner>
           </section>
 
-          {/* ── STAT BAR ── */}
           <section className="w-full relative overflow-hidden py-5 sm:py-6" style={{ background: "#212121" }}>
             <Inner>
               <div className="anim-fade-up d300 flex flex-wrap items-center justify-between gap-4">
@@ -561,7 +549,6 @@ export default function PenjualanPage() {
 
         <Footer />
 
-        {/* ── DELETE MODAL ── */}
         {deleteModal && (
           <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4"
             style={{ background: "rgba(33,33,33,0.45)", backdropFilter: "blur(8px)" }}
@@ -587,7 +574,6 @@ export default function PenjualanPage() {
           </div>
         )}
 
-        {/* ── TOAST ── */}
         {toast && (
           <div className="toast fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 shadow-2xl border"
             style={{ background: toast.type === "success" ? "#CFDECA" : "#fee2e2", borderColor: "rgba(255,255,255,0.7)", borderRadius: "14px", minWidth: "260px" }}>

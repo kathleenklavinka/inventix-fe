@@ -8,7 +8,6 @@ import { useParams, useRouter } from "next/navigation";
 
 const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
 
-// ── MOCK DATA (sama seperti halaman list) ──
 const penjualanData = [
   { id: 1,  kode: "#TRX-0842", waktu: "14:32", tanggal: "30 Mei 2026",   rawItems: [{ barangId: 1, jumlah: 2 }, { barangId: 4, jumlah: 1 }], total: 185000, metode: "QRIS",     status: "sukses",  catatan: "" },
   { id: 2,  kode: "#TRX-0841", waktu: "14:15", tanggal: "30 Mei 2026",   rawItems: [{ barangId: 2, jumlah: 3 }, { barangId: 5, jumlah: 2 }], total: 225000, metode: "Tunai",    status: "sukses",  catatan: "" },
@@ -46,7 +45,6 @@ type StatusType = "sukses" | "pending" | "batal";
 
 function fmt(n: number) { return "Rp " + n.toLocaleString("id-ID"); }
 
-// ── ICONS ──
 const IconArrowLeft = ({ size = 16, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
@@ -147,7 +145,6 @@ export default function EditPenjualanPage() {
   const [notFound, setNotFound]     = useState(false);
   const [originalData, setOriginalData] = useState<typeof penjualanData[0] | null>(null);
 
-  // Form state
   const [lines, setLines]           = useState<LineItem[]>([]);
   const [metode, setMetode]         = useState("QRIS");
   const [status, setStatus]         = useState<StatusType>("sukses");
@@ -156,7 +153,6 @@ export default function EditPenjualanPage() {
   const [submitted, setSubmitted]   = useState(false);
   const [globalError, setGlobalError] = useState("");
 
-  // Dirty state tracking
   const [isDirty, setIsDirty]       = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [pendingNav, setPendingNav]  = useState<string | null>(null);
@@ -183,12 +179,10 @@ export default function EditPenjualanPage() {
     setTimeout(() => setMounted(true), 80);
   }, [id]);
 
-  // Mark dirty whenever form changes after mount
   useEffect(() => {
     if (mounted && !submitted) setIsDirty(true);
   }, [lines, metode, status, catatan]);
 
-  // ── LINE HELPERS ──
   function updateLine(uid: number, patch: Partial<LineItem>) {
     setLines(prev =>
       prev.map(l => {
@@ -215,7 +209,6 @@ export default function EditPenjualanPage() {
     setLines(prev => prev.filter(l => l.uid !== uid));
   }
 
-  // ── SUMMARY ──
   const lineDetails = lines.map(l => {
     const barang = stokData.find(s => s.id === l.barangId);
     return { ...l, barang, subtotal: barang ? barang.harga * l.jumlah : 0 };
@@ -225,7 +218,6 @@ export default function EditPenjualanPage() {
   const hasEmpty   = lines.some(l => l.barangId === null);
   const usedIds    = lines.map(l => l.barangId).filter(Boolean) as number[];
 
-  // ── SUBMIT ──
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setGlobalError("");
@@ -240,7 +232,6 @@ export default function EditPenjualanPage() {
     setIsDirty(false);
   }
 
-  // ── DISCARD NAVIGATION ──
   function handleNavAttempt(href: string) {
     if (isDirty && !submitted) {
       setPendingNav(href);
@@ -255,7 +246,6 @@ export default function EditPenjualanPage() {
     if (pendingNav) router.push(pendingNav);
   }
 
-  // ── 404 STATE ──
   if (mounted && notFound) {
     return (
       <>
@@ -442,7 +432,6 @@ export default function EditPenjualanPage() {
 
         <main className="w-full">
 
-          {/* ── HERO ── */}
           <section
             className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
             style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}
@@ -453,7 +442,6 @@ export default function EditPenjualanPage() {
               style={{ background: "#CFDECA", filter: "blur(60px)" }} />
 
             <Inner>
-              {/* Breadcrumb */}
               <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-medium flex-wrap"
                 style={{ color: "rgba(80,65,40,0.45)" }}>
                 <Link href="/dashboard" className="hover:text-[#2a1f08] transition-colors">Dashboard</Link>
@@ -502,11 +490,8 @@ export default function EditPenjualanPage() {
             </Inner>
           </section>
 
-          {/* ── FORM SECTION ── */}
           <section className="w-full py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
             <Inner>
-
-              {/* SUCCESS STATE */}
               {submitted ? (
                 <div className="success-pop card p-10 flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
@@ -538,10 +523,8 @@ export default function EditPenjualanPage() {
                 <form onSubmit={handleSubmit} noValidate>
                   <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-start">
 
-                    {/* ── LEFT ── */}
                     <div className="flex flex-col gap-5">
 
-                      {/* Original info banner */}
                       {originalData && (
                         <div className="anim-fade-up d50 flex items-start gap-3 px-4 py-3.5 rounded-2xl"
                           style={{ background: "rgba(216,223,233,0.35)", border: "1px solid rgba(42,58,82,0.12)" }}>
@@ -559,7 +542,6 @@ export default function EditPenjualanPage() {
                         </div>
                       )}
 
-                      {/* Item list card */}
                       <div className="anim-fade-up d100 card p-6">
                         <div className="flex items-center justify-between gap-3 mb-5">
                           <div className="flex items-center gap-3">
@@ -604,7 +586,6 @@ export default function EditPenjualanPage() {
                                   </button>
                                 </div>
 
-                                {/* Barang select */}
                                 <div className="mb-3">
                                   <label className="field-label">Nama Barang</label>
                                   <div className="relative">
@@ -634,7 +615,6 @@ export default function EditPenjualanPage() {
                                   </div>
                                 </div>
 
-                                {/* Jumlah + info */}
                                 <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
                                   <div>
                                     <label className="field-label">Jumlah</label>
@@ -681,7 +661,6 @@ export default function EditPenjualanPage() {
                         </button>
                       </div>
 
-                      {/* Catatan */}
                       <div className="anim-fade-up d200 card p-6">
                         <label className="field-label" style={{ marginBottom: "8px", display: "block" }}>
                           Catatan{" "}
@@ -699,10 +678,8 @@ export default function EditPenjualanPage() {
                       </div>
                     </div>
 
-                    {/* ── RIGHT ── */}
                     <div className="flex flex-col gap-5">
 
-                      {/* Metode */}
                       <div className="anim-fade-up d150 card p-6">
                         <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121] mb-4">
                           Metode Pembayaran
@@ -718,7 +695,6 @@ export default function EditPenjualanPage() {
                         </div>
                       </div>
 
-                      {/* Status */}
                       <div className="anim-fade-up d200 card p-6">
                         <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121] mb-4">
                           Status Transaksi
@@ -734,7 +710,6 @@ export default function EditPenjualanPage() {
                         </div>
                       </div>
 
-                      {/* Summary */}
                       <div className="anim-fade-up d250 card p-6">
                         <div className="flex items-center gap-2.5 mb-4">
                           <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -764,7 +739,6 @@ export default function EditPenjualanPage() {
                           )}
                         </div>
 
-                        {/* Diff indicator */}
                         {originalData && grandTotal !== originalData.total && grandTotal > 0 && (
                           <div className="mt-3 pt-3 flex items-center justify-between text-[11px]"
                             style={{ borderTop: "1px dashed rgba(33,33,33,0.10)" }}>
@@ -794,7 +768,6 @@ export default function EditPenjualanPage() {
                         </div>
                       </div>
 
-                      {/* Global error */}
                       {globalError && (
                         <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl"
                           style={{ background: "#fee2e2", border: "1px solid rgba(220,38,38,0.2)" }}>
@@ -803,7 +776,6 @@ export default function EditPenjualanPage() {
                         </div>
                       )}
 
-                      {/* Submit */}
                       <div className="anim-fade-up d300 flex flex-col gap-2">
                         <button
                           type="submit"
@@ -830,7 +802,6 @@ export default function EditPenjualanPage() {
             </Inner>
           </section>
 
-          {/* ── STAT BAR ── */}
           <section className="w-full py-5 sm:py-6" style={{ background: "#212121" }}>
             <Inner>
               <div className="flex items-center justify-between flex-wrap gap-3">
@@ -847,7 +818,6 @@ export default function EditPenjualanPage() {
 
         <Footer />
 
-        {/* ── DISCARD CHANGES MODAL ── */}
         {showDiscardModal && (
           <div className="modal-fade fixed inset-0 z-50 flex items-center justify-center px-4"
             style={{ background: "rgba(33,33,33,0.45)", backdropFilter: "blur(8px)" }}

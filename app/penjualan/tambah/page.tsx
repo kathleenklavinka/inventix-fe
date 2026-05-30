@@ -7,7 +7,6 @@ import { useState, useEffect } from "react";
 
 const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
 
-// ── MOCK STOCK DATA ──
 const stokData = [
   { id: 1, nama: "Kopi Arabika",       satuan: "cup",  harga: 45000,  stok: 48 },
   { id: 2, nama: "Cold Brew",          satuan: "cup",  harga: 45000,  stok: 30 },
@@ -26,7 +25,6 @@ function fmt(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
 }
 
-// ── ICONS ──
 const IconArrowLeft = ({ size = 16, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="19" y1="12" x2="5" y2="12"/>
@@ -93,7 +91,6 @@ export default function TambahPenjualanPage() {
   const [mounted, setMounted] = useState(false);
   const [tanggal, setTanggal] = useState("");
 
-  // Form state
   const [lines, setLines] = useState<LineItem[]>([
     { uid: Date.now(), barangId: null, jumlah: 1, error: "" },
   ]);
@@ -109,13 +106,11 @@ export default function TambahPenjualanPage() {
     setTimeout(() => setMounted(true), 80);
   }, []);
 
-  // ── LINE HELPERS ──
   function updateLine(uid: number, patch: Partial<LineItem>) {
     setLines(prev =>
       prev.map(l => {
         if (l.uid !== uid) return l;
         const updated = { ...l, ...patch };
-        // revalidate on change
         if ("jumlah" in patch || "barangId" in patch) {
           const barang = stokData.find(s => s.id === (updated.barangId ?? -1));
           if (barang && updated.jumlah > barang.stok) {
@@ -137,7 +132,6 @@ export default function TambahPenjualanPage() {
     setLines(prev => prev.filter(l => l.uid !== uid));
   }
 
-  // ── SUMMARY ──
   const lineDetails = lines.map(l => {
     const barang = stokData.find(s => s.id === l.barangId);
     return { ...l, barang, subtotal: barang ? barang.harga * l.jumlah : 0 };
@@ -146,7 +140,6 @@ export default function TambahPenjualanPage() {
   const hasError   = lines.some(l => l.error !== "");
   const hasEmpty   = lines.some(l => l.barangId === null);
 
-  // ── SUBMIT ──
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setGlobalError("");
@@ -161,7 +154,6 @@ export default function TambahPenjualanPage() {
     setSubmitted(true);
   }
 
-  // ── USED BARANG IDS (prevent duplicate rows) ──
   const usedIds = lines.map(l => l.barangId).filter(Boolean) as number[];
 
   return (
@@ -330,7 +322,6 @@ export default function TambahPenjualanPage() {
 
         .toast { animation: slideIn .35s cubic-bezier(.22,1,.36,1) both }
 
-        /* qty input */
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0 }
         input[type=number] { -moz-appearance: textfield }
@@ -343,8 +334,6 @@ export default function TambahPenjualanPage() {
         <Header hasNotification={false} userInitials={user.initials} />
 
         <main className="w-full">
-
-          {/* ── HERO ── */}
           <section
             className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
             style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}
@@ -355,7 +344,6 @@ export default function TambahPenjualanPage() {
               style={{ background: "#CFDECA", filter: "blur(60px)" }} />
 
             <Inner>
-              {/* Breadcrumb */}
               <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-medium"
                 style={{ color: "rgba(80,65,40,0.45)" }}>
                 <Link href="/dashboard" className="hover:text-[#2a1f08] transition-colors">Dashboard</Link>
@@ -383,11 +371,9 @@ export default function TambahPenjualanPage() {
             </Inner>
           </section>
 
-          {/* ── FORM SECTION ── */}
           <section className="w-full py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
             <Inner>
 
-              {/* SUCCESS STATE */}
               {submitted ? (
                 <div className="success-pop card p-10 flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
@@ -422,10 +408,8 @@ export default function TambahPenjualanPage() {
                 <form onSubmit={handleSubmit} noValidate>
                   <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 items-start">
 
-                    {/* ── LEFT: ITEMS ── */}
                     <div className="flex flex-col gap-5">
 
-                      {/* Item list card */}
                       <div className="anim-fade-up d100 card p-6">
                         <div className="flex items-center gap-3 mb-5">
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -451,7 +435,6 @@ export default function TambahPenjualanPage() {
                             return (
                               <div key={line.uid} className={`line-row row-in ${line.error ? "has-error" : ""}`}>
 
-                                {/* Row header */}
                                 <div className="flex items-center justify-between mb-3">
                                   <span className="text-[10px] font-bold uppercase tracking-widest"
                                     style={{ color: "rgba(80,65,40,0.38)" }}>
@@ -468,7 +451,6 @@ export default function TambahPenjualanPage() {
                                   </button>
                                 </div>
 
-                                {/* Barang select */}
                                 <div className="mb-3">
                                   <label className="field-label">Nama Barang</label>
                                   <div className="relative">
@@ -498,7 +480,6 @@ export default function TambahPenjualanPage() {
                                   </div>
                                 </div>
 
-                                {/* Jumlah + stok info */}
                                 <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
                                   <div>
                                     <label className="field-label">Jumlah</label>
@@ -529,7 +510,6 @@ export default function TambahPenjualanPage() {
                                   </div>
                                 </div>
 
-                                {/* Error */}
                                 {line.error && (
                                   <div className="error-msg mt-2">
                                     <IconAlertTriangle size={13} color="#dc2626" />
@@ -541,14 +521,12 @@ export default function TambahPenjualanPage() {
                           })}
                         </div>
 
-                        {/* Add line button */}
                         <button type="button" className="btn-add-line mt-3" onClick={addLine}>
                           <IconPlus size={13} color="rgba(42,31,8,0.55)" />
                           Tambah Item Lain
                         </button>
                       </div>
 
-                      {/* Catatan card */}
                       <div className="anim-fade-up d200 card p-6">
                         <label className="field-label" style={{ marginBottom: "8px", display: "block" }}>
                           Catatan <span className="normal-case font-normal tracking-normal"
@@ -565,10 +543,8 @@ export default function TambahPenjualanPage() {
                       </div>
                     </div>
 
-                    {/* ── RIGHT: SUMMARY + METODE ── */}
                     <div className="flex flex-col gap-5">
 
-                      {/* Metode pembayaran */}
                       <div className="anim-fade-up d150 card p-6">
                         <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121] mb-4">
                           Metode Pembayaran
@@ -587,7 +563,6 @@ export default function TambahPenjualanPage() {
                         </div>
                       </div>
 
-                      {/* Order summary */}
                       <div className="anim-fade-up d200 card p-6">
                         <div className="flex items-center gap-2.5 mb-4">
                           <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -618,7 +593,6 @@ export default function TambahPenjualanPage() {
                           )}
                         </div>
 
-                        {/* Divider + total */}
                         <div className="mt-3 pt-3" style={{ borderTop: "2px solid rgba(33,33,33,0.08)" }}>
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold uppercase tracking-wider"
@@ -634,7 +608,6 @@ export default function TambahPenjualanPage() {
                         </div>
                       </div>
 
-                      {/* Global error */}
                       {globalError && (
                         <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl"
                           style={{ background: "#fee2e2", border: "1px solid rgba(220,38,38,0.2)" }}>
@@ -643,7 +616,6 @@ export default function TambahPenjualanPage() {
                         </div>
                       )}
 
-                      {/* Submit */}
                       <div className="anim-fade-up d300 flex flex-col gap-2">
                         <button
                           type="submit"
@@ -669,7 +641,6 @@ export default function TambahPenjualanPage() {
             </Inner>
           </section>
 
-          {/* ── STAT BAR ── */}
           <section className="w-full py-5 sm:py-6" style={{ background: "#212121" }}>
             <Inner>
               <div className="flex items-center justify-between flex-wrap gap-3">
@@ -683,7 +654,6 @@ export default function TambahPenjualanPage() {
             </Inner>
           </section>
         </main>
-
         <Footer />
       </div>
     </>
