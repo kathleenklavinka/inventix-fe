@@ -31,7 +31,7 @@ function fmt(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
 }
 
-// ── SVG ICONS ──
+//  SVG ICONS 
 const IconBox = ({ size = 18, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -120,6 +120,21 @@ const IconSortDown = ({ size = 12, color = "currentColor" }) => (
   </svg>
 );
 
+const IconGrid = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+    <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+  </svg>
+);
+
+const IconList = ({ size = 14, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+    <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+    <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+  </svg>
+);
+
 function StatusBadge({ jumlah, max }: { jumlah: number; max: number }) {
   if (jumlah === 0) return (
     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg bg-red-100 text-red-600">
@@ -155,6 +170,7 @@ export default function StockPage() {
   const [deleteModal, setDeleteModal] = useState<typeof stokData[0] | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [filterKategori, setFilterKategori] = useState("Semua");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 
   const adaStokHabis = data.some((d) => d.jumlah === 0);
   const kategoriList = ["Semua", ...Array.from(new Set(data.map(d => d.kategori)))];
@@ -340,6 +356,27 @@ export default function StockPage() {
         .kat-pill.on { background:#2a1f08; color:#EFF0A3; }
         .kat-pill.off { background:rgba(42,31,8,0.08); color:rgba(42,31,8,0.50); }
         .kat-pill.off:hover { background:rgba(42,31,8,0.15); color:#2a1f08; }
+
+        .view-toggle-btn {
+          width:30px; height:30px; border-radius:8px; border:none; cursor:pointer;
+          display:inline-flex; align-items:center; justify-content:center;
+          transition:all .18s;
+        }
+        .view-toggle-btn.on { background:#2a1f08; color:#EFF0A3; }
+        .view-toggle-btn.off { background:rgba(42,31,8,0.08); color:rgba(42,31,8,0.40); }
+        .view-toggle-btn.off:hover { background:rgba(42,31,8,0.15); color:#2a1f08; }
+
+        .stk-grid-card {
+          border:1.5px solid rgba(33,33,33,0.09); border-radius:16px;
+          padding:20px; background:rgba(255,255,255,0.80);
+          transition:transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s, border-color .2s;
+          cursor:default;
+        }
+        .stk-grid-card:hover {
+          transform:translateY(-4px);
+          box-shadow:0 18px 40px rgba(42,31,8,0.10);
+          border-color:rgba(42,31,8,0.20);
+        }
       `}</style>
 
       <div className={`min-h-screen text-[#212121] font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
@@ -349,7 +386,7 @@ export default function StockPage() {
 
         <main className="w-full">
 
-          {/* ── HERO SECTION ── */}
+          {/*  HERO SECTION  */}
           <section className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
             style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}>
 
@@ -359,7 +396,6 @@ export default function StockPage() {
               style={{ background: "#CFDECA", filter: "blur(60px)" }} />
 
             <Inner>
-              {/* Breadcrumb */}
               <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-medium"
                 style={{ color: "rgba(80,65,40,0.45)" }}>
                 <Link href="/dashboard" className="hover:text-[#2a1f08] transition-colors">Dashboard</Link>
@@ -387,7 +423,7 @@ export default function StockPage() {
                 )}
               </div>
 
-              {/* ── STAT STRIP ── */}
+              {/* STAT STRIP */}
               <div className="anim-fade-up d200 stat-strip mt-7">
                 {[
                   {
@@ -446,11 +482,11 @@ export default function StockPage() {
             </Inner>
           </section>
 
-          {/* ── TABLE SECTION ── */}
+          {/* TABLE SECTION */}
           <section className="w-full py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
             <Inner>
 
-              {/* ── FILTER PILLS ── */}
+              {/* FILTER */}
               <div className="anim-fade-up d100 flex items-center gap-2 flex-wrap mb-5">
                 {kategoriList.map(k => (
                   <button
@@ -472,6 +508,23 @@ export default function StockPage() {
                     {SHOW_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
                   <span className="text-[11px] font-medium" style={{ color: "rgba(33,33,33,0.45)" }}>entri</span>
+                  {/* View toggle */}
+                  <div className="flex items-center gap-1 ml-1 border rounded-[8px] p-0.5" style={{ borderColor: "rgba(42,31,8,0.12)" }}>
+                    <button
+                      className={`view-toggle-btn ${viewMode === "table" ? "on" : "off"}`}
+                      onClick={() => setViewMode("table")}
+                      title="Tampilan tabel"
+                    >
+                      <IconList size={13} />
+                    </button>
+                    <button
+                      className={`view-toggle-btn ${viewMode === "grid" ? "on" : "off"}`}
+                      onClick={() => setViewMode("grid")}
+                      title="Tampilan kartu"
+                    >
+                      <IconGrid size={13} />
+                    </button>
+                  </div>
                 </div>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center" style={{ color: "rgba(33,33,33,0.35)" }}>
@@ -482,118 +535,174 @@ export default function StockPage() {
                 </div>
               </div>
 
-              {/* Table card */}
-              <div className="anim-fade-up d300 zoom-card overflow-hidden border"
-                style={{ background: "rgba(255,255,255,0.60)", backdropFilter:"blur(22px)", borderColor:"rgba(33,33,33,0.08)", borderRadius:"18px", boxShadow:"0 8px 32px rgba(33,33,33,0.07), inset 0 1px 0 rgba(255,255,255,0.95)" }}>
+              {/* TABLE VIEW */}
+              {viewMode === "table" && (
+                <div className="anim-fade-up d300 zoom-card overflow-hidden border"
+                  style={{ background: "rgba(255,255,255,0.60)", backdropFilter:"blur(22px)", borderColor:"rgba(33,33,33,0.08)", borderRadius:"18px", boxShadow:"0 8px 32px rgba(33,33,33,0.07), inset 0 1px 0 rgba(255,255,255,0.95)" }}>
 
-                {/* Desktop table */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr style={{ background:"rgba(33,33,33,0.03)", borderBottom:"1px solid rgba(33,33,33,0.07)" }}>
-                        {[
-                          { label:"No",          col:null },
-                          { label:"Nama Barang", col:"nama" },
-                          { label:"Kategori",    col:"kategori" },
-                          { label:"Jumlah",      col:"jumlah" },
-                          { label:"Satuan",      col:"satuan" },
-                          { label:"Harga",       col:"harga" },
-                          { label:"Status",      col:null },
-                          ...(isAdmin ? [{ label:"Aksi", col:null }] : []),
-                        ].map((h, i) => (
-                          <th key={i}
-                            className={`px-6 py-3.5 text-left text-[10px] font-bold tracking-[0.08em] uppercase ${h.col ? "sort-th" : ""}`}
-                            style={{ color:"rgba(33,33,33,0.35)" }}
-                            onClick={() => h.col && handleSort(h.col)}>
-                            <span className="flex items-center gap-1.5">
-                              {h.label} {h.col && <SortIcon col={h.col} />}
-                            </span>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginated.length === 0 ? (
-                        <tr><td colSpan={isAdmin ? 8 : 7} className="px-6 py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>
-                          Tidak ada barang ditemukan.
-                        </td></tr>
-                      ) : paginated.map((item, i) => (
-                        <tr key={item.id} className="tbl-row"
-                          style={{ borderTop:"1px solid rgba(33,33,33,0.05)", background: i % 2 === 0 ? "transparent" : "rgba(33,33,33,0.012)" }}>
-                          <td className="px-6 py-4 text-[11px] font-bold" style={{ color:"rgba(33,33,33,0.32)" }}>
-                            {(page - 1) * showCount + i + 1}
-                          </td>
-                          <td className="px-6 py-4 font-semibold text-[#212121] text-xs sm:text-sm">{item.nama}</td>
-                          <td className="px-6 py-4">
-                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg"
-                              style={{ background: "rgba(42,31,8,0.08)", color: "#2a1f08" }}>
-                              {item.kategori}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(33,33,33,0.09)" }}>
-                                <div className={`h-full rounded-full progress-bar ${item.jumlah===0?"bg-red-400":item.jumlah/item.max<0.3?"bg-[#d4a843]":"bg-[#CFDECA]"}`}
-                                  style={{ width: animIn ? `${Math.min((item.jumlah/item.max)*100,100)}%` : "0%", transitionDelay:`${i*50}ms` }} />
-                              </div>
-                              <span className="text-xs font-semibold" style={{ color:"rgba(33,33,33,0.60)" }}>{item.jumlah}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-xs font-medium" style={{ color:"rgba(33,33,33,0.55)" }}>{item.satuan}</td>
-                          <td className="px-6 py-4 text-xs font-semibold" style={{ color:"rgba(33,33,33,0.65)" }}>{fmt(item.harga)}</td>
-                          <td className="px-6 py-4"><StatusBadge jumlah={item.jumlah} max={item.max} /></td>
-                          {isAdmin && (
+                  {/* Desktop table */}
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr style={{ background:"rgba(33,33,33,0.03)", borderBottom:"1px solid rgba(33,33,33,0.07)" }}>
+                          {[
+                            { label:"No",          col:null },
+                            { label:"Nama Barang", col:"nama" },
+                            { label:"Kategori",    col:"kategori" },
+                            { label:"Jumlah",      col:"jumlah" },
+                            { label:"Satuan",      col:"satuan" },
+                            { label:"Harga",       col:"harga" },
+                            { label:"Status",      col:null },
+                            ...(isAdmin ? [{ label:"Aksi", col:null }] : []),
+                          ].map((h, i) => (
+                            <th key={i}
+                              className={`px-6 py-3.5 text-left text-[10px] font-bold tracking-[0.08em] uppercase ${h.col ? "sort-th" : ""}`}
+                              style={{ color:"rgba(33,33,33,0.35)" }}
+                              onClick={() => h.col && handleSort(h.col)}>
+                              <span className="flex items-center gap-1.5">
+                                {h.label} {h.col && <SortIcon col={h.col} />}
+                              </span>
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginated.length === 0 ? (
+                          <tr><td colSpan={isAdmin ? 8 : 7} className="px-6 py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>
+                            Tidak ada barang ditemukan.
+                          </td></tr>
+                        ) : paginated.map((item, i) => (
+                          <tr key={item.id} className="tbl-row"
+                            style={{ borderTop:"1px solid rgba(33,33,33,0.05)", background: i % 2 === 0 ? "transparent" : "rgba(33,33,33,0.012)" }}>
+                            <td className="px-6 py-4 text-[11px] font-bold" style={{ color:"rgba(33,33,33,0.32)" }}>
+                              {(page - 1) * showCount + i + 1}
+                            </td>
+                            <td className="px-6 py-4 font-semibold text-[#212121] text-xs sm:text-sm">{item.nama}</td>
                             <td className="px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <Link href={`/stock/edit/${item.id}`}>
-                                  <button className="btn-ghost">
-                                    <IconEdit size={13} /> Edit
-                                  </button>
-                                </Link>
-                                <button className="btn-danger" onClick={() => setDeleteModal(item)}>
-                                  <IconTrash size={13} color="#dc2626" /> Hapus
-                                </button>
+                              <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg"
+                                style={{ background: "rgba(42,31,8,0.08)", color: "#2a1f08" }}>
+                                {item.kategori}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(33,33,33,0.09)" }}>
+                                  <div className={`h-full rounded-full progress-bar ${item.jumlah===0?"bg-red-400":item.jumlah/item.max<0.3?"bg-[#d4a843]":"bg-[#CFDECA]"}`}
+                                    style={{ width: animIn ? `${Math.min((item.jumlah/item.max)*100,100)}%` : "0%", transitionDelay:`${i*50}ms` }} />
+                                </div>
+                                <span className="text-xs font-semibold" style={{ color:"rgba(33,33,33,0.60)" }}>{item.jumlah}</span>
                               </div>
                             </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                            <td className="px-6 py-4 text-xs font-medium" style={{ color:"rgba(33,33,33,0.55)" }}>{item.satuan}</td>
+                            <td className="px-6 py-4 text-xs font-semibold" style={{ color:"rgba(33,33,33,0.65)" }}>{fmt(item.harga)}</td>
+                            <td className="px-6 py-4"><StatusBadge jumlah={item.jumlah} max={item.max} /></td>
+                            {isAdmin && (
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-2">
+                                  <Link href={`/stock/edit/${item.id}`}>
+                                    <button className="btn-ghost">
+                                      <IconEdit size={13} /> Edit
+                                    </button>
+                                  </Link>
+                                  <button className="btn-danger" onClick={() => setDeleteModal(item)}>
+                                    <IconTrash size={13} color="#dc2626" /> Hapus
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
 
-                {/* Mobile cards */}
-                <div className="sm:hidden divide-y" style={{ borderColor:"rgba(33,33,33,0.06)" }}>
-                  {paginated.length === 0 ? (
-                    <div className="py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>Tidak ada barang.</div>
-                  ) : paginated.map((item, i) => (
-                    <div key={item.id} className="tbl-row px-4 py-4">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div>
-                          <p className="font-semibold text-sm text-[#212121]">{item.nama}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md"
-                              style={{ background: "rgba(42,31,8,0.08)", color: "#2a1f08" }}>
-                              {item.kategori}
-                            </span>
-                            <p className="text-[11px] font-medium" style={{ color:"rgba(33,33,33,0.45)" }}>{item.satuan} · {fmt(item.harga)}</p>
+                  {/* Mobile cards */}
+                  <div className="sm:hidden divide-y" style={{ borderColor:"rgba(33,33,33,0.06)" }}>
+                    {paginated.length === 0 ? (
+                      <div className="py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>Tidak ada barang.</div>
+                    ) : paginated.map((item, i) => (
+                      <div key={item.id} className="tbl-row px-4 py-4">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <p className="font-semibold text-sm text-[#212121]">{item.nama}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                                style={{ background: "rgba(42,31,8,0.08)", color: "#2a1f08" }}>
+                                {item.kategori}
+                              </span>
+                              <p className="text-[11px] font-medium" style={{ color:"rgba(33,33,33,0.45)" }}>{item.satuan} · {fmt(item.harga)}</p>
+                            </div>
                           </div>
+                          <StatusBadge jumlah={item.jumlah} max={item.max} />
+                        </div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(33,33,33,0.09)" }}>
+                            <div className={`h-full rounded-full progress-bar ${item.jumlah===0?"bg-red-400":item.jumlah/item.max<0.3?"bg-[#d4a843]":"bg-[#CFDECA]"}`}
+                              style={{ width: animIn ? `${Math.min((item.jumlah/item.max)*100,100)}%` : "0%" }} />
+                          </div>
+                          <span className="text-[10px] font-semibold flex-shrink-0" style={{ color:"rgba(33,33,33,0.45)" }}>{item.jumlah}/{item.max}</span>
+                        </div>
+                        {isAdmin && (
+                          <div className="flex gap-2">
+                            <Link href={`/stock/edit/${item.id}`} className="flex-1">
+                              <button className="btn-ghost w-full justify-center">
+                                <IconEdit size={13} /> Edit
+                              </button>
+                            </Link>
+                            <button className="btn-danger flex-1 justify-center" onClick={() => setDeleteModal(item)}>
+                              <IconTrash size={13} color="#dc2626" /> Hapus
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* GRID VIEW */}
+              {viewMode === "grid" && (
+                <div className="anim-fade-up d300 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {paginated.length === 0 ? (
+                    <div className="col-span-3 py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>
+                      Tidak ada barang ditemukan.
+                    </div>
+                  ) : paginated.map((item, i) => (
+                    <div key={item.id} className="stk-grid-card">
+                      {/* Card header */}
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div>
+                          <p className="font-['Plus_Jakarta_Sans'] font-bold text-sm leading-snug text-[#212121]">{item.nama}</p>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md mt-1 inline-block"
+                            style={{ background: "rgba(42,31,8,0.08)", color: "#2a1f08" }}>
+                            {item.kategori}
+                          </span>
                         </div>
                         <StatusBadge jumlah={item.jumlah} max={item.max} />
                       </div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(33,33,33,0.09)" }}>
-                          <div className={`h-full rounded-full progress-bar ${item.jumlah===0?"bg-red-400":item.jumlah/item.max<0.3?"bg-[#d4a843]":"bg-[#CFDECA]"}`}
-                            style={{ width: animIn ? `${Math.min((item.jumlah/item.max)*100,100)}%` : "0%" }} />
+
+                      {/* Progress + jumlah */}
+                      <div className="py-3 border-t border-b mb-3" style={{ borderColor:"rgba(33,33,33,0.07)" }}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] font-medium" style={{ color:"rgba(33,33,33,0.40)" }}>Stok saat ini</span>
+                          <span className="text-[11px] font-bold" style={{ color:"rgba(33,33,33,0.60)" }}>{item.jumlah} / {item.max} {item.satuan}</span>
                         </div>
-                        <span className="text-[10px] font-semibold flex-shrink-0" style={{ color:"rgba(33,33,33,0.45)" }}>{item.jumlah}/{item.max}</span>
+                        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background:"rgba(33,33,33,0.09)" }}>
+                          <div
+                            className={`h-full rounded-full progress-bar ${item.jumlah===0?"bg-red-400":item.jumlah/item.max<0.3?"bg-[#d4a843]":"bg-[#CFDECA]"}`}
+                            style={{ width: animIn ? `${Math.min((item.jumlah/item.max)*100,100)}%` : "0%", transitionDelay:`${i*40}ms` }}
+                          />
+                        </div>
+                        <p className="text-[11px] font-semibold mt-2" style={{ color:"rgba(33,33,33,0.55)" }}>
+                          {fmt(item.harga)} <span className="font-normal text-[10px]">/ {item.satuan}</span>
+                        </p>
                       </div>
+
+                      {/* Actions */}
                       {isAdmin && (
                         <div className="flex gap-2">
                           <Link href={`/stock/edit/${item.id}`} className="flex-1">
-                            <button className="btn-ghost w-full justify-center">
-                              <IconEdit size={13} /> Edit
-                            </button>
+                            <button className="btn-ghost w-full justify-center"><IconEdit size={13} /> Edit</button>
                           </Link>
                           <button className="btn-danger flex-1 justify-center" onClick={() => setDeleteModal(item)}>
                             <IconTrash size={13} color="#dc2626" /> Hapus
@@ -603,7 +712,7 @@ export default function StockPage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
 
               {/* Pagination */}
               <div className="anim-fade-up d400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-5">
@@ -628,7 +737,7 @@ export default function StockPage() {
             </Inner>
           </section>
 
-          {/* ── STAT BAR ── */}
+          {/* STAT BAR */}
           <section className="w-full relative overflow-hidden py-5 sm:py-6" style={{ background:"#212121" }}>
             <Inner>
               <div className="anim-fade-up d300 flex flex-wrap items-center justify-between gap-4">
@@ -655,7 +764,7 @@ export default function StockPage() {
 
         <Footer />
 
-        {/* ── DELETE MODAL ── */}
+        {/* DELETE MODAL */}
         {deleteModal && (
           <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4"
             style={{ background:"rgba(33,33,33,0.45)", backdropFilter:"blur(8px)" }}
@@ -681,7 +790,7 @@ export default function StockPage() {
           </div>
         )}
 
-        {/* ── TOAST ── */}
+        {/* TOAST */}
         {toast && (
           <div className="toast fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 shadow-2xl border"
             style={{ background: toast.type==="success" ? "#CFDECA" : "#fee2e2", borderColor:"rgba(255,255,255,0.7)", borderRadius:"14px", minWidth:"260px" }}>

@@ -51,7 +51,7 @@ const maxVal = Math.max(...salesChart.map(d => d.val));
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
-// ── SVG ICONS ──
+//SVG ICONS ──
 const IconBox = ({ size = 20, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -277,7 +277,7 @@ export default function Dashboard() {
 
         <main className="w-full">
 
-          {/* ── SECTION 1 — HERO ── */}
+          {/* SECTION 1 — HERO */}
           <section className="w-full relative overflow-hidden pt-16 pb-12 sm:pt-20 sm:pb-14"
             style={{ background: "linear-gradient(175deg, #D8DFE9 0%, #e8ecf2 40%, #ffffff 100%)" }}>
             <div className="absolute -top-28 -right-28 w-96 h-96 rounded-full opacity-25 blob pointer-events-none" style={{ background: "#CFDECA", filter: "blur(72px)" }} />
@@ -341,7 +341,7 @@ export default function Dashboard() {
             </Inner>
           </section>
 
-          {/* ── SECTION 2 — SUMMARY CARDS ── */}
+          {/*SECTION 2 — SUMMARY CARDS*/}
           <section className="w-full relative overflow-hidden py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
             <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full opacity-20 blob pointer-events-none" style={{ background: "#CFDECA", filter: "blur(44px)" }} />
             <Inner>
@@ -388,7 +388,7 @@ export default function Dashboard() {
             </Inner>
           </section>
 
-          {/* ── SECTION 3 — CHART + ACTIVITY ── */}
+          {/* SECTION 3 — CHART + ACTIVITY */}
           <section className="w-full relative overflow-hidden py-10 sm:py-12" style={{ background: "#edf5f0" }}>
             <div className="absolute -top-10 -left-10 w-[500px] h-[500px] rounded-full pointer-events-none blob" style={{ background: "#7ecb8f", opacity: 0.22, filter: "blur(70px)" }} />
             <div className="absolute -top-10 right-0 w-[360px] h-[360px] rounded-full pointer-events-none blob3" style={{ background: "#a8c4d8", opacity: 0.20, filter: "blur(55px)" }} />
@@ -470,7 +470,7 @@ export default function Dashboard() {
             </Inner>
           </section>
 
-          {/* ── SECTION 4 — TOP BARANG + STOK ── */}
+          {/* SECTION 4 — TOP BARANG + STOK */}
           <section className="w-full relative overflow-hidden py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
             <Inner className="relative z-10">
               <p className="anim-fade-up d300 text-[10px] sm:text-[11px] font-bold tracking-[0.16em] uppercase mb-6" style={{ color: "rgba(33,33,33,0.32)" }}>
@@ -583,7 +583,7 @@ export default function Dashboard() {
             </Inner>
           </section>
 
-          {/* ── SECTION 5 — STAT BAR ── */}
+          {/*SECTION 5 — STAT BAR*/}
           <section className="w-full relative overflow-hidden py-5 sm:py-6" style={{ background: "#212121" }}>
             <Inner>
               <div className="anim-fade-up d550 flex flex-wrap items-center justify-between gap-4">

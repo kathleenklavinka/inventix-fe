@@ -396,7 +396,6 @@ export default function SupplierPage() {
               style={{ background: "#a7f3d0", filter: "blur(60px)", opacity: 0.22 }} />
 
             <Inner className="relative z-10">
-              {/* Breadcrumb */}
               <div className="su-fade-up flex items-center gap-2 mb-5 text-[11px] font-medium"
                 style={{ color: "rgba(6,78,59,0.40)" }}>
                 <Link href="/dashboard" className="hover:text-[#064e3b] transition-colors">Dashboard</Link>
@@ -423,7 +422,7 @@ export default function SupplierPage() {
                 )}
               </div>
 
-              {/* ── STAT STRIP ── */}
+              {/* STAT STRIP */}
               <div className="su-fade-up d4 mt-6 stat-strip-su">
                 {statItems.map((s, i) => (
                   <div key={i} className="stat-strip-item-su">
@@ -697,7 +696,6 @@ export default function SupplierPage() {
             </Inner>
           </section>
         </main>
-
         <Footer />
 
         {/* DELETE MODAL */}

@@ -15,7 +15,7 @@ export default function AuthLogin() {
 
     if (email === "admin@inventix.com" && password === "admin123") {
       document.cookie = "token=dummy-token; path=/; max-age=86400";
-      window.location.href = "/dashboard"; // ✅ full reload, cookie pasti kebaca
+      window.location.href = "/dashboard";
     } else {
       alert("Email atau password salah!");
     }
