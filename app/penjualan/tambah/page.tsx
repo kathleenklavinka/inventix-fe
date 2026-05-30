@@ -14,7 +14,7 @@ const stokData = [
   { id: 4, nama: "Focaccia Original",  satuan: "pcs",  harga: 25000,  stok: 15 },
   { id: 5, nama: "Croissant Butter",   satuan: "pcs",  harga: 32000,  stok: 20 },
   { id: 6, nama: "Espresso Shot",      satuan: "cup",  harga: 28000,  stok: 60 },
-  { id: 7, nama: "Caramel Macchiato", satuan: "cup",  harga: 52000,  stok: 0  },
+  { id: 7, nama: "Caramel Macchiato",  satuan: "cup",  harga: 52000,  stok: 0  },
 ];
 
 const METODE_OPTIONS = ["QRIS", "Tunai", "Transfer"];
@@ -143,13 +143,11 @@ export default function TambahPenjualanPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setGlobalError("");
-
     if (hasEmpty) { setGlobalError("Pilih barang untuk semua baris item."); return; }
     if (hasError)  { setGlobalError("Perbaiki error stok sebelum menyimpan."); return; }
     if (lines.length === 0) { setGlobalError("Tambahkan minimal satu item."); return; }
-
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 900)); // simulate API
+    await new Promise(r => setTimeout(r, 900));
     setSubmitting(false);
     setSubmitted(true);
   }
@@ -163,8 +161,7 @@ export default function TambahPenjualanPage() {
 
         @keyframes fadeUp  { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
         @keyframes fadeIn  { from{opacity:0}to{opacity:1} }
-        @keyframes slideIn { from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)} }
-        @keyframes blob    { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,-30px) scale(1.07)} 66%{transform:translate(-25px,25px) scale(0.95)} }
+        @keyframes blobFloat { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,-30px) scale(1.07)} 66%{transform:translate(-25px,25px) scale(0.95)} }
         @keyframes spin    { to{transform:rotate(360deg)} }
         @keyframes rowIn   { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
         @keyframes successPop { 0%{transform:scale(0.85);opacity:0} 60%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
@@ -174,112 +171,80 @@ export default function TambahPenjualanPage() {
         .d200{animation-delay:.20s} .d250{animation-delay:.25s} .d300{animation-delay:.30s}
         .d350{animation-delay:.35s} .d400{animation-delay:.40s}
 
-        .blob  { animation: blob 9s ease-in-out infinite }
-        .blob2 { animation: blob 12s ease-in-out infinite reverse; animation-delay:3s }
+        .blob  { animation: blobFloat 10s ease-in-out infinite }
+        .blob2 { animation: blobFloat 13s ease-in-out infinite reverse; animation-delay:3s }
+        .blob3 { animation: blobFloat 16s ease-in-out infinite; animation-delay:6s }
+        .blob4 { animation: blobFloat 11s ease-in-out infinite reverse; animation-delay:1.5s }
 
         .row-in { animation: rowIn 0.3s cubic-bezier(.22,1,.36,1) both }
         .success-pop { animation: successPop 0.5s cubic-bezier(.22,1,.36,1) both }
 
         .field-label {
-          display: block;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: .07em;
-          text-transform: uppercase;
-          color: rgba(80,65,40,0.50);
-          margin-bottom: 7px;
+          display: block; font-size: 11px; font-weight: 700; letter-spacing: .07em;
+          text-transform: uppercase; color: rgba(74,69,48,0.50); margin-bottom: 7px;
           font-family: 'Plus Jakarta Sans', sans-serif;
         }
-
         .field-input {
-          width: 100%;
-          border: 1.5px solid rgba(33,33,33,0.12);
-          border-radius: 12px;
-          padding: 10px 14px;
-          font-size: 13px;
-          font-family: 'Inter', sans-serif;
-          background: rgba(255,255,255,0.75);
-          color: #212121;
-          outline: none;
+          width: 100%; border: 1.5px solid rgba(249,229,90,0.45); border-radius: 12px;
+          padding: 10px 14px; font-size: 13px; font-family: 'Inter', sans-serif;
+          background: rgba(255,255,255,0.85); color: #4A4530; outline: none;
           transition: border-color .2s, box-shadow .2s;
         }
-        .field-input:focus {
-          border-color: rgba(42,31,8,0.35);
-          box-shadow: 0 0 0 3px rgba(42,31,8,0.07);
-        }
-        .field-input.error {
-          border-color: #dc2626;
-          box-shadow: 0 0 0 3px rgba(220,38,38,0.08);
-        }
-        .field-select {
-          appearance: none;
-          -webkit-appearance: none;
-          background-image: none;
-          cursor: pointer;
-        }
+        .field-input:focus { border-color: #F9E55A; box-shadow: 0 0 0 3px rgba(249,229,90,0.20) }
+        .field-input.error { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.08) }
+        .field-select { appearance: none; -webkit-appearance: none; background-image: none; cursor: pointer }
 
         .btn-primary {
-          background: #2a1f08; color: #ffffff; border: none; border-radius: 12px;
-          font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700;
-          padding: 11px 22px; font-size: 13px; cursor: pointer; letter-spacing: .01em;
+          background: #F9E55A; color: #4A4530; border: none; border-radius: 14px;
+          font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800;
+          padding: 10px 22px; font-size: 13px; cursor: pointer; letter-spacing: .01em;
           transition: transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s, background .18s;
           display: inline-flex; align-items: center; gap: 7px;
+          box-shadow: 0 4px 18px rgba(249,229,90,0.45);
         }
-        .btn-primary:hover:not(:disabled) {
-          transform: translateY(-2px) scale(1.03);
-          box-shadow: 0 10px 28px rgba(42,31,8,.25);
-          background: #3d2e0e;
-        }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px) scale(1.04); box-shadow: 0 10px 28px rgba(249,229,90,.55); background: #fded6b }
         .btn-primary:active:not(:disabled) { transform: scale(0.97) }
         .btn-primary:disabled { opacity: .5; cursor: not-allowed }
 
         .btn-ghost {
-          background: rgba(33,33,33,0.06); color: #212121; border: none; border-radius: 10px;
+          background: rgba(74,69,48,0.07); color: #4A4530; border: none; border-radius: 10px;
           font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600;
           padding: 8px 15px; font-size: 12px; cursor: pointer;
           transition: background .18s, transform .2s;
           display: inline-flex; align-items: center; gap: 5px;
         }
-        .btn-ghost:hover { background: rgba(33,33,33,0.11); transform: scale(1.02) }
+        .btn-ghost:hover { background: rgba(74,69,48,0.13); transform: scale(1.02) }
 
         .btn-icon-danger {
           background: rgba(220,38,38,0.07); border: none; border-radius: 9px;
           width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
-          cursor: pointer; flex-shrink: 0;
-          transition: background .18s, transform .2s;
+          cursor: pointer; flex-shrink: 0; transition: background .18s, transform .2s;
         }
         .btn-icon-danger:hover { background: rgba(220,38,38,0.14); transform: scale(1.08) }
         .btn-icon-danger:disabled { opacity: .3; cursor: default; transform: none }
 
         .btn-add-line {
-          background: transparent; border: 1.5px dashed rgba(42,31,8,0.22); border-radius: 12px;
+          background: transparent; border: 1.5px dashed rgba(74,69,48,0.22); border-radius: 12px;
           padding: 10px 18px; font-size: 12px; font-weight: 700;
           font-family: 'Plus Jakarta Sans', sans-serif;
-          color: rgba(42,31,8,0.55); cursor: pointer; width: 100%;
+          color: rgba(74,69,48,0.55); cursor: pointer; width: 100%;
           display: flex; align-items: center; justify-content: center; gap: 6px;
           transition: border-color .2s, color .2s, background .2s, transform .2s;
         }
-        .btn-add-line:hover {
-          border-color: rgba(42,31,8,0.45); color: #2a1f08;
-          background: rgba(42,31,8,0.04); transform: scale(1.01);
-        }
+        .btn-add-line:hover { border-color: rgba(249,229,90,0.65); color: #4A4530; background: rgba(249,229,90,0.08); transform: scale(1.01) }
 
         .card {
-          background: rgba(255,255,255,0.72);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(33,33,33,0.08);
-          border-radius: 20px;
-          box-shadow: 0 8px 32px rgba(33,33,33,0.07), inset 0 1px 0 rgba(255,255,255,0.95);
+          background: rgba(255,255,255,0.85); backdrop-filter: blur(20px);
+          border: 1.5px solid rgba(249,229,90,0.28); border-radius: 20px;
+          box-shadow: 0 8px 32px rgba(249,229,90,0.10), inset 0 1px 0 rgba(255,255,255,0.95);
         }
 
         .line-row {
-          background: rgba(249,247,242,0.70);
-          border: 1.5px solid rgba(200,180,130,0.16);
-          border-radius: 14px;
-          padding: 14px 16px;
+          background: #FFFEF5; border: 1.5px solid rgba(249,229,90,0.22);
+          border-radius: 14px; padding: 14px 16px;
           transition: border-color .2s, box-shadow .2s;
         }
-        .line-row:hover { border-color: rgba(200,180,130,0.32); box-shadow: 0 4px 14px rgba(42,31,8,0.06) }
+        .line-row:hover { border-color: rgba(249,229,90,0.45); box-shadow: 0 4px 14px rgba(249,229,90,0.14) }
         .line-row.has-error { border-color: rgba(220,38,38,0.35) !important }
 
         .stok-pill {
@@ -287,40 +252,34 @@ export default function TambahPenjualanPage() {
           font-size: 10px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
           padding: 3px 9px; border-radius: 20px;
         }
-        .stok-pill.ok   { background: #CFDECA; color: #2d6a3f }
-        .stok-pill.low  { background: #EFF0A3; color: #92650a }
-        .stok-pill.zero { background: #fee2e2; color: #dc2626 }
+        .stok-pill.ok   { background: #C5D9C0; color: #2d6640 }
+        .stok-pill.low  { background: #FEE2E2; color: #991b1b }
+        .stok-pill.zero { background: #FECACA; color: #b91c1c }
 
         .summary-row {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 9px 0; border-bottom: 1px solid rgba(33,33,33,0.06);
-          font-size: 12px; color: rgba(33,33,33,0.55);
+          padding: 9px 0; border-bottom: 1px solid rgba(249,229,90,0.20);
+          font-size: 12px; color: rgba(74,69,48,0.50);
         }
         .summary-row:last-of-type { border-bottom: none }
-        .summary-row .val { font-weight: 700; color: #212121; font-family: 'Plus Jakarta Sans', sans-serif }
+        .summary-row .val { font-weight: 700; color: #4A4530; font-family: 'Plus Jakarta Sans', sans-serif }
 
-        .error-msg {
-          display: flex; align-items: center; gap: 5px;
-          font-size: 11px; color: #dc2626; font-weight: 600;
-          margin-top: 5px;
-        }
+        .error-msg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #dc2626; font-weight: 600; margin-top: 5px }
 
         .pill-metode {
           flex: 1; padding: 10px 6px; text-align: center; border-radius: 10px;
           font-size: 12px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
-          cursor: pointer; border: none; transition: background .18s, color .18s, transform .15s;
+          cursor: pointer; border: none; transition: background .18s, color .18s, transform .15s, box-shadow .18s;
         }
-        .pill-metode.active { background: #2a1f08; color: #EFF0A3 }
-        .pill-metode:not(.active) { background: rgba(33,33,33,0.06); color: rgba(33,33,33,0.50) }
-        .pill-metode:not(.active):hover { background: rgba(33,33,33,0.11); transform: scale(1.03) }
+        .pill-metode.active { background: #F9E55A; color: #4A4530; box-shadow: 0 3px 12px rgba(249,229,90,0.50) }
+        .pill-metode:not(.active) { background: rgba(74,69,48,0.07); color: rgba(74,69,48,0.45) }
+        .pill-metode:not(.active):hover { background: rgba(249,229,90,0.20); transform: scale(1.03) }
 
         .spinner {
-          width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,0.3);
-          border-top-color: #fff; border-radius: 50%;
+          width: 16px; height: 16px; border: 2.5px solid rgba(74,69,48,0.25);
+          border-top-color: #4A4530; border-radius: 50%;
           animation: spin 0.7s linear infinite;
         }
-
-        .toast { animation: slideIn .35s cubic-bezier(.22,1,.36,1) both }
 
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0 }
@@ -328,42 +287,47 @@ export default function TambahPenjualanPage() {
       `}</style>
 
       <div
-        className={`min-h-screen text-[#212121] font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
-        style={{ background: "#F9F9FA" }}
+        className={`min-h-screen font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
+        style={{ background: "#FFFEF5", color: "#4A4530" }}
       >
         <Header hasNotification={false} userInitials={user.initials} />
 
         <main className="w-full">
+
           <section
             className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
-            style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}
+            style={{ background: "linear-gradient(145deg, #FEFCE8 0%, #FEF9C3 35%, #FFFDE7 65%, #FEFCE8 100%)" }}
           >
-            <div className="absolute -top-28 -right-28 w-96 h-96 rounded-full opacity-30 blob pointer-events-none"
-              style={{ background: "#e8d5a3", filter: "blur(72px)" }} />
-            <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full opacity-20 blob2 pointer-events-none"
-              style={{ background: "#CFDECA", filter: "blur(60px)" }} />
+            <div className="absolute -top-20 -right-16 w-96 h-96 rounded-full blob pointer-events-none"
+              style={{ background: "#FBCFE8", opacity: 0.45, filter: "blur(80px)" }} />
+            <div className="absolute top-12 left-10 w-72 h-72 rounded-full blob2 pointer-events-none"
+              style={{ background: "#C5D9C0", opacity: 0.50, filter: "blur(70px)" }} />
+            <div className="absolute -bottom-10 right-1/3 w-80 h-80 rounded-full blob3 pointer-events-none"
+              style={{ background: "#DDD6FE", opacity: 0.38, filter: "blur(85px)" }} />
+            <div className="absolute bottom-0 -left-10 w-64 h-64 rounded-full blob4 pointer-events-none"
+              style={{ background: "#FEE2E2", opacity: 0.42, filter: "blur(70px)" }} />
 
             <Inner>
-              <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-medium"
-                style={{ color: "rgba(80,65,40,0.45)" }}>
-                <Link href="/dashboard" className="hover:text-[#2a1f08] transition-colors">Dashboard</Link>
-                <span>/</span>
-                <Link href="/penjualan" className="hover:text-[#2a1f08] transition-colors">Penjualan</Link>
-                <span>/</span>
-                <span style={{ color: "#2a1f08" }} className="font-semibold">Tambah Transaksi</span>
+              <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-semibold"
+                style={{ color: "rgba(74,69,48,0.42)" }}>
+                <Link href="/dashboard" className="hover:text-[#92661a] transition-colors">Dashboard</Link>
+                <span style={{ color: "rgba(74,69,48,0.25)" }}>/</span>
+                <Link href="/penjualan" className="hover:text-[#92661a] transition-colors">Penjualan</Link>
+                <span style={{ color: "rgba(74,69,48,0.25)" }}>/</span>
+                <span style={{ color: "#92661a" }} className="font-semibold">Tambah Transaksi</span>
               </div>
 
               <div className="anim-fade-up d100 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                  <p className="text-[10px] sm:text-[11px] tracking-[0.20em] uppercase mb-1.5 font-medium"
-                    style={{ color: "rgba(80,65,40,0.42)" }}>Penjualan</p>
-                  <h1 className="font-['Plus_Jakarta_Sans'] font-black text-2xl sm:text-[2.2rem] leading-none"
-                    style={{ color: "#2a1f08" }}>Tambah Transaksi</h1>
-                  <p className="text-[11px] mt-1.5 font-medium" style={{ color: "rgba(80,65,40,0.38)" }}>{tanggal}</p>
+                  <p className="text-[10px] sm:text-[11px] tracking-[0.24em] uppercase mb-2 font-bold"
+                    style={{ color: "rgba(146,102,26,0.55)" }}>Penjualan</p>
+                  <h1 className="font-['Plus_Jakarta_Sans'] font-black text-3xl sm:text-[2.5rem] leading-none"
+                    style={{ color: "#4A4530" }}>Tambah Transaksi</h1>
+                  <p className="text-[11px] mt-2 font-medium" style={{ color: "rgba(74,69,48,0.42)" }}>{tanggal}</p>
                 </div>
                 <Link href="/penjualan">
                   <button className="btn-ghost">
-                    <IconArrowLeft size={14} color="rgba(33,33,33,0.55)" />
+                    <IconArrowLeft size={14} color="rgba(74,69,48,0.55)" />
                     Kembali
                   </button>
                 </Link>
@@ -371,22 +335,23 @@ export default function TambahPenjualanPage() {
             </Inner>
           </section>
 
-          <section className="w-full py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
+          <section className="w-full py-10 sm:py-12" style={{ background: "#FFFEF5" }}>
             <Inner>
-
               {submitted ? (
                 <div className="success-pop card p-10 flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
-                    style={{ background: "#CFDECA" }}>
-                    <IconCheck size={28} color="#2d6a3f" />
+                    style={{ background: "#C5D9C0" }}>
+                    <IconCheck size={28} color="#2d6640" />
                   </div>
-                  <h2 className="font-['Plus_Jakarta_Sans'] font-black text-2xl text-[#212121] mb-2">
+                  <h2 className="font-['Plus_Jakarta_Sans'] font-black text-2xl mb-2"
+                    style={{ color: "#4A4530" }}>
                     Transaksi Berhasil Disimpan!
                   </h2>
-                  <p className="text-sm mb-1" style={{ color: "rgba(33,33,33,0.50)" }}>
+                  <p className="text-sm mb-1" style={{ color: "rgba(74,69,48,0.50)" }}>
                     Transaksi baru telah ditambahkan ke daftar penjualan.
                   </p>
-                  <p className="font-bold text-lg mt-1 mb-7" style={{ color: "#2a1f08" }}>
+                  <p className="font-['Plus_Jakarta_Sans'] font-black text-lg mt-1 mb-7"
+                    style={{ color: "#92661a" }}>
                     {fmt(grandTotal)}
                   </p>
                   <div className="flex gap-3 flex-wrap justify-center">
@@ -400,7 +365,7 @@ export default function TambahPenjualanPage() {
                       setCatatan("");
                       setGlobalError("");
                     }}>
-                      <IconPlus size={14} color="#ffffff" /> Tambah Lagi
+                      <IconPlus size={14} color="#4A4530" /> Tambah Lagi
                     </button>
                   </div>
                 </div>
@@ -413,14 +378,15 @@ export default function TambahPenjualanPage() {
                       <div className="anim-fade-up d100 card p-6">
                         <div className="flex items-center gap-3 mb-5">
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ background: "#e8dfc8" }}>
-                            <IconPackage size={16} color="#7a5c2e" />
+                            style={{ background: "#FEF9C3" }}>
+                            <IconPackage size={16} color="#92661a" />
                           </div>
                           <div>
-                            <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121] leading-tight">
+                            <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm leading-tight"
+                              style={{ color: "#4A4530" }}>
                               Daftar Item
                             </h2>
-                            <p className="text-[10px] mt-0.5" style={{ color: "rgba(33,33,33,0.40)" }}>
+                            <p className="text-[10px] mt-0.5" style={{ color: "rgba(74,69,48,0.40)" }}>
                               Tambahkan barang yang terjual
                             </p>
                           </div>
@@ -434,10 +400,9 @@ export default function TambahPenjualanPage() {
 
                             return (
                               <div key={line.uid} className={`line-row row-in ${line.error ? "has-error" : ""}`}>
-
                                 <div className="flex items-center justify-between mb-3">
                                   <span className="text-[10px] font-bold uppercase tracking-widest"
-                                    style={{ color: "rgba(80,65,40,0.38)" }}>
+                                    style={{ color: "rgba(74,69,48,0.38)" }}>
                                     Item {idx + 1}
                                   </span>
                                   <button
@@ -474,7 +439,7 @@ export default function TambahPenjualanPage() {
                                       ))}
                                     </select>
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                                      style={{ color: "rgba(33,33,33,0.35)" }}>
+                                      style={{ color: "rgba(74,69,48,0.40)" }}>
                                       <IconChevronDown size={14} />
                                     </span>
                                   </div>
@@ -503,7 +468,7 @@ export default function TambahPenjualanPage() {
                                       </span>
                                     )}
                                     {subtotal > 0 && (
-                                      <span className="text-xs font-black" style={{ color: "#2a1f08" }}>
+                                      <span className="text-xs font-black" style={{ color: "#92661a" }}>
                                         {fmt(subtotal)}
                                       </span>
                                     )}
@@ -522,15 +487,16 @@ export default function TambahPenjualanPage() {
                         </div>
 
                         <button type="button" className="btn-add-line mt-3" onClick={addLine}>
-                          <IconPlus size={13} color="rgba(42,31,8,0.55)" />
+                          <IconPlus size={13} color="rgba(74,69,48,0.55)" />
                           Tambah Item Lain
                         </button>
                       </div>
 
                       <div className="anim-fade-up d200 card p-6">
                         <label className="field-label" style={{ marginBottom: "8px", display: "block" }}>
-                          Catatan <span className="normal-case font-normal tracking-normal"
-                            style={{ color: "rgba(33,33,33,0.35)" }}>(opsional)</span>
+                          Catatan{" "}
+                          <span className="normal-case font-normal tracking-normal"
+                            style={{ color: "rgba(74,69,48,0.35)" }}>(opsional)</span>
                         </label>
                         <textarea
                           className="field-input resize-none"
@@ -546,7 +512,8 @@ export default function TambahPenjualanPage() {
                     <div className="flex flex-col gap-5">
 
                       <div className="anim-fade-up d150 card p-6">
-                        <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121] mb-4">
+                        <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm mb-4"
+                          style={{ color: "#4A4530" }}>
                           Metode Pembayaran
                         </h2>
                         <div className="flex gap-2">
@@ -566,16 +533,17 @@ export default function TambahPenjualanPage() {
                       <div className="anim-fade-up d200 card p-6">
                         <div className="flex items-center gap-2.5 mb-4">
                           <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ background: "#D8DFE9" }}>
-                            <IconReceipt size={15} color="#2a3a52" />
+                            style={{ background: "#FEF9C3" }}>
+                            <IconReceipt size={15} color="#92661a" />
                           </div>
-                          <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121]">
+                          <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm"
+                            style={{ color: "#4A4530" }}>
                             Ringkasan Order
                           </h2>
                         </div>
 
                         <div>
-                          {lineDetails.map((l, i) => (
+                          {lineDetails.map(l =>
                             l.barang ? (
                               <div key={l.uid} className="summary-row">
                                 <span className="font-medium text-[11px] truncate max-w-[130px]" title={l.barang.nama}>
@@ -584,25 +552,24 @@ export default function TambahPenjualanPage() {
                                 <span className="val text-[11px]">{fmt(l.subtotal)}</span>
                               </div>
                             ) : null
-                          ))}
-
+                          )}
                           {lineDetails.every(l => !l.barang) && (
-                            <p className="text-[11px] text-center py-4" style={{ color: "rgba(33,33,33,0.30)" }}>
+                            <p className="text-[11px] text-center py-4" style={{ color: "rgba(74,69,48,0.30)" }}>
                               Belum ada item dipilih
                             </p>
                           )}
                         </div>
 
-                        <div className="mt-3 pt-3" style={{ borderTop: "2px solid rgba(33,33,33,0.08)" }}>
+                        <div className="mt-3 pt-3" style={{ borderTop: "2px solid rgba(249,229,90,0.25)" }}>
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold uppercase tracking-wider"
-                              style={{ color: "rgba(33,33,33,0.40)" }}>Total</span>
+                              style={{ color: "rgba(74,69,48,0.40)" }}>Total</span>
                             <span className="font-['Plus_Jakarta_Sans'] font-black text-xl"
-                              style={{ color: "#2a1f08" }}>
+                              style={{ color: "#92661a" }}>
                               {fmt(grandTotal)}
                             </span>
                           </div>
-                          <p className="text-[10px] mt-1 text-right" style={{ color: "rgba(33,33,33,0.30)" }}>
+                          <p className="text-[10px] mt-1 text-right" style={{ color: "rgba(74,69,48,0.30)" }}>
                             via {metode}
                           </p>
                         </div>
@@ -610,9 +577,9 @@ export default function TambahPenjualanPage() {
 
                       {globalError && (
                         <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl"
-                          style={{ background: "#fee2e2", border: "1px solid rgba(220,38,38,0.2)" }}>
+                          style={{ background: "#FEE2E2", border: "1px solid rgba(220,38,38,0.20)" }}>
                           <IconAlertTriangle size={14} color="#dc2626" />
-                          <p className="text-xs font-semibold text-red-600">{globalError}</p>
+                          <p className="text-xs font-semibold" style={{ color: "#dc2626" }}>{globalError}</p>
                         </div>
                       )}
 
@@ -626,7 +593,7 @@ export default function TambahPenjualanPage() {
                           {submitting ? (
                             <><span className="spinner" /> Menyimpan…</>
                           ) : (
-                            <><IconCheck size={15} color="#fff" /> Simpan Transaksi</>
+                            <><IconCheck size={15} color="#4A4530" /> Simpan Transaksi</>
                           )}
                         </button>
                         <Link href="/penjualan" className="w-full">
@@ -634,25 +601,13 @@ export default function TambahPenjualanPage() {
                         </Link>
                       </div>
                     </div>
+
                   </div>
                 </form>
               )}
-
             </Inner>
           </section>
 
-          <section className="w-full py-5 sm:py-6" style={{ background: "#212121" }}>
-            <Inner>
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <p className="text-[11px] font-medium" style={{ color: "rgba(249,249,250,0.35)" }}>
-                  Tambah transaksi baru ke sistem penjualan
-                </p>
-                <p className="text-[10px] font-medium" style={{ color: "rgba(249,249,250,0.18)" }}>
-                  Inventix v1.0 · Penjualan / Tambah
-                </p>
-              </div>
-            </Inner>
-          </section>
         </main>
         <Footer />
       </div>

@@ -120,9 +120,9 @@ interface LineItem {
 
 function StatusBadgeInline({ status }: { status: StatusType }) {
   const map: Record<StatusType, { bg: string; color: string; label: string }> = {
-    sukses:  { bg: "#CFDECA", color: "#2d6a3f", label: "Sukses" },
-    pending: { bg: "#EFF0A3", color: "#92650a", label: "Pending" },
-    batal:   { bg: "#fee2e2", color: "#dc2626", label: "Batal" },
+    sukses:  { bg: "#C5D9C0", color: "#2d6640", label: "Sukses" },
+    pending: { bg: "#FEE2E2", color: "#991b1b", label: "Pending" },
+    batal:   { bg: "#FECACA", color: "#b91c1c", label: "Batal" },
   };
   const s = map[status];
   return (
@@ -141,7 +141,6 @@ export default function EditPenjualanPage() {
   const id      = Number(params?.id);
 
   const [mounted, setMounted]       = useState(false);
-  const [tanggal, setTanggal]       = useState("");
   const [notFound, setNotFound]     = useState(false);
   const [originalData, setOriginalData] = useState<typeof penjualanData[0] | null>(null);
 
@@ -158,9 +157,6 @@ export default function EditPenjualanPage() {
   const [pendingNav, setPendingNav]  = useState<string | null>(null);
 
   useEffect(() => {
-    const now = new Date();
-    setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
-
     const trx = penjualanData.find(d => d.id === id);
     if (!trx) { setNotFound(true); setTimeout(() => setMounted(true), 80); return; }
 
@@ -249,23 +245,30 @@ export default function EditPenjualanPage() {
   if (mounted && notFound) {
     return (
       <>
-        <div className="min-h-screen flex flex-col" style={{ background: "#F9F9FA", fontFamily: "Inter, sans-serif" }}>
+        <div className="min-h-screen flex flex-col" style={{ background: "#FFFEF5", fontFamily: "Inter, sans-serif", color: "#4A4530" }}>
           <Header hasNotification={false} userInitials={user.initials} />
           <main className="flex-1 flex items-center justify-center px-4">
             <div className="text-center max-w-sm">
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
-                style={{ background: "#fee2e2" }}>
-                <IconAlertTriangle size={28} color="#dc2626" />
+                style={{ background: "#FEE2E2" }}>
+                <IconAlertTriangle size={28} color="#991b1b" />
               </div>
-              <h2 className="font-black text-2xl mb-2" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#212121" }}>
+              <h2 className="font-black text-2xl mb-2"
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#4A4530" }}>
                 Transaksi Tidak Ditemukan
               </h2>
-              <p className="text-sm mb-6" style={{ color: "rgba(33,33,33,0.50)" }}>
+              <p className="text-sm mb-6" style={{ color: "rgba(74,69,48,0.50)" }}>
                 Transaksi dengan ID <span className="font-semibold">#{id}</span> tidak ada di sistem.
               </p>
               <Link href="/penjualan">
-                <button style={{ background: "#2a1f08", color: "#fff", border: "none", borderRadius: "12px", padding: "11px 22px", fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: "13px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "7px" }}>
-                  <IconArrowLeft size={14} color="#fff" /> Kembali ke Penjualan
+                <button style={{
+                  background: "#F9E55A", color: "#4A4530", border: "none", borderRadius: "12px",
+                  padding: "11px 22px", fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontWeight: 800, fontSize: "13px", cursor: "pointer",
+                  display: "inline-flex", alignItems: "center", gap: "7px",
+                  boxShadow: "0 4px 18px rgba(249,229,90,0.45)",
+                }}>
+                  <IconArrowLeft size={14} color="#4A4530" /> Kembali ke Penjualan
                 </button>
               </Link>
             </div>
@@ -284,7 +287,7 @@ export default function EditPenjualanPage() {
         @keyframes fadeUp    { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
         @keyframes fadeIn    { from{opacity:0}to{opacity:1} }
         @keyframes slideIn   { from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)} }
-        @keyframes blob      { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,-30px) scale(1.07)} 66%{transform:translate(-25px,25px) scale(0.95)} }
+        @keyframes blobFloat { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(40px,-30px) scale(1.07)} 66%{transform:translate(-25px,25px) scale(0.95)} }
         @keyframes spin      { to{transform:rotate(360deg)} }
         @keyframes rowIn     { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
         @keyframes successPop{ 0%{transform:scale(0.85);opacity:0} 60%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
@@ -295,8 +298,11 @@ export default function EditPenjualanPage() {
         .d200{animation-delay:.20s}.d250{animation-delay:.25s}.d300{animation-delay:.30s}
         .d350{animation-delay:.35s}.d400{animation-delay:.40s}
 
-        .blob {animation:blob 9s ease-in-out infinite}
-        .blob2{animation:blob 12s ease-in-out infinite reverse;animation-delay:3s}
+        .blob {animation:blobFloat 10s ease-in-out infinite}
+        .blob2{animation:blobFloat 13s ease-in-out infinite reverse;animation-delay:3s}
+        .blob3{animation:blobFloat 16s ease-in-out infinite;animation-delay:6s}
+        .blob4{animation:blobFloat 11s ease-in-out infinite reverse;animation-delay:1.5s}
+
         .row-in{animation:rowIn 0.3s cubic-bezier(.22,1,.36,1) both}
         .success-pop{animation:successPop 0.5s cubic-bezier(.22,1,.36,1) both}
         .modal-pop{animation:modalPop 0.22s cubic-bezier(.22,1,.36,1) both}
@@ -304,38 +310,39 @@ export default function EditPenjualanPage() {
 
         .field-label{
           display:block;font-size:11px;font-weight:700;letter-spacing:.07em;
-          text-transform:uppercase;color:rgba(80,65,40,0.50);margin-bottom:7px;
+          text-transform:uppercase;color:rgba(74,69,48,0.50);margin-bottom:7px;
           font-family:'Plus Jakarta Sans',sans-serif;
         }
         .field-input{
-          width:100%;border:1.5px solid rgba(33,33,33,0.12);border-radius:12px;
+          width:100%;border:1.5px solid rgba(249,229,90,0.45);border-radius:12px;
           padding:10px 14px;font-size:13px;font-family:'Inter',sans-serif;
-          background:rgba(255,255,255,0.75);color:#212121;outline:none;
+          background:rgba(255,255,255,0.85);color:#4A4530;outline:none;
           transition:border-color .2s,box-shadow .2s;
         }
-        .field-input:focus{border-color:rgba(42,31,8,0.35);box-shadow:0 0 0 3px rgba(42,31,8,0.07)}
+        .field-input:focus{border-color:#F9E55A;box-shadow:0 0 0 3px rgba(249,229,90,0.20)}
         .field-input.error{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,0.08)}
         .field-select{appearance:none;-webkit-appearance:none;background-image:none;cursor:pointer}
 
         .btn-primary{
-          background:#2a1f08;color:#ffffff;border:none;border-radius:12px;
-          font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;
-          padding:11px 22px;font-size:13px;cursor:pointer;letter-spacing:.01em;
+          background:#F9E55A;color:#4A4530;border:none;border-radius:14px;
+          font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;
+          padding:10px 22px;font-size:13px;cursor:pointer;letter-spacing:.01em;
           transition:transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s,background .18s;
           display:inline-flex;align-items:center;gap:7px;
+          box-shadow:0 4px 18px rgba(249,229,90,0.45);
         }
-        .btn-primary:hover:not(:disabled){transform:translateY(-2px) scale(1.03);box-shadow:0 10px 28px rgba(42,31,8,.25);background:#3d2e0e}
+        .btn-primary:hover:not(:disabled){transform:translateY(-2px) scale(1.04);box-shadow:0 10px 28px rgba(249,229,90,.55);background:#fded6b}
         .btn-primary:active:not(:disabled){transform:scale(0.97)}
         .btn-primary:disabled{opacity:.5;cursor:not-allowed}
 
         .btn-ghost{
-          background:rgba(33,33,33,0.06);color:#212121;border:none;border-radius:10px;
+          background:rgba(74,69,48,0.07);color:#4A4530;border:none;border-radius:10px;
           font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;
           padding:8px 15px;font-size:12px;cursor:pointer;
           transition:background .18s,transform .2s;
           display:inline-flex;align-items:center;gap:5px;
         }
-        .btn-ghost:hover{background:rgba(33,33,33,0.11);transform:scale(1.02)}
+        .btn-ghost:hover{background:rgba(74,69,48,0.13);transform:scale(1.02)}
 
         .btn-danger-solid{
           background:#dc2626;color:#fff;border:none;border-radius:10px;
@@ -355,68 +362,68 @@ export default function EditPenjualanPage() {
         .btn-icon-danger:disabled{opacity:.3;cursor:default;transform:none}
 
         .btn-add-line{
-          background:transparent;border:1.5px dashed rgba(42,31,8,0.22);border-radius:12px;
+          background:transparent;border:1.5px dashed rgba(74,69,48,0.22);border-radius:12px;
           padding:10px 18px;font-size:12px;font-weight:700;
           font-family:'Plus Jakarta Sans',sans-serif;
-          color:rgba(42,31,8,0.55);cursor:pointer;width:100%;
+          color:rgba(74,69,48,0.55);cursor:pointer;width:100%;
           display:flex;align-items:center;justify-content:center;gap:6px;
           transition:border-color .2s,color .2s,background .2s,transform .2s;
         }
-        .btn-add-line:hover{border-color:rgba(42,31,8,0.45);color:#2a1f08;background:rgba(42,31,8,0.04);transform:scale(1.01)}
+        .btn-add-line:hover{border-color:rgba(249,229,90,0.65);color:#4A4530;background:rgba(249,229,90,0.08);transform:scale(1.01)}
 
         .card{
-          background:rgba(255,255,255,0.72);backdrop-filter:blur(20px);
-          border:1px solid rgba(33,33,33,0.08);border-radius:20px;
-          box-shadow:0 8px 32px rgba(33,33,33,0.07),inset 0 1px 0 rgba(255,255,255,0.95);
+          background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);
+          border:1.5px solid rgba(249,229,90,0.28);border-radius:20px;
+          box-shadow:0 8px 32px rgba(249,229,90,0.10),inset 0 1px 0 rgba(255,255,255,0.95);
         }
 
         .line-row{
-          background:rgba(249,247,242,0.70);border:1.5px solid rgba(200,180,130,0.16);
+          background:#FFFEF5;border:1.5px solid rgba(249,229,90,0.22);
           border-radius:14px;padding:14px 16px;transition:border-color .2s,box-shadow .2s;
         }
-        .line-row:hover{border-color:rgba(200,180,130,0.32);box-shadow:0 4px 14px rgba(42,31,8,0.06)}
+        .line-row:hover{border-color:rgba(249,229,90,0.45);box-shadow:0 4px 14px rgba(249,229,90,0.14)}
         .line-row.has-error{border-color:rgba(220,38,38,0.35)!important}
 
         .stok-pill{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;padding:3px 9px;border-radius:20px}
-        .stok-pill.ok  {background:#CFDECA;color:#2d6a3f}
-        .stok-pill.low {background:#EFF0A3;color:#92650a}
-        .stok-pill.zero{background:#fee2e2;color:#dc2626}
+        .stok-pill.ok  {background:#C5D9C0;color:#2d6640}
+        .stok-pill.low {background:#FEE2E2;color:#991b1b}
+        .stok-pill.zero{background:#FECACA;color:#b91c1c}
 
-        .summary-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(33,33,33,0.06);font-size:12px;color:rgba(33,33,33,0.55)}
+        .summary-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(249,229,90,0.20);font-size:12px;color:rgba(74,69,48,0.50)}
         .summary-row:last-of-type{border-bottom:none}
-        .summary-row .val{font-weight:700;color:#212121;font-family:'Plus Jakarta Sans',sans-serif}
+        .summary-row .val{font-weight:700;color:#4A4530;font-family:'Plus Jakarta Sans',sans-serif}
 
         .error-msg{display:flex;align-items:center;gap:5px;font-size:11px;color:#dc2626;font-weight:600;margin-top:5px}
 
         .pill-metode{
           flex:1;padding:10px 6px;text-align:center;border-radius:10px;
           font-size:12px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;
-          cursor:pointer;border:none;transition:background .18s,color .18s,transform .15s;
+          cursor:pointer;border:none;transition:background .18s,color .18s,transform .15s,box-shadow .18s;
         }
-        .pill-metode.active{background:#2a1f08;color:#EFF0A3}
-        .pill-metode:not(.active){background:rgba(33,33,33,0.06);color:rgba(33,33,33,0.50)}
-        .pill-metode:not(.active):hover{background:rgba(33,33,33,0.11);transform:scale(1.03)}
+        .pill-metode.active{background:#F9E55A;color:#4A4530;box-shadow:0 3px 12px rgba(249,229,90,0.50)}
+        .pill-metode:not(.active){background:rgba(74,69,48,0.07);color:rgba(74,69,48,0.45)}
+        .pill-metode:not(.active):hover{background:rgba(249,229,90,0.20);transform:scale(1.03)}
 
         .pill-status{
           flex:1;padding:9px 6px;text-align:center;border-radius:10px;
           font-size:11px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;
-          cursor:pointer;border:none;transition:background .18s,color .18s,transform .15s;
+          cursor:pointer;border:none;transition:background .18s,color .18s,transform .15s,box-shadow .18s;
           text-transform:capitalize;
         }
-        .pill-status.sukses.active  {background:#CFDECA;color:#2d6a3f}
-        .pill-status.pending.active {background:#EFF0A3;color:#92650a}
-        .pill-status.batal.active   {background:#fee2e2;color:#dc2626}
-        .pill-status:not(.active){background:rgba(33,33,33,0.06);color:rgba(33,33,33,0.38)}
-        .pill-status:not(.active):hover{background:rgba(33,33,33,0.10);transform:scale(1.03)}
+        .pill-status.sukses.active  {background:#C5D9C0;color:#2d6640;box-shadow:0 3px 12px rgba(197,217,192,0.55)}
+        .pill-status.pending.active {background:#FEE2E2;color:#991b1b;box-shadow:0 3px 12px rgba(254,202,202,0.60)}
+        .pill-status.batal.active   {background:#FECACA;color:#b91c1c;box-shadow:0 3px 12px rgba(254,202,202,0.65)}
+        .pill-status:not(.active){background:rgba(74,69,48,0.07);color:rgba(74,69,48,0.38)}
+        .pill-status:not(.active):hover{background:rgba(74,69,48,0.12);transform:scale(1.03)}
 
-        .spinner{width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite}
+        .spinner{width:16px;height:16px;border:2.5px solid rgba(74,69,48,0.25);border-top-color:#4A4530;border-radius:50%;animation:spin 0.7s linear infinite}
 
         .dirty-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;margin-right:4px;flex-shrink:0}
 
-        .original-badge{
-          font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
-          padding:2px 7px;border-radius:6px;background:rgba(33,33,33,0.06);
-          color:rgba(33,33,33,0.38);font-family:'Plus Jakarta Sans',sans-serif;
+        .receipt-edge{
+          width:100%;height:10px;position:relative;overflow:hidden;
+          background:repeating-linear-gradient(90deg,transparent,transparent 8px,#FEFCE8 8px,#FEFCE8 16px);
+          opacity:.8;
         }
 
         input[type=number]::-webkit-inner-spin-button,
@@ -425,8 +432,8 @@ export default function EditPenjualanPage() {
       `}</style>
 
       <div
-        className={`min-h-screen text-[#212121] font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
-        style={{ background: "#F9F9FA" }}
+        className={`min-h-screen font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
+        style={{ background: "#FFFEF5", color: "#4A4530" }}
       >
         <Header hasNotification={false} userInitials={user.initials} />
 
@@ -434,44 +441,48 @@ export default function EditPenjualanPage() {
 
           <section
             className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
-            style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}
+            style={{ background: "linear-gradient(145deg, #FEFCE8 0%, #FEF9C3 35%, #FFFDE7 65%, #FEFCE8 100%)" }}
           >
-            <div className="absolute -top-28 -right-28 w-96 h-96 rounded-full opacity-30 blob pointer-events-none"
-              style={{ background: "#e8d5a3", filter: "blur(72px)" }} />
-            <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full opacity-20 blob2 pointer-events-none"
-              style={{ background: "#CFDECA", filter: "blur(60px)" }} />
+            <div className="absolute -top-20 -right-16 w-96 h-96 rounded-full blob pointer-events-none"
+              style={{ background: "#FBCFE8", opacity: 0.45, filter: "blur(80px)" }} />
+            <div className="absolute top-12 left-10 w-72 h-72 rounded-full blob2 pointer-events-none"
+              style={{ background: "#C5D9C0", opacity: 0.50, filter: "blur(70px)" }} />
+            <div className="absolute -bottom-10 right-1/3 w-80 h-80 rounded-full blob3 pointer-events-none"
+              style={{ background: "#DDD6FE", opacity: 0.38, filter: "blur(85px)" }} />
+            <div className="absolute bottom-0 -left-10 w-64 h-64 rounded-full blob4 pointer-events-none"
+              style={{ background: "#FEE2E2", opacity: 0.42, filter: "blur(70px)" }} />
 
             <Inner>
-              <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-medium flex-wrap"
-                style={{ color: "rgba(80,65,40,0.45)" }}>
-                <Link href="/dashboard" className="hover:text-[#2a1f08] transition-colors">Dashboard</Link>
-                <span>/</span>
+              <div className="anim-fade-up flex items-center gap-2 mb-5 text-[11px] font-semibold flex-wrap"
+                style={{ color: "rgba(74,69,48,0.42)" }}>
+                <Link href="/dashboard" className="hover:text-[#92661a] transition-colors">Dashboard</Link>
+                <span style={{ color: "rgba(74,69,48,0.25)" }}>/</span>
                 <button onClick={() => handleNavAttempt("/penjualan")}
-                  className="hover:text-[#2a1f08] transition-colors bg-transparent border-none p-0 cursor-pointer font-medium text-[11px]"
-                  style={{ color: "rgba(80,65,40,0.45)", fontFamily: "Inter, sans-serif" }}>
+                  className="hover:text-[#92661a] transition-colors bg-transparent border-none p-0 cursor-pointer font-semibold text-[11px]"
+                  style={{ color: "rgba(74,69,48,0.42)", fontFamily: "Inter, sans-serif" }}>
                   Penjualan
                 </button>
-                <span>/</span>
-                <span style={{ color: "#2a1f08" }} className="font-semibold">
+                <span style={{ color: "rgba(74,69,48,0.25)" }}>/</span>
+                <span style={{ color: "#92661a" }} className="font-semibold">
                   Edit {originalData?.kode}
                 </span>
               </div>
 
               <div className="anim-fade-up d100 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                  <p className="text-[10px] sm:text-[11px] tracking-[0.20em] uppercase mb-1.5 font-medium"
-                    style={{ color: "rgba(80,65,40,0.42)" }}>Penjualan</p>
+                  <p className="text-[10px] sm:text-[11px] tracking-[0.24em] uppercase mb-2 font-bold"
+                    style={{ color: "rgba(146,102,26,0.55)" }}>Penjualan</p>
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h1 className="font-['Plus_Jakarta_Sans'] font-black text-2xl sm:text-[2.2rem] leading-none"
-                      style={{ color: "#2a1f08" }}>Edit Transaksi</h1>
+                    <h1 className="font-['Plus_Jakarta_Sans'] font-black text-3xl sm:text-[2.5rem] leading-none"
+                      style={{ color: "#4A4530" }}>Edit Transaksi</h1>
                     {originalData && <StatusBadgeInline status={originalData.status as StatusType} />}
                   </div>
-                  <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                    <p className="text-[11px] font-bold" style={{ color: "rgba(80,65,40,0.55)" }}>
+                  <div className="flex items-center gap-3 mt-2 flex-wrap">
+                    <p className="text-[11px] font-bold" style={{ color: "rgba(74,69,48,0.55)" }}>
                       {originalData?.kode}
                     </p>
-                    <span style={{ color: "rgba(80,65,40,0.25)" }}>·</span>
-                    <p className="text-[11px] font-medium" style={{ color: "rgba(80,65,40,0.38)" }}>
+                    <span style={{ color: "rgba(74,69,48,0.25)" }}>·</span>
+                    <p className="text-[11px] font-medium" style={{ color: "rgba(74,69,48,0.42)" }}>
                       {originalData?.tanggal}, {originalData?.waktu}
                     </p>
                     {isDirty && !submitted && (
@@ -483,28 +494,30 @@ export default function EditPenjualanPage() {
                 </div>
                 <button className="btn-ghost self-start sm:self-auto"
                   onClick={() => handleNavAttempt("/penjualan")}>
-                  <IconArrowLeft size={14} color="rgba(33,33,33,0.55)" />
+                  <IconArrowLeft size={14} color="rgba(74,69,48,0.55)" />
                   Kembali
                 </button>
               </div>
             </Inner>
           </section>
 
-          <section className="w-full py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
+          <section className="w-full py-10 sm:py-12" style={{ background: "#FFFEF5" }}>
             <Inner>
               {submitted ? (
                 <div className="success-pop card p-10 flex flex-col items-center text-center">
                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
-                    style={{ background: "#CFDECA" }}>
-                    <IconCheck size={28} color="#2d6a3f" />
+                    style={{ background: "#C5D9C0" }}>
+                    <IconCheck size={28} color="#2d6640" />
                   </div>
-                  <h2 className="font-['Plus_Jakarta_Sans'] font-black text-2xl text-[#212121] mb-2">
+                  <h2 className="font-['Plus_Jakarta_Sans'] font-black text-2xl mb-2"
+                    style={{ color: "#4A4530" }}>
                     Transaksi Berhasil Diperbarui!
                   </h2>
-                  <p className="text-sm mb-1" style={{ color: "rgba(33,33,33,0.50)" }}>
-                    Perubahan pada <span className="font-semibold text-[#212121]">{originalData?.kode}</span> telah disimpan.
+                  <p className="text-sm mb-1" style={{ color: "rgba(74,69,48,0.50)" }}>
+                    Perubahan pada <span className="font-semibold" style={{ color: "#4A4530" }}>{originalData?.kode}</span> telah disimpan.
                   </p>
-                  <p className="font-bold text-lg mt-1 mb-7" style={{ color: "#2a1f08" }}>
+                  <p className="font-['Plus_Jakarta_Sans'] font-black text-lg mt-1 mb-7"
+                    style={{ color: "#92661a" }}>
                     {fmt(grandTotal)} · <span className="capitalize">{metode}</span>
                   </p>
                   <div className="flex gap-3 flex-wrap justify-center">
@@ -515,7 +528,7 @@ export default function EditPenjualanPage() {
                       setSubmitted(false);
                       setIsDirty(false);
                     }}>
-                      <IconEdit size={14} color="#ffffff" /> Edit Lagi
+                      <IconEdit size={14} color="#4A4530" /> Edit Lagi
                     </button>
                   </div>
                 </div>
@@ -527,13 +540,13 @@ export default function EditPenjualanPage() {
 
                       {originalData && (
                         <div className="anim-fade-up d50 flex items-start gap-3 px-4 py-3.5 rounded-2xl"
-                          style={{ background: "rgba(216,223,233,0.35)", border: "1px solid rgba(42,58,82,0.12)" }}>
-                          <IconInfo size={14} color="#2a3a52" />
+                          style={{ background: "rgba(249,229,90,0.12)", border: "1px solid rgba(249,229,90,0.35)" }}>
+                          <IconInfo size={14} color="#92661a" />
                           <div>
-                            <p className="text-[11px] font-semibold mb-0.5" style={{ color: "#2a3a52" }}>
+                            <p className="text-[11px] font-semibold mb-0.5" style={{ color: "#92661a" }}>
                               Mengedit transaksi asli
                             </p>
-                            <p className="text-[10px]" style={{ color: "rgba(42,58,82,0.60)" }}>
+                            <p className="text-[10px]" style={{ color: "rgba(146,102,26,0.65)" }}>
                               Total awal: <span className="font-bold">{fmt(originalData.total)}</span>
                               &nbsp;·&nbsp;Metode awal: <span className="font-bold">{originalData.metode}</span>
                               &nbsp;·&nbsp;Status awal: <span className="font-bold capitalize">{originalData.status}</span>
@@ -546,19 +559,23 @@ export default function EditPenjualanPage() {
                         <div className="flex items-center justify-between gap-3 mb-5">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                              style={{ background: "#e8dfc8" }}>
-                              <IconPackage size={16} color="#7a5c2e" />
+                              style={{ background: "#FEF9C3" }}>
+                              <IconPackage size={16} color="#92661a" />
                             </div>
                             <div>
-                              <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121] leading-tight">
+                              <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm leading-tight"
+                                style={{ color: "#4A4530" }}>
                                 Daftar Item
                               </h2>
-                              <p className="text-[10px] mt-0.5" style={{ color: "rgba(33,33,33,0.40)" }}>
+                              <p className="text-[10px] mt-0.5" style={{ color: "rgba(74,69,48,0.40)" }}>
                                 {lines.length} item dalam transaksi ini
                               </p>
                             </div>
                           </div>
-                          <span className="original-badge">Prefilled</span>
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg"
+                            style={{ background: "rgba(249,229,90,0.20)", color: "rgba(74,69,48,0.45)" }}>
+                            Prefilled
+                          </span>
                         </div>
 
                         <div className="flex flex-col gap-3">
@@ -569,10 +586,9 @@ export default function EditPenjualanPage() {
 
                             return (
                               <div key={line.uid} className={`line-row row-in ${line.error ? "has-error" : ""}`}>
-
                                 <div className="flex items-center justify-between mb-3">
                                   <span className="text-[10px] font-bold uppercase tracking-widest"
-                                    style={{ color: "rgba(80,65,40,0.38)" }}>
+                                    style={{ color: "rgba(74,69,48,0.38)" }}>
                                     Item {idx + 1}
                                   </span>
                                   <button
@@ -609,7 +625,7 @@ export default function EditPenjualanPage() {
                                       ))}
                                     </select>
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                                      style={{ color: "rgba(33,33,33,0.35)" }}>
+                                      style={{ color: "rgba(74,69,48,0.40)" }}>
                                       <IconChevronDown size={14} />
                                     </span>
                                   </div>
@@ -638,7 +654,7 @@ export default function EditPenjualanPage() {
                                       </span>
                                     )}
                                     {subtotal > 0 && (
-                                      <span className="text-xs font-black" style={{ color: "#2a1f08" }}>
+                                      <span className="text-xs font-black" style={{ color: "#92661a" }}>
                                         {fmt(subtotal)}
                                       </span>
                                     )}
@@ -656,7 +672,7 @@ export default function EditPenjualanPage() {
                         </div>
 
                         <button type="button" className="btn-add-line mt-3" onClick={addLine}>
-                          <IconPlus size={13} color="rgba(42,31,8,0.55)" />
+                          <IconPlus size={13} color="rgba(74,69,48,0.55)" />
                           Tambah Item Lain
                         </button>
                       </div>
@@ -665,7 +681,7 @@ export default function EditPenjualanPage() {
                         <label className="field-label" style={{ marginBottom: "8px", display: "block" }}>
                           Catatan{" "}
                           <span className="normal-case font-normal tracking-normal"
-                            style={{ color: "rgba(33,33,33,0.35)" }}>(opsional)</span>
+                            style={{ color: "rgba(74,69,48,0.35)" }}>(opsional)</span>
                         </label>
                         <textarea
                           className="field-input resize-none"
@@ -677,11 +693,10 @@ export default function EditPenjualanPage() {
                         />
                       </div>
                     </div>
-
                     <div className="flex flex-col gap-5">
-
                       <div className="anim-fade-up d150 card p-6">
-                        <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121] mb-4">
+                        <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm mb-4"
+                          style={{ color: "#4A4530" }}>
                           Metode Pembayaran
                         </h2>
                         <div className="flex gap-2">
@@ -696,7 +711,8 @@ export default function EditPenjualanPage() {
                       </div>
 
                       <div className="anim-fade-up d200 card p-6">
-                        <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121] mb-4">
+                        <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm mb-4"
+                          style={{ color: "#4A4530" }}>
                           Status Transaksi
                         </h2>
                         <div className="flex gap-2">
@@ -713,10 +729,11 @@ export default function EditPenjualanPage() {
                       <div className="anim-fade-up d250 card p-6">
                         <div className="flex items-center gap-2.5 mb-4">
                           <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ background: "#D8DFE9" }}>
-                            <IconReceipt size={15} color="#2a3a52" />
+                            style={{ background: "#FEF9C3" }}>
+                            <IconReceipt size={15} color="#92661a" />
                           </div>
-                          <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121]">
+                          <h2 className="font-['Plus_Jakarta_Sans'] font-black text-sm"
+                            style={{ color: "#4A4530" }}>
                             Ringkasan Order
                           </h2>
                         </div>
@@ -733,7 +750,7 @@ export default function EditPenjualanPage() {
                             ) : null
                           )}
                           {lineDetails.every(l => !l.barang) && (
-                            <p className="text-[11px] text-center py-4" style={{ color: "rgba(33,33,33,0.30)" }}>
+                            <p className="text-[11px] text-center py-4" style={{ color: "rgba(74,69,48,0.30)" }}>
                               Belum ada item dipilih
                             </p>
                           )}
@@ -741,28 +758,28 @@ export default function EditPenjualanPage() {
 
                         {originalData && grandTotal !== originalData.total && grandTotal > 0 && (
                           <div className="mt-3 pt-3 flex items-center justify-between text-[11px]"
-                            style={{ borderTop: "1px dashed rgba(33,33,33,0.10)" }}>
-                            <span style={{ color: "rgba(33,33,33,0.38)" }}>Sebelumnya</span>
-                            <span className="font-bold line-through" style={{ color: "rgba(33,33,33,0.35)" }}>
+                            style={{ borderTop: "1px dashed rgba(249,229,90,0.30)" }}>
+                            <span style={{ color: "rgba(74,69,48,0.38)" }}>Sebelumnya</span>
+                            <span className="font-bold line-through" style={{ color: "rgba(74,69,48,0.35)" }}>
                               {fmt(originalData.total)}
                             </span>
                           </div>
                         )}
 
-                        <div className="mt-3 pt-3" style={{ borderTop: "2px solid rgba(33,33,33,0.08)" }}>
+                        <div className="mt-3 pt-3" style={{ borderTop: "2px solid rgba(249,229,90,0.25)" }}>
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold uppercase tracking-wider"
-                              style={{ color: "rgba(33,33,33,0.40)" }}>Total Baru</span>
+                              style={{ color: "rgba(74,69,48,0.40)" }}>Total Baru</span>
                             <span className="font-['Plus_Jakarta_Sans'] font-black text-xl"
-                              style={{ color: "#2a1f08" }}>
+                              style={{ color: "#92661a" }}>
                               {fmt(grandTotal)}
                             </span>
                           </div>
                           <div className="flex items-center justify-end gap-2 mt-1">
-                            <p className="text-[10px]" style={{ color: "rgba(33,33,33,0.30)" }}>
+                            <p className="text-[10px]" style={{ color: "rgba(74,69,48,0.30)" }}>
                               via {metode}
                             </p>
-                            <span style={{ color: "rgba(33,33,33,0.18)" }}>·</span>
+                            <span style={{ color: "rgba(74,69,48,0.18)" }}>·</span>
                             <StatusBadgeInline status={status} />
                           </div>
                         </div>
@@ -770,9 +787,9 @@ export default function EditPenjualanPage() {
 
                       {globalError && (
                         <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl"
-                          style={{ background: "#fee2e2", border: "1px solid rgba(220,38,38,0.2)" }}>
+                          style={{ background: "#FEE2E2", border: "1px solid rgba(220,38,38,0.20)" }}>
                           <IconAlertTriangle size={14} color="#dc2626" />
-                          <p className="text-xs font-semibold text-red-600">{globalError}</p>
+                          <p className="text-xs font-semibold" style={{ color: "#dc2626" }}>{globalError}</p>
                         </div>
                       )}
 
@@ -786,7 +803,7 @@ export default function EditPenjualanPage() {
                           {submitting ? (
                             <><span className="spinner" /> Menyimpan…</>
                           ) : (
-                            <><IconCheck size={15} color="#fff" /> Simpan Perubahan</>
+                            <><IconCheck size={15} color="#4A4530" /> Simpan Perubahan</>
                           )}
                         </button>
                         <button type="button" className="btn-ghost w-full justify-center"
@@ -795,23 +812,10 @@ export default function EditPenjualanPage() {
                         </button>
                       </div>
                     </div>
+
                   </div>
                 </form>
               )}
-
-            </Inner>
-          </section>
-
-          <section className="w-full py-5 sm:py-6" style={{ background: "#212121" }}>
-            <Inner>
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <p className="text-[11px] font-medium" style={{ color: "rgba(249,249,250,0.35)" }}>
-                  Mengedit transaksi {originalData?.kode ?? `#${id}`}
-                </p>
-                <p className="text-[10px] font-medium" style={{ color: "rgba(249,249,250,0.18)" }}>
-                  Inventix v1.0 · Penjualan / Edit
-                </p>
-              </div>
             </Inner>
           </section>
         </main>
@@ -820,21 +824,26 @@ export default function EditPenjualanPage() {
 
         {showDiscardModal && (
           <div className="modal-fade fixed inset-0 z-50 flex items-center justify-center px-4"
-            style={{ background: "rgba(33,33,33,0.45)", backdropFilter: "blur(8px)" }}
+            style={{ background: "rgba(74,69,48,0.30)", backdropFilter: "blur(10px)" }}
             onClick={() => setShowDiscardModal(false)}>
             <div className="modal-pop w-full max-w-sm p-6 sm:p-7 border"
-              style={{ background: "#FFFFFF", borderRadius: "20px", borderColor: "rgba(33,33,33,0.08)", boxShadow: "0 24px 64px rgba(33,33,33,0.18)" }}
+              style={{
+                background: "#FFFFFF", borderRadius: "22px",
+                borderColor: "rgba(249,229,90,0.40)",
+                boxShadow: "0 24px 64px rgba(249,229,90,0.20)",
+              }}
               onClick={e => e.stopPropagation()}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
-                style={{ background: "#EFF0A3" }}>
-                <IconAlertTriangle size={22} color="#92650a" />
+                style={{ background: "#FEE2E2" }}>
+                <IconAlertTriangle size={22} color="#991b1b" />
               </div>
-              <h2 className="font-['Plus_Jakarta_Sans'] font-black text-lg text-[#212121] mb-1.5">
+              <h2 className="font-['Plus_Jakarta_Sans'] font-black text-lg mb-1.5"
+                style={{ color: "#4A4530" }}>
                 Tinggalkan Halaman?
               </h2>
-              <p className="text-sm mb-6" style={{ color: "rgba(33,33,33,0.55)" }}>
+              <p className="text-sm mb-6" style={{ color: "rgba(74,69,48,0.55)" }}>
                 Perubahan yang belum disimpan pada{" "}
-                <span className="font-semibold text-[#212121]">{originalData?.kode}</span>{" "}
+                <span className="font-semibold" style={{ color: "#4A4530" }}>{originalData?.kode}</span>{" "}
                 akan hilang jika kamu meninggalkan halaman ini.
               </p>
               <div className="flex gap-3">
@@ -850,6 +859,7 @@ export default function EditPenjualanPage() {
             </div>
           </div>
         )}
+
       </div>
     </>
   );
