@@ -51,6 +51,8 @@ export default function Header({
     router.push("/auth/login");
   };
 
+  const isNotifActive = pathname === "/notification";
+
   return (
     <>
       <style>{`
@@ -72,8 +74,13 @@ export default function Header({
         .dd-item.danger { color:rgba(220,38,38,0.70); }
         .dd-item.danger:hover { background:rgba(254,242,242,0.7); color:#dc2626; }
         .dd-item svg { flex-shrink:0; }
-        .notif-btn { transition:background .15s, transform .18s cubic-bezier(.22,1,.36,1); }
+        .notif-btn {
+          transition:background .15s, transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s;
+          text-decoration: none;
+          display: flex; align-items: center; justify-content: center;
+        }
         .notif-btn:hover { background:rgba(33,33,33,0.08) !important; transform:scale(1.05); }
+        .notif-btn.active { background:rgba(196,181,253,0.20) !important; border-color:rgba(196,181,253,0.6) !important; }
         .avatar-btn { transition:opacity .15s, transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s; }
         .avatar-btn:hover { opacity:0.85; transform:scale(1.05); box-shadow:0 4px 12px rgba(33,33,33,0.18); }
       `}</style>
@@ -126,19 +133,20 @@ export default function Header({
 
             <div className="hidden md:block w-px h-5 bg-black/10" />
 
-            {/* Notif */}
-            <button
+            <Link
+              href="/notification"
               aria-label="Notifikasi"
-              className="notif-btn relative w-8 h-8 rounded-full border border-black/10 bg-black/[0.03] flex items-center justify-center"
+              className={`notif-btn relative w-8 h-8 rounded-full border border-black/10 bg-black/[0.03] ${isNotifActive ? "active" : ""}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#212121]/60">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+                className={isNotifActive ? "text-[#7C5CBF]" : "text-[#212121]/60"}>
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
               {hasNotification && (
                 <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white" />
               )}
-            </button>
+            </Link>
 
             {/* Avatar + dropdown */}
             <div className="relative" ref={profileRef}>
@@ -255,6 +263,10 @@ export default function Header({
                 </Link>
               );
             })}
+            <Link href="/notification" onClick={() => setOpenMenu(false)}
+              className={`text-sm font-medium ${pathname === "/notification" ? "text-[#7C5CBF] font-semibold" : "text-[#212121]/50"}`}>
+              Notifikasi
+            </Link>
             <Link href="/profile" onClick={() => setOpenMenu(false)}
               className="text-sm font-medium text-[#212121]/50">
               Profil
