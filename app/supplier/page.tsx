@@ -23,13 +23,6 @@ const SHOW_OPTIONS = [5, 10, 25, 50];
 const HARI = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
-const IconBuilding = ({ size = 18, color = "currentColor" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="3" width="20" height="18" rx="2"/>
-    <path d="M9 3v18M15 3v18M2 9h20M2 15h20"/>
-  </svg>
-);
-
 const IconMapPin = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -137,6 +130,30 @@ function Inner({ children, className = "" }: { children: React.ReactNode; classN
   return <div className={`max-w-6xl mx-auto px-4 sm:px-8 ${className}`}>{children}</div>;
 }
 
+// Stat strip icons
+const IconBuilding2 = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#065f46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="18" rx="2"/><path d="M9 3v18M15 3v18M2 9h20M2 15h20"/>
+  </svg>
+);
+const IconCheckCircle2 = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+);
+const IconAlertTriangle2 = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+);
+const IconTag2 = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+    <line x1="7" y1="7" x2="7.01" y2="7"/>
+  </svg>
+);
+
 export default function SupplierPage() {
   const [mounted, setMounted] = useState(false);
   const [tanggal, setTanggal] = useState("");
@@ -162,6 +179,7 @@ export default function SupplierPage() {
   }, [toast]);
 
   const kategoriList = ["Semua", ...Array.from(new Set(data.map(d => d.kategori)))];
+  const aktifCount = data.filter(d => d.aktif).length;
 
   const filtered = data.filter(d => {
     const matchSearch = d.nama.toLowerCase().includes(search.toLowerCase()) ||
@@ -199,7 +217,12 @@ export default function SupplierPage() {
     return <span style={{ color: "#064e3b", display: "inline-flex" }}>{sortDir === "asc" ? <IconSort size={11} /> : <IconSortDown size={11} />}</span>;
   }
 
-  const aktifCount = data.filter(d => d.aktif).length;
+  const statItems = [
+    { label: "Total Supplier", val: data.length, valColor: "#022c22", iconBg: "#d1fae5", icon: <IconBuilding2 /> },
+    { label: "Aktif",          val: aktifCount,             valColor: "#047857", iconBg: "#d1fae5", icon: <IconCheckCircle2 /> },
+    { label: "Nonaktif",       val: data.length - aktifCount, valColor: "#b45309", iconBg: "#fef3c7", icon: <IconAlertTriangle2 /> },
+    { label: "Kategori",       val: new Set(data.map(d => d.kategori)).size, valColor: "#1e40af", iconBg: "#dbeafe", icon: <IconTag2 /> },
+  ];
 
   return (
     <>
@@ -226,7 +249,7 @@ export default function SupplierPage() {
         .d4{animation-delay:.20s}.d5{animation-delay:.25s}.d6{animation-delay:.30s}
         .d7{animation-delay:.35s}.d8{animation-delay:.40s}
 
-        .blob-g { animation:floatBlob 10s ease-in-out infinite; }
+        .blob-g  { animation:floatBlob 10s ease-in-out infinite; }
         .blob-g2 { animation:floatBlob 14s ease-in-out infinite reverse; animation-delay:4s; }
 
         .su-card {
@@ -320,7 +343,6 @@ export default function SupplierPage() {
         .modal-box { animation:fadeUp .22s cubic-bezier(.22,1,.36,1) both; }
         .toast-g { animation:slideIn .32s cubic-bezier(.22,1,.36,1) both; }
 
-        /* Grid view card */
         .sup-grid-card {
           border:1.5px solid rgba(6,78,59,0.10); border-radius:16px;
           padding:20px; background:rgba(255,255,255,0.75);
@@ -328,6 +350,34 @@ export default function SupplierPage() {
           cursor:default;
         }
         .sup-grid-card:hover { transform:translateY(-4px); box-shadow:0 18px 40px rgba(6,78,59,0.11); border-color:rgba(6,78,59,0.22); }
+
+        /* Stat strip */
+        .stat-strip-su {
+          display:flex;
+          background:rgba(255,255,255,0.52);
+          border:1px solid rgba(6,78,59,0.12);
+          border-radius:16px;
+          overflow:hidden;
+          backdrop-filter:blur(14px);
+        }
+        .stat-strip-item-su {
+          flex:1; padding:16px 18px;
+          display:flex; align-items:center; gap:13px;
+          position:relative; cursor:default;
+          transition:background .2s;
+        }
+        .stat-strip-item-su:hover { background:rgba(255,255,255,0.72); }
+        .stat-strip-item-su + .stat-strip-item-su::before {
+          content:'';
+          position:absolute; left:0; top:20%; height:60%;
+          width:1px; background:rgba(6,78,59,0.10);
+        }
+        .stat-strip-icon-su {
+          width:38px; height:38px; border-radius:11px; flex-shrink:0;
+          display:flex; align-items:center; justify-content:center;
+          transition:transform .25s cubic-bezier(.22,1,.36,1);
+        }
+        .stat-strip-item-su:hover .stat-strip-icon-su { transform:scale(1.14) rotate(4deg); }
       `}</style>
 
       <div className={`min-h-screen text-[#064e3b] font-['DM_Sans'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
@@ -373,19 +423,19 @@ export default function SupplierPage() {
                 )}
               </div>
 
-              {/* Stat strip */}
-              <div className="su-fade-up d4 mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: "Total Supplier", val: data.length, accent: "#022c22", bg: "rgba(255,255,255,0.60)" },
-                  { label: "Aktif", val: aktifCount, accent: "#047857", bg: "rgba(209,250,229,0.60)" },
-                  { label: "Nonaktif", val: data.length - aktifCount, accent: "#b45309", bg: "rgba(254,243,199,0.60)" },
-                  { label: "Kategori", val: new Set(data.map(d => d.kategori)).size, accent: "#1e40af", bg: "rgba(219,234,254,0.60)" },
-                ].map((s, i) => (
-                  <div key={i} className="su-card flex flex-col gap-1 px-4 py-3.5 border"
-                    style={{ background: s.bg, borderColor: "rgba(6,78,59,0.10)", borderRadius: "14px", backdropFilter: "blur(16px)" }}>
-                    <p className="font-['Plus_Jakarta_Sans'] font-black text-2xl sm:text-[1.7rem] leading-none"
-                      style={{ color: s.accent }}>{s.val}</p>
-                    <p className="text-[10px] sm:text-[11px] font-medium" style={{ color: "rgba(6,78,59,0.45)" }}>{s.label}</p>
+              {/* ── STAT STRIP ── */}
+              <div className="su-fade-up d4 mt-6 stat-strip-su">
+                {statItems.map((s, i) => (
+                  <div key={i} className="stat-strip-item-su">
+                    <div className="stat-strip-icon-su" style={{ background: s.iconBg }}>
+                      {s.icon}
+                    </div>
+                    <div>
+                      <p className="font-['Plus_Jakarta_Sans'] font-black text-xl sm:text-2xl leading-none"
+                        style={{ color: s.valColor }}>{s.val}</p>
+                      <p className="text-[10px] sm:text-[11px] mt-1 font-medium"
+                        style={{ color: "rgba(6,78,59,0.45)" }}>{s.label}</p>
+                    </div>
                   </div>
                 ))}
               </div>
