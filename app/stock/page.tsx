@@ -9,18 +9,18 @@ const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
 const isAdmin = true;
 
 const stokData = [
-  { id: 1, nama: "Tepung Terigu",   jumlah: 0,   satuan: "kg",    harga: 12000,  max: 100 },
-  { id: 2, nama: "Gula Pasir",      jumlah: 50,  satuan: "kg",    harga: 15500,  max: 100 },
-  { id: 3, nama: "Minyak Goreng",   jumlah: 0,   satuan: "liter", harga: 18000,  max: 80  },
-  { id: 4, nama: "Susu UHT",        jumlah: 120, satuan: "pcs",   harga: 7500,   max: 200 },
-  { id: 5, nama: "Kopi Arabika",    jumlah: 30,  satuan: "kg",    harga: 85000,  max: 60  },
-  { id: 6, nama: "Teh Hijau",       jumlah: 15,  satuan: "pcs",   harga: 22000,  max: 50  },
-  { id: 7, nama: "Beras Premium",   jumlah: 200, satuan: "kg",    harga: 14000,  max: 300 },
-  { id: 8, nama: "Garam Halus",     jumlah: 8,   satuan: "kg",    harga: 5000,   max: 40  },
-  { id: 9, nama: "Mentega",         jumlah: 0,   satuan: "pcs",   harga: 32000,  max: 60  },
-  { id: 10, nama: "Coklat Bubuk",   jumlah: 22,  satuan: "kg",    harga: 45000,  max: 50  },
-  { id: 11, nama: "Vanilla Essence",jumlah: 40,  satuan: "botol", harga: 28000,  max: 80  },
-  { id: 12, nama: "Baking Powder",  jumlah: 5,   satuan: "pcs",   harga: 12500,  max: 30  },
+  { id: 1,  nama: "Tepung Terigu",    jumlah: 0,   satuan: "kg",    harga: 12000, max: 100, kategori: "Tepung & Kering" },
+  { id: 2,  nama: "Gula Pasir",       jumlah: 50,  satuan: "kg",    harga: 15500, max: 100, kategori: "Pemanis" },
+  { id: 3,  nama: "Minyak Goreng",    jumlah: 0,   satuan: "liter", harga: 18000, max: 80,  kategori: "Lemak & Minyak" },
+  { id: 4,  nama: "Susu UHT",         jumlah: 120, satuan: "pcs",   harga: 7500,  max: 200, kategori: "Susu & Dairy" },
+  { id: 5,  nama: "Kopi Arabika",     jumlah: 30,  satuan: "kg",    harga: 85000, max: 60,  kategori: "Minuman" },
+  { id: 6,  nama: "Teh Hijau",        jumlah: 15,  satuan: "pcs",   harga: 22000, max: 50,  kategori: "Minuman" },
+  { id: 7,  nama: "Beras Premium",    jumlah: 200, satuan: "kg",    harga: 14000, max: 300, kategori: "Tepung & Kering" },
+  { id: 8,  nama: "Garam Halus",      jumlah: 8,   satuan: "kg",    harga: 5000,  max: 40,  kategori: "Bumbu" },
+  { id: 9,  nama: "Mentega",          jumlah: 0,   satuan: "pcs",   harga: 32000, max: 60,  kategori: "Lemak & Minyak" },
+  { id: 10, nama: "Coklat Bubuk",     jumlah: 22,  satuan: "kg",    harga: 45000, max: 50,  kategori: "Pemanis" },
+  { id: 11, nama: "Vanilla Essence",  jumlah: 40,  satuan: "botol", harga: 28000, max: 80,  kategori: "Bumbu" },
+  { id: 12, nama: "Baking Powder",    jumlah: 5,   satuan: "pcs",   harga: 12500, max: 30,  kategori: "Tepung & Kering" },
 ];
 
 const SHOW_OPTIONS = [5, 10, 25, 50];
@@ -154,8 +154,10 @@ export default function StockPage() {
   const [data, setData] = useState(stokData);
   const [deleteModal, setDeleteModal] = useState<typeof stokData[0] | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [filterKategori, setFilterKategori] = useState("Semua");
 
   const adaStokHabis = data.some((d) => d.jumlah === 0);
+  const kategoriList = ["Semua", ...Array.from(new Set(data.map(d => d.kategori)))];
 
   useEffect(() => {
     const update = () => {
@@ -170,10 +172,13 @@ export default function StockPage() {
     if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }
   }, [toast]);
 
-  const filtered = data.filter((d) =>
-    d.nama.toLowerCase().includes(search.toLowerCase()) ||
-    d.satuan.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = data.filter((d) => {
+    const matchSearch =
+      d.nama.toLowerCase().includes(search.toLowerCase()) ||
+      d.satuan.toLowerCase().includes(search.toLowerCase());
+    const matchKat = filterKategori === "Semua" || d.kategori === filterKategori;
+    return matchSearch && matchKat;
+  });
 
   const sorted = [...filtered].sort((a, b) => {
     if (!sortCol) return 0;
@@ -326,6 +331,15 @@ export default function StockPage() {
         .progress-bar { transition:width 1.2s cubic-bezier(.22,1,.36,1); }
         .sort-th { cursor:pointer; user-select:none; }
         .sort-th:hover { color:#212121 !important; }
+
+        .kat-pill {
+          padding:5px 13px; border-radius:999px; font-size:11px; font-weight:600;
+          cursor:pointer; border:none; transition:all .18s;
+          font-family:'Plus Jakarta Sans',sans-serif;
+        }
+        .kat-pill.on { background:#2a1f08; color:#EFF0A3; }
+        .kat-pill.off { background:rgba(42,31,8,0.08); color:rgba(42,31,8,0.50); }
+        .kat-pill.off:hover { background:rgba(42,31,8,0.15); color:#2a1f08; }
       `}</style>
 
       <div className={`min-h-screen text-[#212121] font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
@@ -435,6 +449,20 @@ export default function StockPage() {
           {/* ── TABLE SECTION ── */}
           <section className="w-full py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
             <Inner>
+
+              {/* ── FILTER PILLS ── */}
+              <div className="anim-fade-up d100 flex items-center gap-2 flex-wrap mb-5">
+                {kategoriList.map(k => (
+                  <button
+                    key={k}
+                    className={`kat-pill ${filterKategori === k ? "on" : "off"}`}
+                    onClick={() => { setFilterKategori(k); setPage(1); }}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+
               {/* Controls */}
               <div className="anim-fade-up d200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -466,6 +494,7 @@ export default function StockPage() {
                         {[
                           { label:"No",          col:null },
                           { label:"Nama Barang", col:"nama" },
+                          { label:"Kategori",    col:"kategori" },
                           { label:"Jumlah",      col:"jumlah" },
                           { label:"Satuan",      col:"satuan" },
                           { label:"Harga",       col:"harga" },
@@ -485,7 +514,7 @@ export default function StockPage() {
                     </thead>
                     <tbody>
                       {paginated.length === 0 ? (
-                        <tr><td colSpan={isAdmin ? 7 : 6} className="px-6 py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>
+                        <tr><td colSpan={isAdmin ? 8 : 7} className="px-6 py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>
                           Tidak ada barang ditemukan.
                         </td></tr>
                       ) : paginated.map((item, i) => (
@@ -495,6 +524,12 @@ export default function StockPage() {
                             {(page - 1) * showCount + i + 1}
                           </td>
                           <td className="px-6 py-4 font-semibold text-[#212121] text-xs sm:text-sm">{item.nama}</td>
+                          <td className="px-6 py-4">
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg"
+                              style={{ background: "rgba(42,31,8,0.08)", color: "#2a1f08" }}>
+                              {item.kategori}
+                            </span>
+                          </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2.5">
                               <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(33,33,33,0.09)" }}>
@@ -536,7 +571,13 @@ export default function StockPage() {
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div>
                           <p className="font-semibold text-sm text-[#212121]">{item.nama}</p>
-                          <p className="text-[11px] mt-0.5 font-medium" style={{ color:"rgba(33,33,33,0.45)" }}>{item.satuan} · {fmt(item.harga)}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md"
+                              style={{ background: "rgba(42,31,8,0.08)", color: "#2a1f08" }}>
+                              {item.kategori}
+                            </span>
+                            <p className="text-[11px] font-medium" style={{ color:"rgba(33,33,33,0.45)" }}>{item.satuan} · {fmt(item.harga)}</p>
+                          </div>
                         </div>
                         <StatusBadge jumlah={item.jumlah} max={item.max} />
                       </div>
