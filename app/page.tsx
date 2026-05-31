@@ -284,7 +284,7 @@ export default function OnboardingBoarding() {
             <div className="flex flex-col items-center gap-2">
               {wordmarkVisible && (
                 <span className="word-anim font-['Plus_Jakarta_Sans'] font-black text-[30px] sm:text-[36px] tracking-[0.18em] text-[#F9F9FA]">
-                  inventix
+                  INVENTIX
                 </span>
               )}
               {taglineVisible && (
