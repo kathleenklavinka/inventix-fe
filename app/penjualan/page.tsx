@@ -4,27 +4,9 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
-const isAdmin = true;
-
-const penjualanData = [
-  { id: 1,  kode: "#TRX-0842", waktu: "14:32", tanggal: "30 Mei 2026",   items: "Kopi Arabika x2, Focaccia x1",         total: 185000, metode: "QRIS",     status: "sukses"  },
-  { id: 2,  kode: "#TRX-0841", waktu: "14:15", tanggal: "30 Mei 2026",   items: "Cold Brew x3, Croissant x2",            total: 225000, metode: "Tunai",    status: "sukses"  },
-  { id: 3,  kode: "#TRX-0840", waktu: "13:58", tanggal: "30 Mei 2026",   items: "Matcha Latte x1",                       total: 35000,  metode: "Transfer", status: "sukses"  },
-  { id: 4,  kode: "#TRX-0839", waktu: "13:44", tanggal: "30 Mei 2026",   items: "Focaccia Original x4",                  total: 100000, metode: "QRIS",     status: "sukses"  },
-  { id: 5,  kode: "#TRX-0838", waktu: "13:20", tanggal: "30 Mei 2026",   items: "Kopi Arabika x1, Croissant x1",         total: 110000, metode: "Tunai",    status: "pending" },
-  { id: 6,  kode: "#TRX-0837", waktu: "12:55", tanggal: "30 Mei 2026",   items: "Cold Brew x2",                          total: 90000,  metode: "QRIS",     status: "sukses"  },
-  { id: 7,  kode: "#TRX-0836", waktu: "12:30", tanggal: "30 Mei 2026",   items: "Matcha Latte x2, Focaccia x1",          total: 95000,  metode: "Transfer", status: "batal"   },
-  { id: 8,  kode: "#TRX-0835", waktu: "11:47", tanggal: "30 Mei 2026",   items: "Kopi Arabika x3",                       total: 255000, metode: "QRIS",     status: "sukses"  },
-  { id: 9,  kode: "#TRX-0834", waktu: "11:22", tanggal: "30 Mei 2026",   items: "Croissant Butter x2, Cold Brew x1",     total: 120000, metode: "Tunai",    status: "sukses"  },
-  { id: 10, kode: "#TRX-0833", waktu: "10:58", tanggal: "30 Mei 2026",   items: "Matcha Latte x3",                       total: 105000, metode: "Transfer", status: "sukses"  },
-  { id: 11, kode: "#TRX-0832", waktu: "10:31", tanggal: "30 Mei 2026",   items: "Focaccia Original x2, Kopi Arabika x1", total: 135000, metode: "QRIS",     status: "sukses"  },
-  { id: 12, kode: "#TRX-0831", waktu: "09:55", tanggal: "30 Mei 2026",   items: "Cold Brew x1",                          total: 45000,  metode: "Tunai",    status: "pending" },
-  { id: 13, kode: "#TRX-0830", waktu: "09:20", tanggal: "29 Mei 2026",   items: "Kopi Arabika x2, Matcha Latte x1",      total: 205000, metode: "QRIS",     status: "sukses"  },
-  { id: 14, kode: "#TRX-0829", waktu: "16:45", tanggal: "29 Mei 2026",   items: "Croissant Butter x4",                   total: 100000, metode: "Transfer", status: "sukses"  },
-  { id: 15, kode: "#TRX-0828", waktu: "15:30", tanggal: "29 Mei 2026",   items: "Focaccia Original x1, Cold Brew x2",    total: 115000, metode: "Tunai",    status: "batal"   },
-];
+import Cookies from "js-cookie";
+import { COOKIE_NAME, COOKIE_ROLE } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -153,17 +135,58 @@ export default function PenjualanPage() {
   const [tanggal, setTanggal]   = useState("");
   const [search, setSearch]     = useState("");
   const [page, setPage]         = useState(1);
-  const [data, setData]         = useState(penjualanData);
-  const [deleteModal, setDeleteModal] = useState<typeof penjualanData[0] | null>(null);
+  const [data, setData]         = useState<any[]>([]);
+  const [deleteModal, setDeleteModal] = useState<any | null>(null);
   const [toast, setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [filterStatus, setFilterStatus] = useState<"semua" | "sukses" | "pending" | "batal">("semua");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
+  const [userName, setUserName] = useState("Andi Pratama");
+  const [userRole, setUserRole] = useState("user");
+  const [userInitials, setUserInitials] = useState("AP");
+
+  const loadTransaksi = async () => {
+    try {
+      const res = await api.pembelianTransaksi.getAll();
+      const mapped = res.data.map((item: any) => {
+        const dateObj = new Date(item.dibuat_pada);
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const waktuStr = `${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+        const tanggalStr = `${dateObj.getDate()} ${BULAN[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        
+        return {
+          id: item.id,
+          kode: `#TRX-${String(item.id).padStart(4, "0")}`,
+          waktu: waktuStr,
+          tanggal: tanggalStr,
+          items: `${item.stok?.nama || "Barang"} x${item.jumlah}`,
+          total: item.jumlah * (item.stok?.harga || 15000),
+          metode: item.jenis === "masuk" ? "Transfer" : "QRIS",
+          status: "sukses",
+          raw: item
+        };
+      });
+      setData(mapped);
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal memuat transaksi.", type: "error" });
+    }
+  };
+
   useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    const role = Cookies.get(COOKIE_ROLE) || "user";
+    setUserName(decodeURIComponent(name));
+    setUserRole(role);
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+    
+    loadTransaksi();
+
     const now = new Date();
     setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
     setTimeout(() => setMounted(true), 80);
   }, []);
+
+  const isAdmin = userRole === "admin" || userRole === "owner";
 
   useEffect(() => {
     if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }
@@ -181,11 +204,16 @@ export default function PenjualanPage() {
   const paginated  = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const selected   = data.find(d => d.id === selectedId) ?? null;
 
-  function handleDelete(item: typeof penjualanData[0]) {
-    setData(prev => prev.filter(d => d.id !== item.id));
-    setDeleteModal(null);
-    if (selectedId === item.id) setSelectedId(null);
-    setToast({ msg: `Transaksi ${item.kode} berhasil dihapus.`, type: "success" });
+  async function handleDelete(item: any) {
+    try {
+      await api.pembelianTransaksi.delete(item.id);
+      setData(prev => prev.filter(d => d.id !== item.id));
+      setDeleteModal(null);
+      if (selectedId === item.id) setSelectedId(null);
+      setToast({ msg: `Transaksi ${item.kode} berhasil dihapus.`, type: "success" });
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal menghapus transaksi.", type: "error" });
+    }
   }
 
   const totalPenjualan  = data.reduce((a, b) => a + (b.status === "sukses" ? b.total : 0), 0);
@@ -201,7 +229,7 @@ export default function PenjualanPage() {
   }));
   const maxMetode = Math.max(...metodeSummary.map(m => m.total), 1);
 
-  const groupedByDate: Record<string, typeof penjualanData> = {};
+  const groupedByDate: Record<string, typeof data> = {};
   paginated.forEach(item => {
     if (!groupedByDate[item.tanggal]) groupedByDate[item.tanggal] = [];
     groupedByDate[item.tanggal].push(item);
@@ -367,7 +395,7 @@ export default function PenjualanPage() {
         className={`min-h-screen font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#FFFEF5", color: "#4A4530" }}
       >
-        <Header hasNotification={false} userInitials={user.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main className="w-full">
 

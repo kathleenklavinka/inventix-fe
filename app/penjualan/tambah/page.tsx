@@ -4,18 +4,9 @@ import Header from "../../components/header";
 import Footer from "../../components/footer";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
-
-const stokData = [
-  { id: 1, nama: "Kopi Arabika",       satuan: "cup",  harga: 45000,  stok: 48 },
-  { id: 2, nama: "Cold Brew",          satuan: "cup",  harga: 45000,  stok: 30 },
-  { id: 3, nama: "Matcha Latte",       satuan: "cup",  harga: 35000,  stok: 22 },
-  { id: 4, nama: "Focaccia Original",  satuan: "pcs",  harga: 25000,  stok: 15 },
-  { id: 5, nama: "Croissant Butter",   satuan: "pcs",  harga: 32000,  stok: 20 },
-  { id: 6, nama: "Espresso Shot",      satuan: "cup",  harga: 28000,  stok: 60 },
-  { id: 7, nama: "Caramel Macchiato",  satuan: "cup",  harga: 52000,  stok: 0  },
-];
+import Cookies from "js-cookie";
+import { COOKIE_NAME } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const METODE_OPTIONS = ["QRIS", "Tunai", "Transfer"];
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
@@ -100,7 +91,30 @@ export default function TambahPenjualanPage() {
   const [submitted, setSubmitted] = useState(false);
   const [globalError, setGlobalError] = useState("");
 
+  const [userInitials, setUserInitials] = useState("AP");
+  const [stokData, setStokData] = useState<any[]>([]);
+
   useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+
+    const loadStok = async () => {
+      try {
+        const res = await api.stok.getAll();
+        const mapped = res.data.map((item: any) => ({
+          id: item.id,
+          nama: item.nama,
+          satuan: item.satuan,
+          harga: item.harga || 15000,
+          stok: item.jumlah_saat_ini
+        }));
+        setStokData(mapped);
+      } catch (err) {
+        console.error("Gagal memuat stok:", err);
+      }
+    };
+
+    loadStok();
     const now = new Date();
     setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
     setTimeout(() => setMounted(true), 80);
@@ -146,10 +160,23 @@ export default function TambahPenjualanPage() {
     if (hasEmpty) { setGlobalError("Pilih barang untuk semua baris item."); return; }
     if (hasError)  { setGlobalError("Perbaiki error stok sebelum menyimpan."); return; }
     if (lines.length === 0) { setGlobalError("Tambahkan minimal satu item."); return; }
+    
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 900));
-    setSubmitting(false);
-    setSubmitted(true);
+    try {
+      await api.pembelianTransaksi.bulkCreate({
+        transaksi: lines.map(line => ({
+          stok_id: Number(line.barangId),
+          jenis: "keluar", // 'keluar' represents a sale transaction reducing stock
+          jumlah: Number(line.jumlah),
+          detail_po_id: null
+        }))
+      });
+      setSubmitted(true);
+    } catch (err: any) {
+      setGlobalError(err.message || "Gagal menyimpan transaksi. Silakan coba lagi.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const usedIds = lines.map(l => l.barangId).filter(Boolean) as number[];
@@ -290,7 +317,7 @@ export default function TambahPenjualanPage() {
         className={`min-h-screen font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#FFFEF5", color: "#4A4530" }}
       >
-        <Header hasNotification={false} userInitials={user.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main className="w-full">
 
