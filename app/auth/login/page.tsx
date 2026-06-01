@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  findUser,
   getRedirectByRole,
   COOKIE_TOKEN,
   COOKIE_ROLE,
   COOKIE_NAME,
 } from "@/lib/auth";
+import { api, mapRoleToFrontend } from "@/lib/api";
 
 export default function AuthLogin() {
   const router     = useRouter();
@@ -18,23 +18,24 @@ export default function AuthLogin() {
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    const user = findUser(email, password);
+    try {
+      const response = await api.auth.login({ email, password });
+      const { token, user } = response.data;
+      const mappedRole = mapRoleToFrontend(user.peran);
 
-    if (!user) {
-      setError("Email atau password salah!");
-      return;
+      const maxAge = 86400;
+      document.cookie = `${COOKIE_TOKEN}=${token}; path=/; max-age=${maxAge}`;
+      document.cookie = `${COOKIE_ROLE}=${mappedRole}; path=/; max-age=${maxAge}`;
+      document.cookie = `${COOKIE_NAME}=${encodeURIComponent(user.nama)}; path=/; max-age=${maxAge}`;
+
+      window.location.href = getRedirectByRole(mappedRole);
+    } catch (err: any) {
+      setError(err.message || "Email atau password salah!");
     }
-
-    const maxAge = 86400;
-    document.cookie = `${COOKIE_TOKEN}=dummy-token; path=/; max-age=${maxAge}`;
-    document.cookie = `${COOKIE_ROLE}=${user.role}; path=/; max-age=${maxAge}`;
-    document.cookie = `${COOKIE_NAME}=${encodeURIComponent(user.name)}; path=/; max-age=${maxAge}`;
-
-    window.location.href = getRedirectByRole(user.role);
   };
 
   return (
