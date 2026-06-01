@@ -12,7 +12,7 @@ const SHOW_OPTIONS = [5, 10, 25, 50];
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
+//  Icons 
 const IconMapPin    = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
 const IconPhone     = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.99 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.92 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
 const IconPlus      = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
@@ -29,8 +29,12 @@ const IconFileText  = ({ size=13, color="currentColor" }) => <svg width={size} h
 const IconTruck     = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>;
 const IconPackage   = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
 const IconBell      = ({ size=16, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+const IconClock     = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+const IconAlertTri  = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+const IconParty     = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6-6m6 0l-6 6m0 6l6 6m-6-6l-6 6" strokeDasharray="2,2"/><circle cx="12" cy="12" r="10"/></svg>;
+const IconSend      = ({ size=14, color="currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13M22 2l-7 20-5-9-9-5 20-7z"/></svg>;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+//  Types 
 type POStatus = "pending" | "approved" | "supplier_acc" | "completed" | "rejected";
 
 interface PurchaseOrder {
@@ -57,7 +61,7 @@ interface SupplierItem {
   purchaseOrders: PurchaseOrder[];
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+//  Helpers 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(amount);
 }
@@ -70,11 +74,11 @@ const KATEGORI_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 const PO_STATUS_CFG: Record<POStatus, { label: string; bg: string; text: string; border: string; icon: string }> = {
-  pending:      { label: "Menunggu Approval Owner", bg: "#FEF9D6", text: "#7A5A00", border: "#F5C878", icon: "⏳" },
-  approved:     { label: "Disetujui — Menunggu ACC",  bg: "#D6EDF5", text: "#1A4D66", border: "#B0D9EE", icon: "📤" },
-  supplier_acc: { label: "Sudah Di-ACC Supplier",     bg: "#D6F5E8", text: "#1A6647", border: "#A8DEBC", icon: "✅" },
-  completed:    { label: "Selesai — Stok Bertambah",  bg: "#D6F5E8", text: "#1A6647", border: "#78C89A", icon: "🎉" },
-  rejected:     { label: "Ditolak",                   bg: "#F5D6D6", text: "#8A2020", border: "#E8A8A8", icon: "❌" },
+  pending:      { label: "Menunggu Approval Owner", bg: "#FEF9D6", text: "#7A5A00", border: "#F5C878", iconType: "clock" },
+  approved:     { label: "Disetujui — Menunggu ACC",  bg: "#D6EDF5", text: "#1A4D66", border: "#B0D9EE", iconType: "send" },
+  supplier_acc: { label: "Sudah Di-ACC Supplier",     bg: "#D6F5E8", text: "#1A6647", border: "#A8DEBC", iconType: "check" },
+  completed:    { label: "Selesai — Stok Bertambah",  bg: "#D6F5E8", text: "#1A6647", border: "#78C89A", iconType: "party" },
+  rejected:     { label: "Ditolak",                   bg: "#F5D6D6", text: "#8A2020", border: "#E8A8A8", iconType: "x" },
 };
 
 function getInitials(nama: string) {
@@ -97,17 +101,24 @@ function Inner({ children, className="" }: { children: React.ReactNode; classNam
   return <div className={`max-w-6xl mx-auto px-4 sm:px-8 ${className}`}>{children}</div>;
 }
 
-// ─── PO Status Badge ──────────────────────────────────────────────────────────
+//  PO Status Badge
 function POStatusBadge({ status }: { status: POStatus }) {
   const cfg = PO_STATUS_CFG[status];
+  let IconComponent = IconX;
+  if (cfg.iconType === "clock") IconComponent = IconClock;
+  else if (cfg.iconType === "send") IconComponent = IconSend;
+  else if (cfg.iconType === "check") IconComponent = IconCheck;
+  else if (cfg.iconType === "party") IconComponent = IconParty;
+  else if (cfg.iconType === "x") IconComponent = IconX;
+  
   return (
-    <span style={{ background:cfg.bg, color:cfg.text, fontSize:9, fontWeight:700, letterSpacing:"0.05em", padding:"3px 9px", borderRadius:20, display:"inline-flex", alignItems:"center", gap:4, border:`1.5px solid ${cfg.border}` }}>
-      {cfg.icon} {cfg.label}
+    <span style={{ background:cfg.bg, color:cfg.text, fontSize:9, fontWeight:700, letterSpacing:"0.05em", padding:"4px 10px", borderRadius:20, display:"inline-flex", alignItems:"center", gap:5, border:`1.5px solid ${cfg.border}` }}>
+      <IconComponent size={12} color={cfg.text}/> {cfg.label}
     </span>
   );
 }
 
-// ─── ACC Confirm Modal ────────────────────────────────────────────────────────
+//  ACC Confirm Modal 
 function AccModal({ po, supplierNama, onConfirm, onCancel }: {
   po: PurchaseOrder;
   supplierNama: string;
@@ -123,8 +134,8 @@ function AccModal({ po, supplierNama, onConfirm, onCancel }: {
         style={{ background:"#FFFFFF", borderRadius:20, padding:"28px 28px 24px", maxWidth:420, width:"100%", boxShadow:"0 24px 64px rgba(2,44,34,0.25)", border:"1.5px solid #A8DEBC" }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ width:48, height:48, borderRadius:16, background:"#D6F5E8", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, marginBottom:16 }}>
-          🚚
+        <div style={{ width:48, height:48, borderRadius:16, background:"#D6F5E8", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16 }}>
+          <IconTruck size={24} color="#1A6647"/>
         </div>
         <h2 style={{ fontSize:16, fontWeight:800, color:"#022c22", margin:"0 0 6px", fontFamily:"var(--font-plus-jakarta),sans-serif" }}>
           ACC Purchase Order?
@@ -150,9 +161,9 @@ function AccModal({ po, supplierNama, onConfirm, onCancel }: {
           </button>
           <button
             onClick={onConfirm}
-            style={{ flex:2, padding:"10px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#3A8F46,#2D6B37)", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif" }}
+            style={{ flex:2, padding:"10px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#3A8F46,#2D6B37)", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}
           >
-            🚚 Ya, ACC & Siapkan Pengiriman
+            <IconTruck size={14} color="#fff"/>Ya, ACC & Siapkan Pengiriman
           </button>
         </div>
       </div>
@@ -160,7 +171,7 @@ function AccModal({ po, supplierNama, onConfirm, onCancel }: {
   );
 }
 
-// ─── Reject Confirm Modal ─────────────────────────────────────────────────────
+//  Reject Confirm Modal 
 function RejectModal({ po, onConfirm, onCancel }: {
   po: PurchaseOrder;
   onConfirm: (alasan: string) => void;
@@ -176,8 +187,8 @@ function RejectModal({ po, onConfirm, onCancel }: {
         style={{ background:"#FFFFFF", borderRadius:20, padding:"28px 28px 24px", maxWidth:420, width:"100%", boxShadow:"0 24px 64px rgba(2,44,34,0.25)", border:"1.5px solid #E8A8A8" }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ width:48, height:48, borderRadius:16, background:"#F5D6D6", display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, marginBottom:16 }}>
-          ❌
+        <div style={{ width:48, height:48, borderRadius:16, background:"#F5D6D6", display:"flex", alignItems:"center", justifyContent:"center", marginBottom:16 }}>
+          <IconX size={24} color="#8A2020"/>
         </div>
         <h2 style={{ fontSize:16, fontWeight:800, color:"#022c22", margin:"0 0 6px", fontFamily:"var(--font-plus-jakarta),sans-serif" }}>
           Tolak Purchase Order?
@@ -205,9 +216,9 @@ function RejectModal({ po, onConfirm, onCancel }: {
           </button>
           <button
             onClick={() => onConfirm(alasan)}
-            style={{ flex:2, padding:"10px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#C85040,#A83030)", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif" }}
+            style={{ flex:2, padding:"10px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#C85040,#A83030)", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}
           >
-            ❌ Ya, Tolak PO
+            <IconX size={14} color="#fff"/>Ya, Tolak PO
           </button>
         </div>
       </div>
@@ -215,7 +226,7 @@ function RejectModal({ po, onConfirm, onCancel }: {
   );
 }
 
-// ─── PO Drawer (list PO per supplier) ────────────────────────────────────────
+//  PO Drawer (list PO per supplier) 
 function PODrawer({ supplier, userRole, onClose, onAcc, onReject }: {
   supplier: SupplierItem;
   userRole: string;
@@ -327,7 +338,7 @@ function PODrawer({ supplier, userRole, onClose, onAcc, onReject }: {
 
                     {inDelivery && (
                       <div style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 10px", borderRadius:10, background:"rgba(78,168,90,0.10)", border:"1px solid #A8DEBC" }}>
-                        <span style={{ fontSize:14 }}>🚚</span>
+                        <IconTruck size={14} color="#1A6647"/>
                         <p style={{ fontSize:11, color:"#1A6647", fontWeight:600, margin:0 }}>
                           Sedang dalam pengiriman — stok otomatis bertambah saat tiba
                         </p>
@@ -335,9 +346,12 @@ function PODrawer({ supplier, userRole, onClose, onAcc, onReject }: {
                     )}
 
                     {po.catatan && (
-                      <p style={{ fontSize:10, color:"rgba(6,78,59,0.55)", fontStyle:"italic", margin:"8px 0 0" }}>
-                        📝 {po.catatan}
-                      </p>
+                      <div style={{ display:"flex", gap:3, alignItems:"flex-start", margin:"8px 0 0" }}>
+                        <IconEdit size={10} color="rgba(6,78,59,0.55)" style={{ flexShrink: 0, marginTop: "2px" }}/>
+                        <p style={{ fontSize:10, color:"rgba(6,78,59,0.55)", fontStyle:"italic", margin:0 }}>
+                          {po.catatan}
+                        </p>
+                      </div>
                     )}
                   </div>
                 );
@@ -375,29 +389,29 @@ function PODrawer({ supplier, userRole, onClose, onAcc, onReject }: {
   );
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
+//  Toast 
 function Toast({ msg, type, onClose }: { msg: string; type: "success"|"error"|"info"; onClose: () => void }) {
   const c = {
-    success: { bg:"#D6F5E8", text:"#1A6647", border:"#A8DEBC", icon:"✅" },
-    error:   { bg:"#F5D6D6", text:"#8A2020", border:"#E8A8A8", icon:"❌" },
-    info:    { bg:"#D6EDF5", text:"#1A4D66", border:"#B0D9EE", icon:"🚚" },
+    success: { bg:"#D6F5E8", text:"#1A6647", border:"#A8DEBC", Icon: IconCheck },
+    error:   { bg:"#F5D6D6", text:"#8A2020", border:"#E8A8A8", Icon: IconX },
+    info:    { bg:"#D6EDF5", text:"#1A4D66", border:"#B0D9EE", Icon: IconTruck },
   }[type];
   return (
     <div style={{ position:"fixed", bottom:24, right:24, zIndex:70, display:"flex", alignItems:"center", gap:10, padding:"12px 18px", borderRadius:14, background:c.bg, border:`1.5px solid ${c.border}`, boxShadow:"0 8px 32px rgba(0,0,0,0.15)", minWidth:280, maxWidth:400, animation:"slideInRight .3s cubic-bezier(.22,1,.36,1)" }}>
-      <span style={{ fontSize:16 }}>{c.icon}</span>
+      <c.Icon size={16} color={c.text}/>
       <p style={{ fontSize:12, fontWeight:600, color:c.text, margin:0, flex:1 }}>{msg}</p>
-      <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:c.text, fontSize:14 }}>✕</button>
+      <button onClick={onClose} style={{ background:"none", border:"none", cursor:"pointer", color:c.text, fontSize:14 }}><IconX size={16} color={c.text}/></button>
     </div>
   );
 }
 
-// ─── Stat icons ───────────────────────────────────────────────────────────────
+//  Stat icons 
 const IconBuilding2    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#065f46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M9 3v18M15 3v18M2 9h20M2 15h20"/></svg>;
 const IconCheckCircle2 = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
 const IconAlertTri2    = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
 const IconTag2         = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>;
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+//  Main Page 
 export default function SupplierPage() {
   const [mounted, setMounted]           = useState(false);
   const [tanggal, setTanggal]           = useState("");
@@ -418,7 +432,7 @@ export default function SupplierPage() {
   const [userRole, setUserRole]         = useState("user");
   const [userInitials, setUserInitials] = useState("AP");
 
-  // ─── Derived ───────────────────────────────────────────────────────────────
+  //  Derived 
   const totalPONeedAcc = data.reduce((s, sup) =>
     s + sup.purchaseOrders.filter(po => po.status === "approved").length, 0);
 
@@ -499,7 +513,7 @@ export default function SupplierPage() {
     if (toast) { const t = setTimeout(() => setToast(null), 4000); return () => clearTimeout(t); }
   }, [toast]);
 
-  // ─── ACC handler ───────────────────────────────────────────────────────────
+  //  ACC handler 
   async function confirmAcc() {
     if (!accModal) return;
     const { supplierId, po } = accModal;
@@ -547,7 +561,7 @@ export default function SupplierPage() {
     }
   }
 
-  // ─── Reject handler ─────────────────────────────────────────────────────────
+  //  Reject handler 
   async function confirmReject(alasan: string) {
     if (!rejectModal) return;
     const { supplierId, po } = rejectModal;
@@ -578,7 +592,7 @@ export default function SupplierPage() {
     }
   }
 
-  // ─── Delete handler ─────────────────────────────────────────────────────────
+  //  Delete handler 
   async function handleDelete(item: SupplierItem) {
     try {
       await api.supplier.delete(item.id);
@@ -590,7 +604,7 @@ export default function SupplierPage() {
     }
   }
 
-  // ─── Derived filtered/sorted ────────────────────────────────────────────────
+  //  Derived filtered/sorted 
   const kategoriList = ["Semua", ...Array.from(new Set(data.map(d => d.kategori)))];
   const aktifCount   = data.filter(d => d.aktif).length;
 
@@ -732,7 +746,7 @@ export default function SupplierPage() {
         <Header hasNotification={totalPONeedAcc > 0} userInitials={userInitials} />
 
         <main>
-          {/* ── HERO ── */}
+          {/*  HERO  */}
           <section className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
             style={{ background:"linear-gradient(160deg,#edf2eb 0%,#e4ece1 45%,#f4f7f3 100%)" }}>
             <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full blob-g pointer-events-none"
@@ -801,7 +815,7 @@ export default function SupplierPage() {
             </Inner>
           </section>
 
-          {/* ── TABLE / GRID ── */}
+          {/*  TABLE / GRID  */}
           <section className="w-full py-10 sm:py-12" style={{ background:"#ffffff" }}>
             <Inner>
               {/* Filter pills */}
@@ -831,7 +845,7 @@ export default function SupplierPage() {
                 </div>
               </div>
 
-              {/* ── TABLE VIEW ── */}
+              {/*  TABLE VIEW  */}
               {viewMode === "table" && (
                 <div className="su-fade-up d5 su-card overflow-hidden border"
                   style={{ borderColor:"rgba(6,78,59,0.09)", borderRadius:"18px", background:"rgba(255,255,255,0.70)", backdropFilter:"blur(20px)", boxShadow:"0 6px 28px rgba(6,78,59,0.07)" }}>
@@ -908,9 +922,9 @@ export default function SupplierPage() {
                                   <button
                                     onClick={() => setActiveDrawer(item)}
                                     className={`po-badge ${hasPOAcc ? "po-badge-pulse" : ""}`}
-                                    style={{ background: hasPOAcc ? "#FEF0D6" : "#D6F5E8", color: hasPOAcc ? "#8A4A00" : "#1A6647", border: `1.5px solid ${hasPOAcc ? "#F5C878" : "#A8DEBC"}`, cursor:"pointer" }}
+                                    style={{ background: hasPOAcc ? "#FEF0D6" : "#D6F5E8", color: hasPOAcc ? "#8A4A00" : "#1A6647", border: `1.5px solid ${hasPOAcc ? "#F5C878" : "#A8DEBC"}`, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:5 }}
                                   >
-                                    {hasPOAcc ? "⚠️" : "🚚"}
+                                    {hasPOAcc ? <IconAlertTri size={12} color="#8A4A00"/> : <IconTruck size={12} color="#1A6647"/>}
                                     {item.purchaseOrders.filter(p => p.status !== "completed" && p.status !== "rejected").length} PO
                                     {hasPOAcc ? " perlu ACC" : " aktif"}
                                   </button>
@@ -929,7 +943,7 @@ export default function SupplierPage() {
                                     <Link href={`/supplier/edit/${item.id}`}>
                                       <button className="btn-ghost-g"><IconEdit size={13}/> Edit</button>
                                     </Link>
-                                    <button className="btn-danger-g" onClick={() => setDeleteModal(item)}>
+                                    <button className="btn-danger-g" style={{ padding:"8px 16px", fontSize:11 }} onClick={() => setDeleteModal(item)}>
                                       <IconTrash size={13} color="#dc2626"/> Hapus
                                     </button>
                                   </div>
@@ -982,8 +996,8 @@ export default function SupplierPage() {
                           {item.purchaseOrders.filter(p => p.status !== "completed" && p.status !== "rejected").length > 0 && (
                             <div className="pl-11 mb-3">
                               <button onClick={() => setActiveDrawer(item)} className={`po-badge ${hasPOAcc ? "po-badge-pulse" : ""}`}
-                                style={{ background: hasPOAcc ? "#FEF0D6" : "#D6F5E8", color: hasPOAcc ? "#8A4A00" : "#1A6647", border:`1.5px solid ${hasPOAcc ? "#F5C878" : "#A8DEBC"}`, cursor:"pointer" }}>
-                                {hasPOAcc ? "⚠️" : "🚚"}
+                                style={{ background: hasPOAcc ? "#FEF0D6" : "#D6F5E8", color: hasPOAcc ? "#8A4A00" : "#1A6647", border:`1.5px solid ${hasPOAcc ? "#F5C878" : "#A8DEBC"}`, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:12, fontSize:11, fontWeight:700 }}>
+                                {hasPOAcc ? <IconAlertTri size={12} color="#8A4A00"/> : <IconTruck size={12} color="#1A6647"/>}
                                 {item.purchaseOrders.filter(p => p.status !== "completed" && p.status !== "rejected").length} PO {hasPOAcc ? "perlu ACC" : "aktif"}
                               </button>
                             </div>
@@ -1008,7 +1022,7 @@ export default function SupplierPage() {
                 </div>
               )}
 
-              {/* ── GRID VIEW ── */}
+              {/*  GRID VIEW  */}
               {viewMode === "grid" && (
                 <div className="su-fade-up d5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {paginated.length === 0 ? (
@@ -1043,21 +1057,23 @@ export default function SupplierPage() {
                           </p>
                           {item.purchaseOrders.filter(p => p.status !== "completed" && p.status !== "rejected").length > 0 && (
                             <button onClick={() => setActiveDrawer(item)} className={`po-badge ${hasPOAcc ? "po-badge-pulse" : ""}`}
-                              style={{ background: hasPOAcc ? "#FEF0D6" : "#D6F5E8", color: hasPOAcc ? "#8A4A00" : "#1A6647", border:`1.5px solid ${hasPOAcc ? "#F5C878" : "#A8DEBC"}`, cursor:"pointer", marginTop:4 }}>
-                              {hasPOAcc ? "⚠️" : "🚚"} {item.purchaseOrders.filter(p => p.status !== "completed" && p.status !== "rejected").length} PO {hasPOAcc ? "perlu ACC" : "aktif"}
+                              style={{ background: hasPOAcc ? "#FEF0D6" : "#D6F5E8", color: hasPOAcc ? "#8A4A00" : "#1A6647", border:`1.5px solid ${hasPOAcc ? "#F5C878" : "#A8DEBC"}`, cursor:"pointer", marginTop:4, display:"inline-flex", alignItems:"center", gap:5, padding:"5px 10px", borderRadius:12, fontSize:11, fontWeight:700 }}>
+                              {hasPOAcc ? <IconAlertTri size={12} color="#8A4A00"/> : <IconTruck size={12} color="#1A6647"/>} {item.purchaseOrders.filter(p => p.status !== "completed" && p.status !== "rejected").length} PO {hasPOAcc ? "perlu ACC" : "aktif"}
                             </button>
                           )}
                         </div>
                         {isAdmin && (
-                          <div className="flex gap-2">
-                            <Link href={`/supplier/po?supplier=${item.id}&nama=${encodeURIComponent(item.nama)}`} className="flex-1">
-                              <button className="btn-po w-full justify-center" style={{ fontSize:11 }}><IconFileText size={12}/> Buat PO</button>
-                            </Link>
-                            <Link href={`/supplier/edit/${item.id}`} className="flex-1">
-                              <button className="btn-ghost-g w-full justify-center"><IconEdit size={13}/> Edit</button>
-                            </Link>
-                            <button className="btn-danger-g flex-1 justify-center" onClick={() => setDeleteModal(item)}>
-                              <IconTrash size={13} color="#dc2626"/> Hapus
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              <Link href={`/supplier/po?supplier=${item.id}&nama=${encodeURIComponent(item.nama)}`} className="flex-1">
+                                <button className="btn-po w-full justify-center" style={{ fontSize:11 }}><IconFileText size={12}/> Buat PO</button>
+                              </Link>
+                              <Link href={`/supplier/edit/${item.id}`} className="flex-1">
+                                <button className="btn-ghost-g w-full justify-center"><IconEdit size={13}/> Edit</button>
+                              </Link>
+                            </div>
+                            <button className="btn-danger-g w-full justify-center" style={{ fontSize:13, padding:"12px 16px", minHeight:"44px", display:"flex", alignItems:"center", gap:6 }} onClick={() => setDeleteModal(item)}>
+                              <IconTrash size={14} color="#dc2626"/> Hapus
                             </button>
                           </div>
                         )}
@@ -1093,7 +1109,7 @@ export default function SupplierPage() {
 
         <Footer/>
 
-        {/* ── PO Drawer ── */}
+        {/*  PO Drawer  */}
         {activeDrawer && (
           <PODrawer
             supplier={activeDrawer}
@@ -1112,7 +1128,7 @@ export default function SupplierPage() {
           />
         )}
 
-        {/* ── ACC Confirm Modal ── */}
+        {/*  ACC Confirm Modal  */}
         {accModal && (
           <AccModal
             po={accModal.po}
@@ -1122,7 +1138,7 @@ export default function SupplierPage() {
           />
         )}
 
-        {/* ── Reject Confirm Modal ── */}
+        {/*  Reject Confirm Modal  */}
         {rejectModal && (
           <RejectModal
             po={rejectModal.po}
@@ -1131,7 +1147,7 @@ export default function SupplierPage() {
           />
         )}
 
-        {/* ── Delete Modal ── */}
+        {/*  Delete Modal  */}
         {deleteModal && (
           <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4"
             style={{ background:"rgba(2,44,34,0.45)", backdropFilter:"blur(8px)" }}
@@ -1156,7 +1172,7 @@ export default function SupplierPage() {
           </div>
         )}
 
-        {/* ── Toast ── */}
+        {/*  Toast  */}
         {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       </div>
     </>
