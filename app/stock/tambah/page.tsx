@@ -4,8 +4,9 @@ import Header from "../../components/header";
 import Footer from "../../components/footer";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
+import Cookies from "js-cookie";
+import { COOKIE_NAME } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const SATUAN_OPTIONS = ["kg", "gram", "liter", "ml", "pcs", "botol", "dus", "karton", "lusin", "sak"];
 
@@ -123,13 +124,46 @@ function FormField({
 
 export default function TambahStokPage() {
   const [mounted, setMounted] = useState(false);
-  const [form, setForm] = useState({ nama: "", jumlah: "", satuan: "kg" });
+<<<<<<< HEAD
+  const [form, setForm] = useState({ 
+    nama: "", 
+    jumlah: "", 
+    satuan: "kg", 
+    klasifikasi_id: "",
+    supplier_id: ""
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const namaRef = useRef<HTMLInputElement>(null);
 
+  const [userInitials, setUserInitials] = useState("AP");
+  const [kategoriList, setKategoriList] = useState<any[]>([]);
+  const [supplierList, setSupplierList] = useState<any[]>([]);
+
   useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+
+    const loadDropdowns = async () => {
+      try {
+        const resKat = await api.klasifikasiStok.getAll();
+        setKategoriList(resKat.data);
+        if (resKat.data.length > 0) {
+          setForm(f => ({ ...f, klasifikasi_id: String(resKat.data[0].id) }));
+        }
+
+        const resSup = await api.supplier.getAll();
+        setSupplierList(resSup.data);
+        if (resSup.data.length > 0) {
+          setForm(f => ({ ...f, supplier_id: String(resSup.data[0].id) }));
+        }
+      } catch (err) {
+        console.error("Gagal memuat dropdown:", err);
+      }
+    };
+
+    loadDropdowns();
     setTimeout(() => setMounted(true), 80);
     setTimeout(() => namaRef.current?.focus(), 380);
   }, []);
@@ -140,7 +174,8 @@ export default function TambahStokPage() {
     else if (form.nama.trim().length < 2) e.nama = "Nama minimal 2 karakter.";
     if (form.jumlah === "" || isNaN(Number(form.jumlah))) e.jumlah = "Jumlah wajib diisi dengan angka.";
     else if (Number(form.jumlah) < 0) e.jumlah = "Jumlah tidak boleh negatif.";
-    if (!form.satuan) e.satuan = "Satuan wajib dipilih.";
+    if (!form.klasifikasi_id) e.klasifikasi_id = "Kategori wajib dipilih.";
+    if (!form.supplier_id) e.supplier_id = "Supplier wajib dipilih.";
     return e;
   }
 
@@ -149,15 +184,38 @@ export default function TambahStokPage() {
     if (errors[k]) setErrors(e => { const next = { ...e }; delete next[k]; return next; });
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setSubmitting(true);
-    setTimeout(() => { setSubmitting(false); setSuccess(true); }, 1400);
+    
+    try {
+      const sku = "SKU-" + form.nama.toUpperCase().replace(/[^A-Z0-9]/g, "").substring(0, 6) + "-" + Math.floor(100 + Math.random() * 900);
+      
+      await api.stok.create({
+        nama: form.nama,
+        kode_sku: sku,
+        klasifikasi_id: Number(form.klasifikasi_id),
+        supplier_id: Number(form.supplier_id),
+        satuan: form.satuan,
+        jumlah_saat_ini: Number(form.jumlah),
+      });
+      
+      setSuccess(true);
+    } catch (err: any) {
+      alert(err.message || "Gagal menyimpan barang. Silakan coba lagi.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleReset() {
-    setForm({ nama: "", jumlah: "", satuan: "kg" });
+    setForm(f => ({
+      ...f,
+      nama: "",
+      jumlah: "",
+      satuan: "kg",
+    }));
     setErrors({});
     setSuccess(false);
     setTimeout(() => namaRef.current?.focus(), 100);
@@ -281,7 +339,7 @@ export default function TambahStokPage() {
         className={`min-h-screen text-[#2a1f08] font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#F9F9FA" }}>
 
-        <Header hasNotification={false} userInitials={user.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main className="w-full">
 
@@ -381,6 +439,23 @@ export default function TambahStokPage() {
                           <select className="form-select" value={form.satuan}
                             onChange={e => handleChange("satuan", e.target.value)}>
                             {SATUAN_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </FormField>
+                        {/* Kategori */}
+                        <FormField label="Kategori" required error={errors.klasifikasi_id}>
+                          <select className="form-select" value={form.klasifikasi_id}
+                            onChange={e => handleChange("klasifikasi_id", e.target.value)}>
+                            <option value="">— Pilih Kategori —</option>
+                            {kategoriList.map(k => <option key={k.id} value={k.id}>{k.jenis}</option>)}
+                          </select>
+                        </FormField>
+
+                        {/* Supplier */}
+                        <FormField label="Supplier" required error={errors.supplier_id}>
+                          <select className="form-select" value={form.supplier_id}
+                            onChange={e => handleChange("supplier_id", e.target.value)}>
+                            <option value="">— Pilih Supplier —</option>
+                            {supplierList.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
                           </select>
                         </FormField>
                       </div>
