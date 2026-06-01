@@ -4,13 +4,7 @@ import Header from "../../components/header";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-
-const initialData = {
-  nama: "Andi Pratama",
-  email: "andi.pratama@inventix.id",
-  telepon: "+62 812-3456-7890",
-  jabatan: "Inventory Manager",
-};
+import { api } from "@/lib/api";
 
 const IconChevronLeft = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -69,10 +63,13 @@ export default function ProfileEditPage() {
   const [activeTab, setActiveTab] = useState<Tab>("profil");
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const [profile, setProfile] = useState<any>(null);
 
   // Profil form
-  const [form, setForm] = useState({ ...initialData });
-  const isDirty = JSON.stringify(form) !== JSON.stringify(initialData);
+  const [originalForm, setOriginalForm] = useState({ nama: "", email: "", telepon: "", jabatan: "" });
+  const [form, setForm] = useState({ nama: "", email: "", telepon: "", jabatan: "" });
+  const isDirty = JSON.stringify(form) !== JSON.stringify(originalForm);
 
   // Password form
   const [pwForm, setPwForm] = useState({ current: "", new: "", confirm: "" });
@@ -90,7 +87,33 @@ export default function ProfileEditPage() {
   const pwStrengthLabel = ["", "Lemah", "Cukup", "Kuat", "Sangat Kuat"][pwStrength];
   const pwStrengthColor = ["", "#dc2626", "#d97706", "#2d6a3f", "#2d6a3f"][pwStrength];
 
+  const loadProfile = async () => {
+    try {
+      const res = await api.akun.profile();
+      const p = res.data;
+      setProfile(p);
+      
+      let mappedJabatan = "Staff Gudang";
+      if (p.peran === "OWNER") mappedJabatan = "Business Owner";
+      else if (p.peran === "ADMIN") mappedJabatan = "Inventory Manager";
+      else if (p.peran === "SUPPLIER") mappedJabatan = "Mitra Supplier";
+
+      const initData = {
+        nama: p.nama || "",
+        email: p.email || "",
+        telepon: "",
+        jabatan: mappedJabatan,
+      };
+
+      setForm(initData);
+      setOriginalForm(initData);
+    } catch (err) {
+      console.error("Gagal memuat profil:", err);
+    }
+  };
+
   useEffect(() => {
+    loadProfile();
     setTimeout(() => setMounted(true), 100);
   }, []);
 
@@ -110,26 +133,52 @@ export default function ProfileEditPage() {
     return e;
   };
 
-  const handleSaveProfil = () => {
+  const handleSaveProfil = async () => {
     const e = validateProfil();
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
-    setSaved(true);
-    setTimeout(() => { setSaved(false); router.push("/profile"); }, 1800);
+    if (!profile) return;
+
+    try {
+      await api.akun.update(profile.id, {
+        nama: form.nama,
+        email: form.email,
+        peran: profile.peran,
+      });
+      setSaved(true);
+      setTimeout(() => { setSaved(false); router.push("/profile"); }, 1800);
+    } catch (err: any) {
+      setErrors({ submit: err.message || "Gagal menyimpan perubahan ke server." });
+    }
   };
 
-  const handleSavePassword = () => {
+  const handleSavePassword = async () => {
     const e = validatePassword();
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
-    setSaved(true);
-    // Setelah reset password, redirect ke /profile
-    setTimeout(() => {
-      setSaved(false);
-      setPwForm({ current: "", new: "", confirm: "" });
-      router.push("/profile");
-    }, 1800);
+    if (!profile) return;
+
+    try {
+      await api.akun.update(profile.id, {
+        nama: profile.nama,
+        email: profile.email,
+        peran: profile.peran,
+        password: pwForm.new,
+      });
+      setSaved(true);
+      setTimeout(() => {
+        setSaved(false);
+        setPwForm({ current: "", new: "", confirm: "" });
+        router.push("/profile");
+      }, 1800);
+    } catch (err: any) {
+      setErrors({ submit: err.message || "Gagal memperbarui password." });
+    }
   };
+
+  const initials = profile?.nama
+    ? profile.nama.split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? "").join("")
+    : "??";
 
   return (
     <>
@@ -138,6 +187,7 @@ export default function ProfileEditPage() {
           from { opacity:0; transform:translateY(18px); }
           to   { opacity:1; transform:translateY(0); }
         }
+
         @keyframes blob {
           0%,100% { transform:translate(0,0) scale(1); }
           33%      { transform:translate(30px,-20px) scale(1.05); }
@@ -263,7 +313,7 @@ export default function ProfileEditPage() {
         className={`min-h-screen text-[#212121] transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#F9F9FA", fontFamily: "var(--font-inter), sans-serif" }}>
 
-        <Header userInitials="AP" hasNotification={false} />
+        <Header userInitials={initials} hasNotification={false} />
 
         <main className="w-full">
 
