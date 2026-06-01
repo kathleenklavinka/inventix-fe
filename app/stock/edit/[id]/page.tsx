@@ -202,7 +202,6 @@ export default function EditStokPage() {
     } else {
       setMounted(true);
     }
-    }
   }, [id]);
 
   function validate() {

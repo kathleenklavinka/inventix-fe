@@ -124,7 +124,6 @@ function FormField({
 
 export default function TambahStokPage() {
   const [mounted, setMounted] = useState(false);
-<<<<<<< HEAD
   const [form, setForm] = useState({ 
     nama: "", 
     jumlah: "", 
