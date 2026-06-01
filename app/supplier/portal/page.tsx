@@ -44,18 +44,21 @@ const IconUser   = ({ size=14 }) => <svg width={size} height={size} viewBox="0 0
 const IconLogout = ({ size=14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
 const IconNote   = ({ size=14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>;
 
-// Status Badge
-function StatusBadge({ status }: { status: POStatus }) {
+function StatusBadge({ status }: { status: string }) {
+  const normalizedStatus = status ? status.toLowerCase() : "menunggu";
+  
   const map = {
     menunggu:     { bg: "#EFF0A3", color: "#2a1f08", icon: <IconClock size={9} />,  label: "Menunggu" },
     dikonfirmasi: { bg: "#CFDECA", color: "#2d6a3f", icon: <IconCheck size={9} />,  label: "Dikonfirmasi" },
     ditolak:      { bg: "#fee2e2", color: "#dc2626", icon: <IconX size={9} />,       label: "Ditolak" },
   };
-  const s = map[status];
+  
+  const s = map[normalizedStatus as keyof typeof map] || map["menunggu"];
+  
   return (
     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg"
-      style={{ background: s?.bg || "#EFF0A3", color: s?.color || "#2a1f08" }}>
-      {s?.icon || <IconClock size={9} />} {s?.label || "Menunggu"}
+      style={{ background: s.bg, color: s.color }}>
+      {s.icon} {s.label}
     </span>
   );
 }
@@ -68,7 +71,9 @@ export default function SupplierPortal() {
   const [tanggal, setTanggal]     = useState("");
   const [poList, setPOList]       = useState<PurchaseOrder[]>([]);
   const [activeTab, setActiveTab] = useState<"semua" | POStatus>("semua");
-  const [expandId, setExpandId]   = useState<number | null>(null);
+  
+  const [selectedPO, setSelectedPO] = useState<PurchaseOrder | null>(null);
+  
   const [modal, setModal]         = useState<{ po: PurchaseOrder; action: "konfirmasi" | "tolak" } | null>(null);
   const [toast, setToast]         = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [loading, setLoading]     = useState(true);
@@ -81,11 +86,9 @@ export default function SupplierPortal() {
     setLoading(true);
     setErrorMsg("");
     try {
-      // 1. Get current logged in user profile
       const profileRes = await api.akun.profile();
       const profile = profileRes.data;
 
-      // 2. Get all suppliers and find which one is associated with this user ID
       const suppliersRes = await api.supplier.getAll();
       const matchedSup = suppliersRes.data.find((s: any) => s.user_id === profile.id);
 
@@ -98,12 +101,9 @@ export default function SupplierPortal() {
       setSupplierRecord(matchedSup);
       setSupplierName(matchedSup.nama);
 
-      // 3. Load all POs
       const poRes = await api.purchaseOrder.getAll();
-      // Filter POs belonging to this supplier
       const filteredPOs = poRes.data.filter((p: any) => p.supplier_id === matchedSup.id);
 
-      // Map backend POs to frontend PurchaseOrder structure
       const mapped: PurchaseOrder[] = filteredPOs.map((p: any) => {
         let mappedStatus: POStatus = "menunggu";
         if (p.status_supplier === "DIKONFIRMASI") mappedStatus = "dikonfirmasi";
@@ -119,7 +119,7 @@ export default function SupplierPortal() {
           items: (p.detail_po || []).map((d: any) => ({
             nama: d.stok?.nama || "Barang",
             jumlah: d.jumlah_dipesan || 0,
-            satuan: "Pcs", // default fallback
+            satuan: "Pcs",
             harga: d.harga_satuan || 0
           }))
         };
@@ -150,13 +150,15 @@ export default function SupplierPortal() {
       const statusSupplierVal = action === "konfirmasi" ? "DIKONFIRMASI" : "DITOLAK";
       await api.purchaseOrder.update(po.id, { status_supplier: statusSupplierVal });
 
+      const updatedStatus: POStatus = action === "konfirmasi" ? "dikonfirmasi" : "ditolak";
+
       setPOList(prev => prev.map(p =>
-        p.id === po.id
-          ? { ...p, status: action === "konfirmasi" ? "dikonfirmasi" : "ditolak" }
-          : p
+        p.id === po.id ? { ...p, status: updatedStatus } : p
       ));
+      
+      setSelectedPO(prev => prev && prev.id === po.id ? { ...prev, status: updatedStatus } : prev);
+      
       setModal(null);
-      setExpandId(null);
       setToast({
         msg: action === "konfirmasi"
           ? `${po.noPO} berhasil dikonfirmasi.`
@@ -206,6 +208,10 @@ export default function SupplierPortal() {
           from { opacity:0; transform:translateX(32px); }
           to   { opacity:1; transform:translateX(0); }
         }
+        @keyframes slideInRight {
+          from { transform: translateX(100%); }
+          to   { transform: translateX(0); }
+        }
         @keyframes fadeIn { from{opacity:0}to{opacity:1} }
         @keyframes blob {
           0%,100%{ transform:translate(0,0) scale(1); }
@@ -235,6 +241,20 @@ export default function SupplierPortal() {
           transform: translateY(-3px);
           box-shadow: 0 16px 40px rgba(42,31,8,.10);
           border-color: rgba(42,31,8,.18);
+        }
+
+        /* DRAWER STYLES */
+        .drawer-overlay {
+          position: fixed; inset: 0; z-index: 45;
+          background: rgba(33,33,33,0.35); backdrop-filter: blur(6px);
+          animation: fadeIn .2s ease both;
+        }
+        .drawer-content {
+          position: fixed; top: 0; right: 0; bottom: 0; z-index: 50;
+          width: 100%; max-width: 480px; background: #FFFFFF;
+          box-shadow: -10px 0 40px rgba(33,33,33,0.12);
+          display: flex; flex-direction: column;
+          animation: slideInRight .35s cubic-bezier(.22,1,.36,1) both;
         }
 
         .tab-pill {
@@ -273,7 +293,7 @@ export default function SupplierPortal() {
         }
         .btn-ghost:hover { background: rgba(33,33,33,0.13); transform: scale(1.03); }
 
-        .modal-overlay { animation: fadeIn .18s ease both; }
+        .modal-overlay { animation: fadeIn .18s ease both; z-index: 60; }
         .modal-box     { animation: fadeUp .22s cubic-bezier(.22,1,.36,1) both; }
         .toast         { animation: slideIn .32s cubic-bezier(.22,1,.36,1) both; }
 
@@ -370,14 +390,11 @@ export default function SupplierPortal() {
             style={{ background: "#CFDECA", filter: "blur(56px)" }} />
 
           <div className="max-w-4xl mx-auto px-5 sm:px-8 relative">
-
-            {/* Breadcrumb */}
             <div className="fade-up flex items-center gap-2 mb-5 text-[11px] font-medium"
               style={{ color: "rgba(80,65,40,0.45)" }}>
               <span style={{ color: "#2a1f08" }} className="font-semibold">Supplier Portal</span>
             </div>
 
-            {/* Title */}
             <div className="fade-up d1 flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
               <div>
                 <p className="text-[10px] tracking-[0.20em] uppercase mb-1.5 font-medium"
@@ -392,7 +409,6 @@ export default function SupplierPortal() {
               </div>
             </div>
 
-            {/* Stat Strip */}
             <div className="fade-up d2 stat-strip">
               {[
                 { label: "Total PO",       val: stats.total,        bg: "#e8dfc8", color: "#2a1f08", icon: <IconBox size={16} /> },
@@ -412,7 +428,6 @@ export default function SupplierPortal() {
               ))}
             </div>
 
-            {/* Menunggu banner */}
             {stats.menunggu > 0 && (
               <div className="fade-up d3 mt-3 flex items-center gap-3 px-4 py-3 rounded-2xl border"
                 style={{ background: "rgba(239,240,163,0.6)", borderColor: "rgba(212,168,67,0.30)" }}>
@@ -447,7 +462,6 @@ export default function SupplierPortal() {
               ))}
             </div>
 
-            {/* Error view */}
             {errorMsg && (
               <div className="fade-up p-5 text-center border rounded-2xl"
                 style={{ borderColor: "#fee2e2", background: "#fef2f2" }}>
@@ -458,7 +472,6 @@ export default function SupplierPortal() {
               </div>
             )}
 
-            {/* Loading view */}
             {loading && !errorMsg && (
               <div className="flex flex-col items-center justify-center py-20 gap-3">
                 <span className="animate-spin border-4 border-t-transparent border-[#2a1f08] rounded-full w-8 h-8" />
@@ -466,7 +479,7 @@ export default function SupplierPortal() {
               </div>
             )}
 
-            {/* PO Cards */}
+            {/* PO Cards List */}
             {!loading && !errorMsg && (
               <div className="space-y-4">
                 {filtered.length === 0 ? (
@@ -476,15 +489,14 @@ export default function SupplierPortal() {
                   </div>
                 ) : filtered.map((po, idx) => {
                   const totalPO = po.items.reduce((s, i) => s + i.harga * i.jumlah, 0);
-                  const isOpen  = expandId === po.id;
 
                   return (
                     <div key={po.id}
-                      className={`po-card fade-up`}
+                      className="po-card fade-up"
                       style={{ animationDelay: `${idx * 0.06}s` }}
-                      onClick={() => setExpandId(isOpen ? null : po.id)}>
+                      onClick={() => setSelectedPO(po)}> {/* FIXED: Sekarang membuka Side Drawer */}
 
-                      {/* Card Header */}
+                      {/* Card Header Content */}
                       <div className="flex items-start justify-between gap-3 p-5">
                         <div className="flex items-start gap-3">
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -515,83 +527,6 @@ export default function SupplierPortal() {
                           </p>
                         </div>
                       </div>
-
-                      {/* Expand: item table + actions */}
-                      {isOpen && (
-                        <div onClick={e => e.stopPropagation()}
-                          style={{ borderTop: "1px solid rgba(42,31,8,0.07)" }}>
-
-                          {/* Items table */}
-                          <div className="px-5 py-4">
-                            <p className="text-[10px] font-bold tracking-widest uppercase mb-3"
-                              style={{ color: "rgba(80,65,40,0.42)" }}>
-                              Detail Barang
-                            </p>
-                            <div className="rounded-xl overflow-hidden border"
-                              style={{ borderColor: "rgba(42,31,8,0.08)" }}>
-                              <table className="w-full items-table">
-                                <thead>
-                                  <tr style={{ background: "rgba(42,31,8,0.03)" }}>
-                                    <th>Nama Barang</th>
-                                    <th>Jumlah</th>
-                                    <th>Harga Satuan</th>
-                                    <th>Subtotal</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {po.items.map((item, i) => (
-                                    <tr key={i}>
-                                      <td className="font-semibold" style={{ color: "#212121" }}>{item.nama}</td>
-                                      <td>{item.jumlah} {item.satuan}</td>
-                                      <td>{fmt(item.harga)}</td>
-                                      <td className="font-semibold" style={{ color: "#2a1f08" }}>
-                                        {fmt(item.harga * item.jumlah)}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                                <tfoot>
-                                  <tr style={{ borderTop: "1.5px solid rgba(42,31,8,0.10)", background: "rgba(42,31,8,0.03)" }}>
-                                    <td colSpan={3} className="font-bold text-[11px]"
-                                      style={{ padding: "10px 12px", color: "rgba(80,65,40,0.55)" }}>
-                                      Total
-                                    </td>
-                                    <td className="font-['Plus_Jakarta_Sans'] font-black text-sm"
-                                      style={{ padding: "10px 12px", color: "#2a1f08" }}>
-                                      {fmt(totalPO)}
-                                    </td>
-                                  </tr>
-                                </tfoot>
-                              </table>
-                            </div>
-
-                            {/* Catatan */}
-                            {po.catatan && (
-                              <div className="mt-3 flex items-start gap-2 px-3 py-2.5 rounded-xl"
-                                style={{ background: "rgba(42,31,8,0.04)", border: "1px solid rgba(42,31,8,0.07)" }}>
-                                <IconNote size={12} />
-                                <p className="text-[11px] font-medium" style={{ color: "rgba(42,31,8,0.65)" }}>
-                                  {po.catatan}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Action buttons — only if menunggu */}
-                          {po.status === "menunggu" && (
-                            <div className="px-5 pb-5 flex items-center gap-3">
-                              <button className="btn-confirm"
-                                onClick={() => setModal({ po, action: "konfirmasi" })}>
-                                <IconCheck size={13} /> Konfirmasi PO
-                              </button>
-                              <button className="btn-reject"
-                                onClick={() => setModal({ po, action: "tolak" })}>
-                                <IconX size={13} /> Tolak PO
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -599,6 +534,111 @@ export default function SupplierPortal() {
             )}
           </div>
         </section>
+
+        {/* SIDE DRAWER - BARU: Menggantikan fungsi accordion lama untuk visualisasi PO yang elegan */}
+        {selectedPO && (
+          <div className="drawer-overlay" onClick={() => setSelectedPO(null)}>
+            <div className="drawer-content" onClick={e => e.stopPropagation()}>
+              
+              {/* Drawer Header */}
+              <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: "rgba(33,33,33,0.08)" }}>
+                <div>
+                  <p className="text-[10px] tracking-widest uppercase font-bold" style={{ color: "rgba(80,65,40,0.42)" }}>Detail Purchase Order</p>
+                  <h3 className="font-['Plus_Jakarta_Sans'] font-black text-lg text-[#212121]">{selectedPO.noPO}</h3>
+                </div>
+                <button onClick={() => setSelectedPO(null)} className="btn-ghost" style={{ padding: '6px 10px', borderRadius: '8px' }}>
+                  <IconX size={16} />
+                </button>
+              </div>
+
+              {/* Drawer Body */}
+              <div className="p-5 flex-1 overflow-y-auto space-y-5">
+                {/* Ringkasan Metadata PO */}
+                <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Pembuat PO</span>
+                    <span className="font-semibold text-gray-700">{selectedPO.dibuatOleh}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Tanggal Transaksi</span>
+                    <span className="font-semibold text-gray-700">{fmtDate(selectedPO.tanggal)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs items-center">
+                    <span className="text-gray-400">Status Konfirmasi</span>
+                    <StatusBadge status={selectedPO.status} />
+                  </div>
+                </div>
+
+                {/* Tabel Daftar Produk */}
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest uppercase mb-3" style={{ color: "rgba(80,65,40,0.42)" }}>
+                    Daftar Item Barang
+                  </p>
+                  <div className="rounded-xl overflow-hidden border" style={{ borderColor: "rgba(42,31,8,0.08)" }}>
+                    <table className="w-full items-table">
+                      <thead>
+                        <tr style={{ background: "rgba(42,31,8,0.03)" }}>
+                          <th>Nama Barang</th>
+                          <th>Jumlah</th>
+                          <th>Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedPO.items.map((item, i) => (
+                          <tr key={i}>
+                            <td className="font-semibold" style={{ color: "#212121" }}>{item.nama}</td>
+                            <td>{item.jumlah} {item.satuan}</td>
+                            <td className="font-semibold" style={{ color: "#2a1f08" }}>
+                              {fmt(item.harga * item.jumlah)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Catatan Tambahan */}
+                {selectedPO.catatan && (
+                  <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl"
+                    style={{ background: "rgba(42,31,8,0.04)", border: "1px solid rgba(42,31,8,0.07)" }}>
+                    <IconNote size={12} />
+                    <div className="text-[11px] font-medium" style={{ color: "rgba(42,31,8,0.65)" }}>
+                      <span className="font-bold block text-gray-700 mb-0.5">Catatan internal:</span>
+                      {selectedPO.catatan}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Drawer Footer & Actions (Accept / Reject) */}
+              <div className="p-5 border-t bg-gray-50/50 flex flex-col gap-2.5" style={{ borderColor: "rgba(33,33,33,0.08)" }}>
+                <div className="flex justify-between items-center mb-1 px-1">
+                  <span className="text-xs font-bold text-gray-500">Total Nominal PO</span>
+                  <span className="font-['Plus_Jakarta_Sans'] font-black text-base text-[#2a1f08]">
+                    {fmt(selectedPO.items.reduce((s, i) => s + i.harga * i.jumlah, 0))}
+                  </span>
+                </div>
+                
+                {selectedPO.status === "menunggu" ? (
+                  <div className="flex gap-3">
+                    <button className="btn-reject flex-1 justify-center py-2.5" onClick={() => setModal({ po: selectedPO, action: "tolak" })}>
+                      <IconX size={13} /> Tolak PO
+                    </button>
+                    <button className="btn-confirm flex-1 justify-center py-2.5" onClick={() => setModal({ po: selectedPO, action: "konfirmasi" })}>
+                      <IconCheck size={13} /> Konfirmasi PO
+                    </button>
+                  </div>
+                ) : (
+                  <button className="btn-ghost w-full justify-center py-2.5 text-xs font-bold cursor-not-allowed opacity-60" disabled>
+                    PO Ini Telah {selectedPO.status === "dikonfirmasi" ? "Dikonfirmasi" : "Ditolak"}
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
+        )}
 
         {/* BOTTOM BAR */}
         <div className="w-full py-5" style={{ background: "#212121" }}>
@@ -624,7 +664,7 @@ export default function SupplierPortal() {
           </div>
         </div>
 
-        {/* MODAL */}
+        {/* CONFIRMATION MODAL */}
         {modal && (
           <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4"
             style={{ background: "rgba(33,33,33,0.45)", backdropFilter: "blur(8px)" }}
@@ -668,7 +708,7 @@ export default function SupplierPortal() {
           </div>
         )}
 
-        {/* TOAST */}
+        {/* TOAST NOTIFICATION */}
         {toast && (
           <div className="toast fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3.5 shadow-2xl border"
             style={{
