@@ -144,13 +144,13 @@ function AccModal({ po, supplierNama, onConfirm, onCancel }: {
         <div style={{ display:"flex", gap:10 }}>
           <button
             onClick={onCancel}
-            style={{ flex:1, padding:"10px", borderRadius:10, border:"1.5px solid #A8DEBC", background:"#FFFFFF", color:"#4A6B52", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}
+            style={{ flex:1, padding:"10px", borderRadius:10, border:"1.5px solid #A8DEBC", background:"#FFFFFF", color:"#4A6B52", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif" }}
           >
             Batal
           </button>
           <button
             onClick={onConfirm}
-            style={{ flex:2, padding:"10px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#3A8F46,#2D6B37)", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}
+            style={{ flex:2, padding:"10px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#3A8F46,#2D6B37)", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif" }}
           >
             🚚 Ya, ACC & Siapkan Pengiriman
           </button>
@@ -193,19 +193,19 @@ function RejectModal({ po, onConfirm, onCancel }: {
             value={alasan}
             onChange={e => setAlasan(e.target.value)}
             placeholder="Contoh: Stok sudah tersedia, harga tidak sesuai, dll."
-            style={{ width:"100%", border:"1.5px solid #E8A8A8", borderRadius:10, padding:"9px 12px", fontSize:12, fontFamily:"inherit", color:"#022c22", background:"#FFF8F8", outline:"none", resize:"vertical", minHeight:80 }}
+            style={{ width:"100%", border:"1.5px solid #E8A8A8", borderRadius:10, padding:"9px 12px", fontSize:12, fontFamily:"var(--font-plus-jakarta),sans-serif", color:"#022c22", background:"#FFF8F8", outline:"none", resize:"vertical", minHeight:80 }}
           />
         </div>
         <div style={{ display:"flex", gap:10 }}>
           <button
             onClick={onCancel}
-            style={{ flex:1, padding:"10px", borderRadius:10, border:"1.5px solid #A8DEBC", background:"#FFFFFF", color:"#4A6B52", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}
+            style={{ flex:1, padding:"10px", borderRadius:10, border:"1.5px solid #A8DEBC", background:"#FFFFFF", color:"#4A6B52", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif" }}
           >
             Batal
           </button>
           <button
             onClick={() => onConfirm(alasan)}
-            style={{ flex:2, padding:"10px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#C85040,#A83030)", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}
+            style={{ flex:2, padding:"10px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#C85040,#A83030)", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif" }}
           >
             ❌ Ya, Tolak PO
           </button>
@@ -310,14 +310,14 @@ function PODrawer({ supplier, userRole, onClose, onAcc, onReject }: {
                       <div style={{ display:"flex", gap:8 }}>
                         <button
                           onClick={() => onAcc(supplier.id, po.id)}
-                          style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#3A8F46,#2D6B37)", color:"#fff", fontSize:11, fontWeight:800, cursor:"pointer", fontFamily:"inherit", flex:2 }}
+                          style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"none", background:"linear-gradient(135deg,#3A8F46,#2D6B37)", color:"#fff", fontSize:11, fontWeight:800, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif", flex:2 }}
                         >
                           <IconTruck size={13} color="#fff" />
                           ACC & Siapkan Pengiriman
                         </button>
                         <button
                           onClick={() => onReject(supplier.id, po.id)}
-                          style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"1.5px solid #E8A8A8", background:"#FFF0F0", color:"#C83030", fontSize:11, fontWeight:800, cursor:"pointer", fontFamily:"inherit", flex:1 }}
+                          style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"9px 14px", borderRadius:10, border:"1.5px solid #E8A8A8", background:"#FFF0F0", color:"#C83030", fontSize:11, fontWeight:800, cursor:"pointer", fontFamily:"var(--font-plus-jakarta),sans-serif", flex:1 }}
                         >
                           <IconX size={11} color="#C83030" />
                           Tolak
@@ -426,29 +426,39 @@ export default function SupplierPage() {
     try {
       const res = await api.supplier.getAll();
       // Also try to load POs — adapt to your API shape
-      let poBySupplier: Record<string, PurchaseOrder[]> = {};
+      const poBySupplier: Record<string, PurchaseOrder[]> = {};
       try {
         const poRes = await api.purchaseOrder?.getAll?.();
         if (poRes?.data) {
           poRes.data.forEach((po: any) => {
-            const sid = String(po.supplier_id);
+            const sid = String(po.supplier_id ?? po.supplier?.id ?? po.supplierId ?? po.supplier?.supplier_id ?? "");
+            if (!sid) return;
+
+            const rawStatus = String(po.status ?? po.status_supplier ?? po.statusSupplier ?? "pending").toLowerCase();
+            let mappedStatus: POStatus = "pending";
+            if (rawStatus === "approved" || rawStatus === "disetujui") mappedStatus = "approved";
+            else if (rawStatus === "supplier_acc" || rawStatus === "dikonfirmasi" || rawStatus === "supplieracc" || rawStatus === "supplier_acc") mappedStatus = "supplier_acc";
+            else if (rawStatus === "completed" || rawStatus === "selesai") mappedStatus = "completed";
+            else if (rawStatus === "rejected" || rawStatus === "ditolak") mappedStatus = "rejected";
+
             if (!poBySupplier[sid]) poBySupplier[sid] = [];
             poBySupplier[sid].push({
               id: String(po.id),
-              nomorPO: po.nomor_po || `PO-${po.id}`,
-              namaBarang: po.nama_barang || po.stok?.nama || "Barang",
-              jumlah: po.jumlah || 0,
-              satuan: po.satuan || "pcs",
-              nilaiTotal: parseFloat(po.total_nilai || "0"),
-              status: po.status as POStatus,
-              tanggal: po.dibuat_pada || new Date().toISOString(),
+              nomorPO: po.nomor_po || po.nomorPO || `PO-${po.id}`,
+              namaBarang: po.nama_barang || po.namaBarang || po.stok?.nama || "Barang",
+              jumlah: Number(po.jumlah ?? po.jumlah_dipesan ?? po.qty ?? 0),
+              satuan: po.satuan || po.satuan_barang || "pcs",
+              nilaiTotal: parseFloat(String(po.total_nilai ?? po.total ?? po.nilai ?? 0)) || 0,
+              status: mappedStatus,
+              tanggal: po.tanggal_po || po.dibuat_pada || new Date().toISOString(),
               stokId: po.stok_id ? String(po.stok_id) : undefined,
-              catatan: po.catatan || undefined,
+              catatan: po.catatan || po.keterangan || undefined,
             });
           });
         }
-      } catch (_) {
+      } catch (err) {
         // PO endpoint not available — skip
+        console.warn("Gagal memuat purchase order untuk supplier:", err);
       }
 
       const mapped: SupplierItem[] = res.data.map((item: any) => {
@@ -667,17 +677,17 @@ export default function SupplierPage() {
         .btn-acc{background:linear-gradient(135deg,#3A8F46,#2D6B37);color:#fff;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;padding:7px 13px;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:transform .18s,box-shadow .18s}
         .btn-acc:hover{transform:scale(1.04);box-shadow:0 4px 12px rgba(45,107,55,0.30)}
 
-        .btn-ghost-g{background:rgba(6,78,59,0.07);color:#064e3b;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;padding:7px 13px;font-size:12px;cursor:pointer;transition:background .18s,transform .2s;display:inline-flex;align-items:center;gap:5px}
+        .btn-ghost-g{background:rgba(6,78,59,0.07);color:#064e3b;border:none;border-radius:10px;font-family:var(--font-sans),sans-serif;font-weight:600;padding:7px 13px;font-size:12px;cursor:pointer;transition:background .18s,transform .2s;display:inline-flex;align-items:center;gap:5px}
         .btn-ghost-g:hover{background:rgba(6,78,59,0.13);transform:scale(1.03)}
 
-        .btn-danger-g{background:rgba(220,38,38,0.07);color:#dc2626;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;padding:7px 13px;font-size:12px;cursor:pointer;transition:background .18s,transform .2s;display:inline-flex;align-items:center;gap:5px}
+        .btn-danger-g{background:rgba(220,38,38,0.07);color:#dc2626;border:none;border-radius:10px;font-family:var(--font-sans),sans-serif;font-weight:600;padding:7px 13px;font-size:12px;cursor:pointer;transition:background .18s,transform .2s;display:inline-flex;align-items:center;gap:5px}
         .btn-danger-g:hover{background:rgba(220,38,38,0.14);transform:scale(1.03)}
 
-        .search-input-g{border:1.5px solid rgba(6,78,59,0.15);border-radius:12px;padding:9px 14px 9px 36px;font-size:13px;background:rgba(255,255,255,0.75);color:#064e3b;outline:none;width:100%;max-width:250px;font-family:'DM Sans',sans-serif;transition:border-color .2s,box-shadow .2s}
+        .search-input-g{border:1.5px solid rgba(6,78,59,0.15);border-radius:12px;padding:9px 14px 9px 36px;font-size:13px;background:rgba(255,255,255,0.75);color:#064e3b;outline:none;width:100%;max-width:250px;font-family:var(--font-sans),sans-serif;transition:border-color .2s,box-shadow .2s}
         .search-input-g:focus{border-color:rgba(6,78,59,0.40);box-shadow:0 0 0 3px rgba(6,78,59,0.07)}
         .search-input-g::placeholder{color:rgba(6,78,59,0.30)}
 
-        .select-g{border:1.5px solid rgba(6,78,59,0.15);border-radius:10px;padding:8px 12px;font-size:12px;font-family:'DM Sans',sans-serif;background:rgba(255,255,255,0.75);color:#064e3b;outline:none;cursor:pointer}
+        .select-g{border:1.5px solid rgba(6,78,59,0.15);border-radius:10px;padding:8px 12px;font-size:12px;font-family:var(--font-sans),sans-serif;background:rgba(255,255,255,0.75);color:#064e3b;outline:none;cursor:pointer}
 
         .page-btn-g{width:32px;height:32px;border-radius:8px;border:none;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .18s}
         .page-btn-g.active{background:#064e3b;color:#d1fae5}
@@ -690,7 +700,7 @@ export default function SupplierPage() {
         .view-toggle-btn.off{background:rgba(6,78,59,0.08);color:rgba(6,78,59,0.50)}
         .view-toggle-btn.off:hover{background:rgba(6,78,59,0.14);color:#064e3b}
 
-        .kat-pill{padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:'DM Sans',sans-serif}
+        .kat-pill{padding:5px 12px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:var(--font-sans),sans-serif}
         .kat-pill.on{background:#064e3b;color:#d1fae5}
         .kat-pill.off{background:rgba(6,78,59,0.08);color:rgba(6,78,59,0.55)}
         .kat-pill.off:hover{background:rgba(6,78,59,0.15);color:#064e3b}
@@ -716,8 +726,8 @@ export default function SupplierPage() {
         .po-badge-pulse::after{content:'';position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%;background:#E8A850;border:2px solid #F0FDF4;animation:pulse 1.8s ease-in-out infinite}
       `}</style>
 
-      <div className={`min-h-screen text-[#064e3b] font-['DM_Sans'] relative overflow-x-hidden transition-opacity duration-500 ${mounted?"opacity-100":"opacity-0"}`}
-        style={{ background:"#f0fdf4" }}>
+      <div className={`min-h-screen text-[#064e3b] relative overflow-x-hidden transition-opacity duration-500 ${mounted?"opacity-100":"opacity-0"}`}
+        style={{ background:"#f0fdf4", fontFamily:"var(--font-sans),sans-serif" }}>
 
         <Header hasNotification={totalPONeedAcc > 0} userInitials={userInitials} />
 
@@ -832,7 +842,7 @@ export default function SupplierPage() {
                           {[
                             { label:"No",        col:null },
                             { label:"Supplier",  col:"nama" },
-                            { label:"Kategori",  col:"kategori" },
+                            { label:"Kategori",  col:"kategori", width:120 },
                             { label:"Alamat",    col:"alamat" },
                             { label:"Telepon",   col:"telepon" },
                             { label:"Status",    col:null },
@@ -841,7 +851,7 @@ export default function SupplierPage() {
                           ].map((h, i) => (
                             <th key={i}
                               className={`px-5 py-3.5 text-left text-[10px] font-bold tracking-[0.08em] uppercase ${h.col?"sort-th":""}`}
-                              style={{ color:"rgba(6,78,59,0.38)" }}
+                              style={{ color:"rgba(6,78,59,0.38)", minWidth: h.width ? `${h.width}px` : undefined }}
                               onClick={() => h.col && handleSort(h.col)}>
                               <span className="flex items-center gap-1.5">{h.label} {h.col && <SortIcon col={h.col}/>}</span>
                             </th>
@@ -872,9 +882,9 @@ export default function SupplierPage() {
                                   <span className="font-semibold text-xs sm:text-sm group-hover:underline" style={{ color:"#022c22" }}>{item.nama}</span>
                                 </button>
                               </td>
-                              <td className="px-5 py-4">
+                              <td className="px-5 py-4" style={{ textAlign: "center" }}>
                                 <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg"
-                                  style={{ background:KATEGORI_COLORS[item.kategori]?.bg||"#f3f4f6", color:KATEGORI_COLORS[item.kategori]?.text||"#374151" }}>
+                                  style={{ background:KATEGORI_COLORS[item.kategori]?.bg||"#f3f4f6", color:KATEGORI_COLORS[item.kategori]?.text||"#374151", display:"inline-block", whiteSpace:"normal", wordBreak:"break-word", maxWidth: "150px", textAlign: "center" }}>
                                   {item.kategori}
                                 </span>
                               </td>
