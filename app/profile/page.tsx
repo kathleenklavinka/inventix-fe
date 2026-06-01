@@ -3,32 +3,15 @@
 import Header from "../components/header";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { api, mapRoleToFrontend } from "@/lib/api";
 
-const user = {
-  nama: "Andi Pratama",
-  email: "andi.pratama@inventix.id",
-  role: "Admin",
-  initials: "AP",
-  telepon: "+62 812-3456-7890",
-  jabatan: "Inventory Manager",
-  bergabung: "12 Januari 2024",
-  lastLogin: "Hari ini, 08:42",
-  avatar: null,
+const ACTIVITY_META: Record<string, { color: string; icon: React.ReactNode }> = {
+  stock:    { color: "#D8DFE9", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2a3a52" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> },
+  sale:     { color: "#CFDECA", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2d6a3f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
+  supplier: { color: "#EFF0A3", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7a6a10" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
+  login:    { color: "#D8DFE9", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2a3a52" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> },
+  delete:   { color: "#fee2e2", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> },
 };
-
-const stats = [
-  { label: "Transaksi",    value: "284", bg: "#D8DFE9" },
-  { label: "Stok Dikelola",value: "128", bg: "#CFDECA" },
-  { label: "Supplier",     value: "14",  bg: "#EFF0A3" },
-];
-
-const activityLog = [
-  { action: "Menambah stok Kopi Arabika",      time: "5 menit lalu",  type: "stock"    },
-  { action: "Konfirmasi penjualan x12 Gula",   time: "1 jam lalu",    type: "sale"     },
-  { action: "Update data Supplier Mitra Jaya", time: "3 jam lalu",    type: "supplier" },
-  { action: "Login dari perangkat baru",       time: "Kemarin 19:22", type: "login"    },
-  { action: "Menghapus stok item expired",     time: "2 hari lalu",   type: "delete"   },
-];
 
 const IconEdit2 = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -91,19 +74,167 @@ const IconActivity = () => (
   </svg>
 );
 
-const ACTIVITY_META: Record<string, { color: string; icon: React.ReactNode }> = {
-  stock:    { color: "#D8DFE9", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2a3a52" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> },
-  sale:     { color: "#CFDECA", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2d6a3f" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> },
-  supplier: { color: "#EFF0A3", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7a6a10" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
-  login:    { color: "#D8DFE9", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2a3a52" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> },
-  delete:   { color: "#fee2e2", icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> },
-};
+function formatActivityAction(namaTabel: string, aksi: string): string {
+  const t = namaTabel?.toLowerCase();
+  const a = aksi?.toLowerCase();
+
+  let actionStr = "";
+  if (a === "buat") actionStr = "Membuat";
+  else if (a === "edit") actionStr = "Memperbarui";
+  else if (a === "hapus") actionStr = "Menghapus";
+  else actionStr = "Melakukan aktivitas di";
+
+  let tableStr = "";
+  if (t === "stok") tableStr = "stok barang";
+  else if (t === "supplier") tableStr = "data supplier";
+  else if (t === "purchaseorder" || t === "purchase_order") tableStr = "purchase order";
+  else if (t === "pembeliantransaksi" || t === "pembelian_transaksi") tableStr = "transaksi stok";
+  else if (t === "akun") tableStr = "akun pengguna";
+  else tableStr = namaTabel || "sistem";
+
+  return `${actionStr} ${tableStr}`;
+}
+
+function getActivityType(namaTabel: string, aksi: string): string {
+  const t = namaTabel?.toLowerCase();
+  const a = aksi?.toLowerCase();
+  if (a === "hapus") return "delete";
+  if (t === "stok") return "stock";
+  if (t === "pembeliantransaksi" || t === "pembelian_transaksi") return "sale";
+  if (t === "supplier") return "supplier";
+  return "login";
+}
+
+function formatTimeAgo(dateStr: string): string {
+  if (!dateStr) return "–";
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDays = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return "Baru saja";
+  if (diffMin < 60) return `${diffMin} menit lalu`;
+  if (diffHour < 24) return `${diffHour} jam lalu`;
+  if (diffDays === 1) return "Kemarin";
+  return `${diffDays} hari lalu`;
+}
 
 export default function ProfilePage() {
   const [mounted, setMounted] = useState(false);
   const [animCards, setAnimCards] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [user, setUser] = useState({
+    nama: "Memuat...",
+    email: "memuat...",
+    role: "...",
+    initials: "??",
+    telepon: "–",
+    jabatan: "...",
+    bergabung: "...",
+    lastLogin: "Baru saja",
+    avatar: null,
+  });
+
+  const [stats, setStats] = useState([
+    { label: "Transaksi",    value: "0", bg: "#D8DFE9" },
+    { label: "Stok Dikelola",value: "0", bg: "#CFDECA" },
+    { label: "Supplier",     value: "0",  bg: "#EFF0A3" },
+  ]);
+
+  const [activityLog, setActivityLog] = useState<any[]>([]);
+
+  const fetchProfileData = async () => {
+    try {
+      const resProfile = await api.akun.profile();
+      const profile = resProfile.data;
+
+      // Extract initials
+      const initials = profile.nama
+        ? profile.nama.split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? "").join("")
+        : "??";
+
+      // Map roles & positions
+      let roleName = "User";
+      let jabatan = "Staff Gudang";
+      const p = profile.peran?.toUpperCase();
+      if (p === "OWNER") {
+        roleName = "Owner";
+        jabatan = "Business Owner";
+      } else if (p === "ADMIN") {
+        roleName = "Admin";
+        jabatan = "Inventory Manager";
+      } else if (p === "GUDANG") {
+        roleName = "Staff";
+        jabatan = "Staff Gudang";
+      } else if (p === "SUPPLIER") {
+        roleName = "Supplier";
+        jabatan = "Mitra Supplier";
+      }
+
+      // Map joining date
+      let bergabung = "–";
+      if (profile.dibuat_pada) {
+        const d = new Date(profile.dibuat_pada);
+        const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        bergabung = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      }
+
+      setUser({
+        nama: profile.nama || "–",
+        email: profile.email || "–",
+        role: roleName,
+        initials,
+        telepon: "–", // Schema does not have phone, elegant fallback
+        jabatan,
+        bergabung,
+        lastLogin: "Baru saja",
+        avatar: null,
+      });
+
+      // Parallel fetch other data to generate metrics and logs
+      const [resStok, resSupplier, resTrans, resAktivitas] = await Promise.all([
+        api.stok.getAll().catch(() => ({ data: [] })),
+        api.supplier.getAll().catch(() => ({ data: [] })),
+        api.pembelianTransaksi.getAll().catch(() => ({ data: [] })),
+        api.riwayatAktivitas.getAll().catch(() => ({ data: [] })),
+      ]);
+
+      // Calculate stats
+      const totalTrans = resTrans.data ? resTrans.data.length : 0;
+      const totalStok = resStok.data ? resStok.data.length : 0;
+      const totalSupplier = resSupplier.data ? resSupplier.data.length : 0;
+
+      setStats([
+        { label: "Transaksi",    value: String(totalTrans), bg: "#D8DFE9" },
+        { label: "Stok Dikelola",value: String(totalStok), bg: "#CFDECA" },
+        { label: "Supplier",     value: String(totalSupplier), bg: "#EFF0A3" },
+      ]);
+
+      // Map personal activity log
+      const myLogs = resAktivitas.data
+        ? resAktivitas.data.filter((x: any) => x.akun_id === profile.id).slice(0, 5)
+        : [];
+
+      const mappedLogs = myLogs.map((item: any) => ({
+        action: formatActivityAction(item.nama_tabel, item.aksi),
+        time: formatTimeAgo(item.dilakukan_pada),
+        type: getActivityType(item.nama_tabel, item.aksi),
+      }));
+
+      setActivityLog(mappedLogs);
+    } catch (error) {
+      console.error("Gagal memuat profil secara dinamis:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
+    fetchProfileData();
     setTimeout(() => { setMounted(true); setAnimCards(true); }, 100);
   }, []);
 
@@ -327,21 +458,27 @@ export default function ProfilePage() {
                         style={{ fontFamily: 'var(--font-plus-jakarta), sans-serif' }}>Aktivitas Terbaru</h2>
                     </div>
                     <div className="px-4 py-3 space-y-0.5">
-                      {activityLog.map((item, i) => {
-                        const meta = ACTIVITY_META[item.type];
-                        return (
-                          <div key={i} className="act-row flex items-center gap-3 px-2 py-2.5">
-                            <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
-                              style={{ background: meta.color }}>
-                              {meta.icon}
+                      {loading ? (
+                        <div className="text-center py-6 text-xs text-[rgba(33,33,33,0.38)] font-semibold">Memuat aktivitas...</div>
+                      ) : activityLog.length === 0 ? (
+                        <div className="text-center py-6 text-xs text-[rgba(33,33,33,0.38)] font-semibold">Belum ada aktivitas.</div>
+                      ) : (
+                        activityLog.map((item, i) => {
+                          const meta = ACTIVITY_META[item.type] || ACTIVITY_META.login;
+                          return (
+                            <div key={i} className="act-row flex items-center gap-3 px-2 py-2.5">
+                              <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+                                style={{ background: meta.color }}>
+                                {meta.icon}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[11px] font-semibold text-[#212121] leading-snug truncate">{item.action}</p>
+                                <p className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(33,33,33,0.35)" }}>{item.time}</p>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[11px] font-semibold text-[#212121] leading-snug truncate">{item.action}</p>
-                              <p className="text-[10px] font-medium mt-0.5" style={{ color: "rgba(33,33,33,0.35)" }}>{item.time}</p>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      )}
                     </div>
                   </div>
 
@@ -356,9 +493,9 @@ export default function ProfilePage() {
               <div className="anim-fade-up d500 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-6 sm:gap-10 flex-wrap">
                   {[
-                    { val: "284",   label: "Total transaksi" },
-                    { val: "14 bln",label: "Masa bergabung"  },
-                    { val: "Admin", label: "Level akses"     },
+                    { val: stats[0].value,   label: "Total transaksi" },
+                    { val: user.bergabung !== "..." ? user.bergabung.split(" ")[2] ? `${new Date().getFullYear() - new Date(resProfileDateHelper(user.bergabung)).getFullYear() || 1} thn` : "1 thn" : "1 thn", label: "Masa bergabung"  },
+                    { val: user.role, label: "Level akses"     },
                   ].map((s, i) => (
                     <div key={i} className="flex items-center gap-6 sm:gap-10">
                       {i > 0 && <div className="w-px h-8 hidden sm:block" style={{ background: "rgba(249,249,250,0.08)" }} />}
@@ -380,3 +517,13 @@ export default function ProfilePage() {
     </>
   );
 }
+
+// Helper to prevent parse crash on joining year calculation
+function resProfileDateHelper(dateStr: string): string {
+  if (!dateStr || dateStr === "...") return new Date().toISOString();
+  const parts = dateStr.split(" ");
+  if (parts.length < 3) return new Date().toISOString();
+  const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  const monthIdx = months.indexOf(parts[1]);
+  return new Date(parseInt(parts[2], 10), monthIdx >= 0 ? monthIdx : 0, parseInt(parts[0], 10)).toISOString();
+}

@@ -2,6 +2,7 @@
 
 import Header from "../components/header";
 import { useState, useEffect, useRef } from "react";
+import { api, mapRoleToFrontend } from "@/lib/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Actor    = "Admin" | "Gudang" | "Sistem" | "Owner";
@@ -22,9 +23,6 @@ interface ActivityLog {
   poAmount?:    number;
   isPOWarning?: boolean;
 }
-
-const CURRENT_ROLE: UserRole = "owner";
-const CURRENT_NAME = "Owner Inventix";
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat("id-ID", { style:"currency", currency:"IDR", minimumFractionDigits:0 }).format(amount);
@@ -59,6 +57,27 @@ function groupByDate(logs: ActivityLog[]): Record<string, ActivityLog[]> {
   }, {} as Record<string, ActivityLog[]>);
 }
 
+function formatActivityAction(namaTabel: string, aksi: string): string {
+  const t = namaTabel?.toLowerCase();
+  const a = aksi?.toLowerCase();
+
+  let actionStr = "";
+  if (a === "buat") actionStr = "Tambah";
+  else if (a === "edit") actionStr = "Ubah";
+  else if (a === "hapus") actionStr = "Hapus";
+  else actionStr = "Aktivitas";
+
+  let tableStr = "";
+  if (t === "stok") tableStr = "Stok";
+  else if (t === "supplier") tableStr = "Supplier";
+  else if (t === "purchaseorder" || t === "purchase_order") tableStr = "Purchase Order";
+  else if (t === "pembeliantransaksi" || t === "pembelian_transaksi") tableStr = "Transaksi";
+  else if (t === "akun") tableStr = "User";
+  else tableStr = namaTabel || "Sistem";
+
+  return `${actionStr} ${tableStr}`;
+}
+
 const ACTOR_STYLE: Record<Actor, { bg: string; text: string; dot: string; border: string }> = {
   Admin:  { bg:"#D6EDF5", text:"#1A4D66", dot:"#81C3DE", border:"#B0D9EE" },
   Gudang: { bg:"#F5E6D6", text:"#7A4520", dot:"#E8A87C", border:"#F0C9A8" },
@@ -81,56 +100,8 @@ const STATUS_STYLE: Record<string, { bar: string; label: string }> = {
   info:    { bar:"#81C3DE", label:"#1A4D66" },
 };
 
-const ALL_LOGS: ActivityLog[] = [
-  {
-    id:"po1", timestamp:"2026-05-31T14:22:00",
-    actor:"Admin", actorName:"Andi Pratama",
-    category:"Purchase Order", action:"Purchase Order Besar",
-    detail:"Admin Andi Pratama membuat Purchase Order senilai Rp 2.750.000 kepada supplier PT. Sumber Makmur. Nilai PO melebihi batas Rp 500.000 — perlu perhatian Owner.",
-    target:"PT. Sumber Makmur — PO-20260531-004",
-    status:"warning", readBy:["Owner"],
-    poAmount: 2750000, isPOWarning: true,
-  },
-  {
-    id:"po2", timestamp:"2026-05-31T16:05:00",
-    actor:"Admin", actorName:"Dian Kusuma",
-    category:"Purchase Order", action:"Purchase Order Besar",
-    detail:"Admin Dian Kusuma membuat Purchase Order senilai Rp 1.500.000 kepada supplier CV. Abadi Jaya. Nilai PO melebihi batas Rp 500.000 — perlu perhatian Owner.",
-    target:"CV. Abadi Jaya — PO-20260531-007",
-    status:"warning", readBy:["Owner"],
-    poAmount: 1500000, isPOWarning: true,
-  },
-  {
-    id:"po3", timestamp:"2026-05-30T11:18:00",
-    actor:"Admin", actorName:"Andi Pratama",
-    category:"Purchase Order", action:"Purchase Order Besar",
-    detail:"Admin Andi Pratama membuat Purchase Order senilai Rp 750.000 kepada supplier UD. Maju Bersama. Nilai PO melebihi batas Rp 500.000 — perlu perhatian Owner.",
-    target:"UD. Maju Bersama — PO-20260530-002",
-    status:"warning", readBy:["Owner"],
-    poAmount: 750000, isPOWarning: true,
-  },
-
-  { id:"l1",  timestamp:"2026-05-31T09:14:00", actor:"Admin",  actorName:"Andi Pratama",    category:"Stock",     action:"Tambah Stok",       detail:"Menambahkan 200 unit produk ke stok gudang.",                                                         target:"Aqua 600ml (Karton)",                status:"success", readBy:["Admin"] },
-  { id:"l2",  timestamp:"2026-05-31T09:15:30", actor:"Sistem", actorName:"Inventix System", category:"Sistem",    action:"Notifikasi Owner",   detail:"Owner diberitahu bahwa Andi Pratama menambah 200 unit Aqua 600ml.",                                    status:"info",    readBy:["Sistem","Owner"] },
-  { id:"l3",  timestamp:"2026-05-31T10:02:00", actor:"Gudang", actorName:"Budi Santoso",    category:"Stock",     action:"Ubah Stok",          detail:"Mengubah jumlah stok minimum dari 50 menjadi 30 unit.",                                               target:"Indomie Goreng (Karton)",             status:"warning", readBy:["Gudang"] },
-  { id:"l4",  timestamp:"2026-05-31T10:03:15", actor:"Sistem", actorName:"Inventix System", category:"Sistem",    action:"Log Audit",          detail:"Sistem mencatat perubahan stok minimum oleh Budi Santoso dan mengirim ringkasan ke Owner.",            status:"info",    readBy:["Sistem","Owner"] },
-  { id:"l5",  timestamp:"2026-05-31T11:30:00", actor:"Admin",  actorName:"Andi Pratama",    category:"Supplier",  action:"Tambah Supplier",    detail:"Mendaftarkan supplier baru ke sistem.",                                                               target:"CV. Maju Bersama",                   status:"success", readBy:["Admin","Owner"] },
-  { id:"l6",  timestamp:"2026-05-31T13:45:00", actor:"Admin",  actorName:"Andi Pratama",    category:"Penjualan", action:"Buat Transaksi",     detail:"Mencatat penjualan 10 karton ke pelanggan.",                                                         target:"Toko Sinar Jaya — Rp 1.250.000",     status:"success", readBy:["Admin"] },
-  { id:"l7",  timestamp:"2026-05-31T13:46:10", actor:"Sistem", actorName:"Inventix System", category:"Stock",     action:"Update Otomatis",    detail:"Stok Aqua 600ml dikurangi otomatis sebesar 10 karton akibat transaksi penjualan #TRX-0312.",          target:"Aqua 600ml (Karton)",                status:"info",    readBy:["Sistem"] },
-  { id:"l8",  timestamp:"2026-05-31T15:00:00", actor:"Gudang", actorName:"Budi Santoso",    category:"Stock",     action:"Hapus Produk",       detail:"Menghapus produk yang sudah tidak aktif dari daftar stok.",                                          target:"Teh Botol Sosro 250ml (Kadaluarsa)", status:"warning", readBy:["Gudang","Admin"] },
-  { id:"l9",  timestamp:"2026-05-30T08:20:00", actor:"Admin",  actorName:"Andi Pratama",    category:"User",      action:"Tambah User",        detail:"Menambahkan akun pengguna baru dengan role Gudang.",                                                  target:"Cahya Dewi (Role: Gudang)",          status:"success", readBy:["Admin","Owner"] },
-  { id:"l10", timestamp:"2026-05-30T09:00:00", actor:"Sistem", actorName:"Inventix System", category:"Sistem",    action:"Kirim Email",        detail:"Email undangan dan kredensial login dikirim ke Cahya Dewi.",                                         target:"cahya.dewi@inventix.id",             status:"info",    readBy:["Sistem"] },
-];
-
-function getVisibleLogs(role: UserRole): ActivityLog[] {
-  if (role === "owner") return ALL_LOGS;
-  return ALL_LOGS.filter(l => !l.isPOWarning);
-}
-
-const UNREAD_IDS = new Set([...ALL_LOGS.slice(0, 3).map(l => l.id), "l1", "l2", "l3"]);
-
 function ActorBadge({ actor }: { actor: Actor }) {
-  const s = ACTOR_STYLE[actor];
+  const s = ACTOR_STYLE[actor] || ACTOR_STYLE.Sistem;
   return (
     <span style={{
       background:s.bg, color:s.text, fontSize:9, fontWeight:700,
@@ -300,8 +271,8 @@ function POWarningCard({ log, expanded, onToggle, isUnread, onDismiss }: {
 function LogCard({ log, expanded, onToggle, isUnread }: {
   log: ActivityLog; expanded: boolean; onToggle: () => void; isUnread: boolean;
 }) {
-  const cat = CAT_STYLE[log.category];
-  const st  = STATUS_STYLE[log.status];
+  const cat = CAT_STYLE[log.category] || CAT_STYLE.Sistem;
+  const st  = STATUS_STYLE[log.status] || STATUS_STYLE.info;
 
   return (
     <div
@@ -378,25 +349,123 @@ function buildFilterTabs(role: UserRole): { key: FilterKey; label: string }[] {
 }
 
 export default function NotificationPage() {
-  const LOGS = getVisibleLogs(CURRENT_ROLE);
-
+  const [currentUser, setCurrentUser] = useState({
+    role: "owner" as UserRole,
+    name: "Owner Inventix",
+    initials: "OI",
+  });
+  
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter,    setFilter]    = useState<FilterKey>("Semua");
   const [search,    setSearch]    = useState("");
   const [expanded,  setExpanded]  = useState<string | null>(null);
   const [mounted,   setMounted]   = useState(false);
   const [readAll,   setReadAll]   = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const [showNewPOBanner, setShowNewPOBanner] = useState(CURRENT_ROLE === "owner");
+  const [showNewPOBanner, setShowNewPOBanner] = useState(false);
   const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
 
-  const FILTER_TABS = buildFilterTabs(CURRENT_ROLE);
+  const FILTER_TABS = buildFilterTabs(currentUser.role);
 
-  const poWarningLogs = LOGS.filter(l => l.isPOWarning && !dismissed.has(l.id));
-  const poUnreadCount = readAll ? 0 : poWarningLogs.filter(l => UNREAD_IDS.has(l.id)).length;
+  const poWarningLogs = logs.filter(l => l.isPOWarning && !dismissed.has(l.id));
+  const allUnreadCount = readAll ? 0 : logs.filter(l => unreadIds.has(l.id) && !dismissed.has(l.id)).length;
 
-  const allUnreadCount = readAll ? 0 : LOGS.filter(l => UNREAD_IDS.has(l.id) && !dismissed.has(l.id)).length;
+  const loadProfileAndLogs = async () => {
+    try {
+      const resProfile = await api.akun.profile();
+      const p = resProfile.data;
+      const fRole = mapRoleToFrontend(p.peran) as UserRole;
+      const name = p.nama || "User";
+      const initials = name.split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? "").join("");
+      setCurrentUser({
+        role: fRole,
+        name: name,
+        initials,
+      });
 
-  useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+      if (fRole === "owner") {
+        setShowNewPOBanner(true);
+      }
+
+      // Fetch Riwayat Aktivitas
+      const resLogs = await api.riwayatAktivitas.getAll();
+      const mapped = resLogs.data.map((item: any) => {
+        const u = item.akun || {};
+        const actorName = u.nama || "Sistem";
+        
+        let actor: Actor = "Sistem";
+        const r = u.peran?.toUpperCase();
+        if (r === "OWNER") actor = "Owner";
+        else if (r === "ADMIN") actor = "Admin";
+        else if (r === "GUDANG") actor = "Gudang";
+        else if (r === "SUPPLIER") actor = "Gudang";
+
+        const category: Category = (() => {
+          const t = item.nama_tabel?.toLowerCase();
+          if (t === "stok") return "Stock";
+          if (t === "supplier") return "Supplier";
+          if (t === "purchaseorder" || t === "purchase_order") return "Purchase Order";
+          if (t === "pembeliantransaksi" || t === "pembelian_transaksi") return "Penjualan";
+          if (t === "akun") return "User";
+          return "Sistem";
+        })();
+
+        // Try to parse target
+        const target = item.data_baru
+          ? (item.data_baru.nama || item.data_baru.nomor_po || item.data_baru.email || item.data_baru.sku || `ID: ${item.data_baru.id || item.record_id}`)
+          : (item.data_lama ? (item.data_lama.nama || item.data_lama.nomor_po || item.data_lama.email || `ID: ${item.record_id}`) : `ID: ${item.record_id}`);
+
+        const poAmount = category === "Purchase Order" && item.data_baru?.total_nilai
+          ? parseFloat(item.data_baru.total_nilai)
+          : undefined;
+
+        const isPOWarning = poAmount !== undefined && poAmount > 500000;
+
+        const status: "success" | "warning" | "info" = (() => {
+          if (isPOWarning) return "warning";
+          if (item.aksi === "buat") return "success";
+          if (item.aksi === "edit") return "info";
+          return "warning"; // hapus
+        })();
+
+        return {
+          id: String(item.id),
+          timestamp: item.dilakukan_pada || new Date().toISOString(),
+          actor,
+          actorName,
+          category,
+          action: formatActivityAction(item.nama_tabel, item.aksi),
+          detail: item.data_baru
+            ? `${actorName} berhasil melakukan aksi ${item.aksi} pada data ${category.toLowerCase()}.`
+            : `${actorName} berhasil melakukan aksi ${item.aksi} di sistem.`,
+          target,
+          status,
+          readBy: ["Owner", "Admin", "Gudang"] as Actor[],
+          poAmount,
+          isPOWarning,
+        };
+      });
+
+      // Sort logs by newest first
+      mapped.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setLogs(mapped);
+
+      // Randomly mark the newest 3 logs as unread for the nice visual notification dot!
+      const unreads = new Set(mapped.slice(0, 3).map((l: any) => l.id));
+      setUnreadIds(unreads);
+    } catch (err) {
+      console.error("Gagal memuat profile/logs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProfileAndLogs();
+    setTimeout(() => setMounted(true), 80);
+  }, []);
 
   useEffect(() => {
     if (showNewPOBanner) {
@@ -405,7 +474,7 @@ export default function NotificationPage() {
     return () => { if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current); };
   }, [showNewPOBanner]);
 
-  const filteredLogs = LOGS.filter(log => {
+  const filteredLogs = logs.filter(log => {
     if (dismissed.has(log.id)) return false;
     let mf = false;
     if (filter === "Semua") {
@@ -515,9 +584,9 @@ export default function NotificationPage() {
         className={`min-h-screen text-[#1C3320] transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background:"#E8F5EC", fontFamily:"var(--font-inter),sans-serif" }}
       >
-        <Header userInitials={CURRENT_NAME.split(" ").map(w => w[0]).join("").slice(0,2)} hasNotification={allUnreadCount > 0} />
+        <Header userInitials={currentUser.initials} hasNotification={allUnreadCount > 0} />
 
-        {showNewPOBanner && CURRENT_ROLE === "owner" && (
+        {showNewPOBanner && currentUser.role === "owner" && poWarningLogs.length > 0 && (
           <div className="po-banner" style={{ background:"linear-gradient(90deg,#7A3800,#A05000)", padding:"0" }}>
             <div style={{ maxWidth:896, margin:"0 auto", padding:"10px 24px", display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
               <span className="pulse-dot" style={{ width:8, height:8, borderRadius:"50%", background:"#F5C878", flexShrink:0 }} />
@@ -556,9 +625,9 @@ export default function NotificationPage() {
             }}
           >
             <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full pointer-events-none opacity-20"
-              style={{ background:"#78BC82", filter:"blur(64px)" }} />
+               style={{ background:"#78BC82", filter:"blur(64px)" }} />
             <div className="absolute -bottom-10 -left-10 w-56 h-56 rounded-full pointer-events-none opacity-15"
-              style={{ background:"#A5D4AB", filter:"blur(50px)" }} />
+               style={{ background:"#A5D4AB", filter:"blur(50px)" }} />
 
             <div className="max-w-4xl mx-auto px-4 sm:px-8">
               <div className="anim-fade-up d100 flex items-start sm:items-center justify-between gap-4 pt-6 pb-5 relative z-10 flex-wrap">
@@ -567,7 +636,7 @@ export default function NotificationPage() {
                     width:48, height:48, borderRadius:16,
                     background:"rgba(255,255,255,0.80)",
                     border:"1.5px solid #B5D9BB",
-                    display:"flex", alignItems:"center", justifyContent:"center",
+                    display:"flex", alignItems:"center", justifySelf:"center", justifyContent:"center",
                     flexShrink:0, position:"relative",
                   }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3A8F46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -589,14 +658,14 @@ export default function NotificationPage() {
                           {allUnreadCount} baru
                         </span>
                       )}
-                      {CURRENT_ROLE === "owner" && poWarningLogs.length > 0 && (
+                      {currentUser.role === "owner" && poWarningLogs.length > 0 && (
                         <span style={{ background:"linear-gradient(90deg,#F5A623,#E8792A)", color:"#fff", fontSize:10, fontWeight:800, padding:"3px 9px", borderRadius:20, letterSpacing:"0.04em", lineHeight:1.6, display:"inline-flex", alignItems:"center", gap:4 }}>
                           ⚠️ {poWarningLogs.length} PO
                         </span>
                       )}
                     </div>
                     <p style={{ margin:"4px 0 0", fontSize:11, color:"#4A6B52", fontWeight:500 }}>
-                      Log audit · Admin · Sistem · {CURRENT_ROLE === "owner" ? "Owner" : "Gudang"}
+                      Log audit · Admin · Sistem · {currentUser.role === "owner" ? "Owner" : "Gudang"}
                     </p>
                   </div>
                 </div>
@@ -638,7 +707,7 @@ export default function NotificationPage() {
           <section className="w-full py-6 sm:py-8" style={{ background:"#FFFFFF" }}>
             <div className="max-w-4xl mx-auto px-4 sm:px-8">
 
-              {CURRENT_ROLE === "owner" && filter === "Semua" && poWarningLogs.length > 0 && (
+              {currentUser.role === "owner" && filter === "Semua" && poWarningLogs.length > 0 && (
                 <div className="anim-fade-up po-section-header mb-5">
                   <div style={{ width:32, height:32, borderRadius:10, background:"linear-gradient(135deg,#FFE0A0,#F5C050)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A4A00" strokeWidth="2.2" strokeLinecap="round">
@@ -678,7 +747,11 @@ export default function NotificationPage() {
                 />
               </div>
 
-              {sortedDates.length === 0 ? (
+              {loading ? (
+                <div style={{ textAlign:"center", padding:"60px 0", color:"#7A9B82" }}>
+                  <p style={{ fontSize:13, fontWeight:600 }}>Memuat log aktivitas riil...</p>
+                </div>
+              ) : sortedDates.length === 0 ? (
                 <div style={{ textAlign:"center", padding:"60px 0", color:"#7A9B82" }}>
                   <p style={{ fontSize:40, marginBottom:12 }}>📭</p>
                   <p style={{ fontSize:13, fontWeight:600 }}>Tidak ada aktivitas ditemukan</p>
@@ -694,7 +767,7 @@ export default function NotificationPage() {
                             <POWarningCard
                               log={log}
                               expanded={expanded === log.id}
-                              isUnread={!readAll && UNREAD_IDS.has(log.id)}
+                              isUnread={!readAll && unreadIds.has(log.id)}
                               onToggle={() => setExpanded(expanded === log.id ? null : log.id)}
                               onDismiss={dismissLog}
                             />
@@ -702,7 +775,7 @@ export default function NotificationPage() {
                             <LogCard
                               log={log}
                               expanded={expanded === log.id}
-                              isUnread={!readAll && UNREAD_IDS.has(log.id)}
+                              isUnread={!readAll && unreadIds.has(log.id)}
                               onToggle={() => setExpanded(expanded === log.id ? null : log.id)}
                             />
                           )}

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Cookies from "js-cookie";
+import { api } from "@/lib/api";
 
 // Types
 type POStatus = "menunggu" | "dikonfirmasi" | "ditolak";
@@ -23,60 +25,12 @@ interface PurchaseOrder {
   catatan?: string;
 }
 
-// Dummy Data
-const DUMMY_PO: PurchaseOrder[] = [
-  {
-    id: 1,
-    noPO: "PO-2025-001",
-    tanggal: "2025-05-28",
-    dibuatOleh: "Admin Inventix",
-    status: "menunggu",
-    catatan: "Tolong kirim sebelum akhir bulan.",
-    items: [
-      { nama: "Tepung Terigu",  jumlah: 50,  satuan: "kg",  harga: 12000 },
-      { nama: "Mentega",        jumlah: 20,  satuan: "pcs", harga: 32000 },
-    ],
-  },
-  {
-    id: 2,
-    noPO: "PO-2025-002",
-    tanggal: "2025-05-29",
-    dibuatOleh: "Owner Inventix",
-    status: "menunggu",
-    items: [
-      { nama: "Minyak Goreng",  jumlah: 30,  satuan: "liter", harga: 18000 },
-      { nama: "Garam Halus",    jumlah: 15,  satuan: "kg",    harga: 5000  },
-      { nama: "Baking Powder",  jumlah: 10,  satuan: "pcs",   harga: 12500 },
-    ],
-  },
-  {
-    id: 3,
-    noPO: "PO-2025-003",
-    tanggal: "2025-05-20",
-    dibuatOleh: "Admin Inventix",
-    status: "dikonfirmasi",
-    items: [
-      { nama: "Kopi Arabika",   jumlah: 10,  satuan: "kg",   harga: 85000 },
-    ],
-  },
-  {
-    id: 4,
-    noPO: "PO-2025-004",
-    tanggal: "2025-05-15",
-    dibuatOleh: "Owner Inventix",
-    status: "ditolak",
-    catatan: "Stok tidak tersedia saat ini.",
-    items: [
-      { nama: "Vanilla Essence", jumlah: 20, satuan: "botol", harga: 28000 },
-    ],
-  },
-];
-
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
 function fmt(n: number) { return "Rp " + n.toLocaleString("id-ID"); }
 function fmtDate(iso: string) {
+  if (!iso) return "–";
   const d = new Date(iso);
   return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`;
 }
@@ -100,8 +54,8 @@ function StatusBadge({ status }: { status: POStatus }) {
   const s = map[status];
   return (
     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg"
-      style={{ background: s.bg, color: s.color }}>
-      {s.icon} {s.label}
+      style={{ background: s?.bg || "#EFF0A3", color: s?.color || "#2a1f08" }}>
+      {s?.icon || <IconClock size={9} />} {s?.label || "Menunggu"}
     </span>
   );
 }
@@ -109,19 +63,81 @@ function StatusBadge({ status }: { status: POStatus }) {
 // Main Page
 export default function SupplierPortal() {
   const LOGO_URL   = "/logo-inventix.png";
-  const supplierName = "PT Maju Bersama";
 
   const [mounted, setMounted]     = useState(false);
   const [tanggal, setTanggal]     = useState("");
-  const [poList, setPOList]       = useState<PurchaseOrder[]>(DUMMY_PO);
+  const [poList, setPOList]       = useState<PurchaseOrder[]>([]);
   const [activeTab, setActiveTab] = useState<"semua" | POStatus>("semua");
   const [expandId, setExpandId]   = useState<number | null>(null);
   const [modal, setModal]         = useState<{ po: PurchaseOrder; action: "konfirmasi" | "tolak" } | null>(null);
   const [toast, setToast]         = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [loading, setLoading]     = useState(true);
+
+  const [supplierRecord, setSupplierRecord] = useState<any>(null);
+  const [supplierName, setSupplierName]     = useState("Supplier");
+  const [errorMsg, setErrorMsg]             = useState("");
+
+  const loadPortalData = async () => {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      // 1. Get current logged in user profile
+      const profileRes = await api.akun.profile();
+      const profile = profileRes.data;
+
+      // 2. Get all suppliers and find which one is associated with this user ID
+      const suppliersRes = await api.supplier.getAll();
+      const matchedSup = suppliersRes.data.find((s: any) => s.user_id === profile.id);
+
+      if (!matchedSup) {
+        setErrorMsg("Akun pengguna Anda belum terhubung dengan data Supplier di database. Hubungi Administrator.");
+        setLoading(false);
+        return;
+      }
+
+      setSupplierRecord(matchedSup);
+      setSupplierName(matchedSup.nama);
+
+      // 3. Load all POs
+      const poRes = await api.purchaseOrder.getAll();
+      // Filter POs belonging to this supplier
+      const filteredPOs = poRes.data.filter((p: any) => p.supplier_id === matchedSup.id);
+
+      // Map backend POs to frontend PurchaseOrder structure
+      const mapped: PurchaseOrder[] = filteredPOs.map((p: any) => {
+        let mappedStatus: POStatus = "menunggu";
+        if (p.status_supplier === "DIKONFIRMASI") mappedStatus = "dikonfirmasi";
+        if (p.status_supplier === "DITOLAK") mappedStatus = "ditolak";
+
+        return {
+          id: p.id,
+          noPO: p.nomor_po,
+          tanggal: p.tanggal_po || p.dibuat_pada,
+          dibuatOleh: "System Admin",
+          status: mappedStatus,
+          catatan: p.catatan,
+          items: (p.detail_po || []).map((d: any) => ({
+            nama: d.stok?.nama || "Barang",
+            jumlah: d.jumlah_dipesan || 0,
+            satuan: "Pcs", // default fallback
+            harga: d.harga_satuan || 0
+          }))
+        };
+      });
+
+      setPOList(mapped);
+    } catch (err: any) {
+      console.error("Gagal memuat portal supplier:", err);
+      setErrorMsg(err.message || "Gagal memuat data portal.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const now = new Date();
     setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
+    loadPortalData();
     setTimeout(() => setMounted(true), 80);
   }, []);
 
@@ -129,26 +145,33 @@ export default function SupplierPortal() {
     if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }
   }, [toast]);
 
-  const handleAction = (po: PurchaseOrder, action: "konfirmasi" | "tolak") => {
-    setPOList(prev => prev.map(p =>
-      p.id === po.id
-        ? { ...p, status: action === "konfirmasi" ? "dikonfirmasi" : "ditolak" }
-        : p
-    ));
-    setModal(null);
-    setExpandId(null);
-    setToast({
-      msg: action === "konfirmasi"
-        ? `${po.noPO} berhasil dikonfirmasi.`
-        : `${po.noPO} ditolak.`,
-      type: action === "konfirmasi" ? "success" : "error",
-    });
+  const handleAction = async (po: PurchaseOrder, action: "konfirmasi" | "tolak") => {
+    try {
+      const statusSupplierVal = action === "konfirmasi" ? "DIKONFIRMASI" : "DITOLAK";
+      await api.purchaseOrder.update(po.id, { status_supplier: statusSupplierVal });
+
+      setPOList(prev => prev.map(p =>
+        p.id === po.id
+          ? { ...p, status: action === "konfirmasi" ? "dikonfirmasi" : "ditolak" }
+          : p
+      ));
+      setModal(null);
+      setExpandId(null);
+      setToast({
+        msg: action === "konfirmasi"
+          ? `${po.noPO} berhasil dikonfirmasi.`
+          : `${po.noPO} ditolak.`,
+        type: action === "konfirmasi" ? "success" : "error",
+      });
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal mengupdate status PO.", type: "error" });
+    }
   };
 
   const handleLogout = () => {
-    document.cookie = "token=; path=/; max-age=0";
-    document.cookie = "role=; path=/; max-age=0";
-    document.cookie = "user_name=; path=/; max-age=0";
+    Cookies.remove("token", { path: "/" });
+    Cookies.remove("role", { path: "/" });
+    Cookies.remove("user_name", { path: "/" });
     window.location.href = "/auth/login";
   };
 
@@ -189,6 +212,7 @@ export default function SupplierPortal() {
           33%    { transform:translate(30px,-20px) scale(1.06); }
           66%    { transform:translate(-20px,20px) scale(0.96); }
         }
+        @keyframes spin { to { transform:rotate(360deg); } }
 
         .fade-up   { animation: fadeUp .55s cubic-bezier(.22,1,.36,1) both; }
         .d1{animation-delay:.05s} .d2{animation-delay:.10s} .d3{animation-delay:.15s}
@@ -392,7 +416,7 @@ export default function SupplierPortal() {
             {stats.menunggu > 0 && (
               <div className="fade-up d3 mt-3 flex items-center gap-3 px-4 py-3 rounded-2xl border"
                 style={{ background: "rgba(239,240,163,0.6)", borderColor: "rgba(212,168,67,0.30)" }}>
-                <IconClock size={15} />
+                <span style={{ color: "#92650a" }}><IconClock size={15} /></span>
                 <p className="text-xs font-medium" style={{ color: "#92650a" }}>
                   Ada <span className="font-bold">{stats.menunggu} PO</span> yang menunggu konfirmasi Anda.
                 </p>
@@ -423,135 +447,156 @@ export default function SupplierPortal() {
               ))}
             </div>
 
+            {/* Error view */}
+            {errorMsg && (
+              <div className="fade-up p-5 text-center border rounded-2xl"
+                style={{ borderColor: "#fee2e2", background: "#fef2f2" }}>
+                <p className="text-sm font-semibold" style={{ color: "#991b1b" }}>{errorMsg}</p>
+                <button onClick={loadPortalData} className="btn-ghost mt-4 font-bold">
+                  Coba Lagi
+                </button>
+              </div>
+            )}
+
+            {/* Loading view */}
+            {loading && !errorMsg && (
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <span className="animate-spin border-4 border-t-transparent border-[#2a1f08] rounded-full w-8 h-8" />
+                <p className="text-sm font-bold text-[#2a1f08] animate-pulse">Memuat PO untuk supplier...</p>
+              </div>
+            )}
+
             {/* PO Cards */}
-            <div className="space-y-4">
-              {filtered.length === 0 ? (
-                <div className="fade-up text-center py-16 text-sm"
-                  style={{ color: "rgba(33,33,33,0.35)" }}>
-                  Tidak ada PO pada kategori ini.
-                </div>
-              ) : filtered.map((po, idx) => {
-                const totalPO = po.items.reduce((s, i) => s + i.harga * i.jumlah, 0);
-                const isOpen  = expandId === po.id;
+            {!loading && !errorMsg && (
+              <div className="space-y-4">
+                {filtered.length === 0 ? (
+                  <div className="fade-up text-center py-16 text-sm"
+                    style={{ color: "rgba(33,33,33,0.35)" }}>
+                    Tidak ada PO pada kategori ini.
+                  </div>
+                ) : filtered.map((po, idx) => {
+                  const totalPO = po.items.reduce((s, i) => s + i.harga * i.jumlah, 0);
+                  const isOpen  = expandId === po.id;
 
-                return (
-                  <div key={po.id}
-                    className={`po-card fade-up`}
-                    style={{ animationDelay: `${idx * 0.06}s` }}
-                    onClick={() => setExpandId(isOpen ? null : po.id)}>
+                  return (
+                    <div key={po.id}
+                      className={`po-card fade-up`}
+                      style={{ animationDelay: `${idx * 0.06}s` }}
+                      onClick={() => setExpandId(isOpen ? null : po.id)}>
 
-                    {/* Card Header */}
-                    <div className="flex items-start justify-between gap-3 p-5">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ background: "rgba(42,31,8,0.07)", color: "#2a1f08" }}>
-                          <IconNote size={15} />
-                        </div>
-                        <div>
-                          <p className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121]">
-                            {po.noPO}
-                          </p>
-                          <div className="flex items-center gap-3 mt-1 flex-wrap">
-                            <span className="text-[11px] font-medium flex items-center gap-1"
-                              style={{ color: "rgba(33,33,33,0.45)" }}>
-                              <IconUser size={11} /> {po.dibuatOleh}
-                            </span>
-                            <span className="text-[11px] font-medium flex items-center gap-1"
-                              style={{ color: "rgba(33,33,33,0.45)" }}>
-                              <IconClock size={11} /> {fmtDate(po.tanggal)}
-                            </span>
+                      {/* Card Header */}
+                      <div className="flex items-start justify-between gap-3 p-5">
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{ background: "rgba(42,31,8,0.07)", color: "#2a1f08" }}>
+                            <IconNote size={15} />
+                          </div>
+                          <div>
+                            <p className="font-['Plus_Jakarta_Sans'] font-black text-sm text-[#212121]">
+                              {po.noPO}
+                            </p>
+                            <div className="flex items-center gap-3 mt-1 flex-wrap">
+                              <span className="text-[11px] font-medium flex items-center gap-1"
+                                style={{ color: "rgba(33,33,33,0.45)" }}>
+                                <IconUser size={11} /> {po.dibuatOleh}
+                              </span>
+                              <span className="text-[11px] font-medium flex items-center gap-1"
+                                style={{ color: "rgba(33,33,33,0.45)" }}>
+                                <IconClock size={11} /> {fmtDate(po.tanggal)}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <StatusBadge status={po.status} />
-                        <p className="font-['Plus_Jakarta_Sans'] font-black text-sm"
-                          style={{ color: "#2a1f08" }}>
-                          {fmt(totalPO)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Expand: item table + actions */}
-                    {isOpen && (
-                      <div onClick={e => e.stopPropagation()}
-                        style={{ borderTop: "1px solid rgba(42,31,8,0.07)" }}>
-
-                        {/* Items table */}
-                        <div className="px-5 py-4">
-                          <p className="text-[10px] font-bold tracking-widest uppercase mb-3"
-                            style={{ color: "rgba(80,65,40,0.42)" }}>
-                            Detail Barang
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                          <StatusBadge status={po.status} />
+                          <p className="font-['Plus_Jakarta_Sans'] font-black text-sm"
+                            style={{ color: "#2a1f08" }}>
+                            {fmt(totalPO)}
                           </p>
-                          <div className="rounded-xl overflow-hidden border"
-                            style={{ borderColor: "rgba(42,31,8,0.08)" }}>
-                            <table className="w-full items-table">
-                              <thead>
-                                <tr style={{ background: "rgba(42,31,8,0.03)" }}>
-                                  <th>Nama Barang</th>
-                                  <th>Jumlah</th>
-                                  <th>Harga Satuan</th>
-                                  <th>Subtotal</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {po.items.map((item, i) => (
-                                  <tr key={i}>
-                                    <td className="font-semibold" style={{ color: "#212121" }}>{item.nama}</td>
-                                    <td>{item.jumlah} {item.satuan}</td>
-                                    <td>{fmt(item.harga)}</td>
-                                    <td className="font-semibold" style={{ color: "#2a1f08" }}>
-                                      {fmt(item.harga * item.jumlah)}
+                        </div>
+                      </div>
+
+                      {/* Expand: item table + actions */}
+                      {isOpen && (
+                        <div onClick={e => e.stopPropagation()}
+                          style={{ borderTop: "1px solid rgba(42,31,8,0.07)" }}>
+
+                          {/* Items table */}
+                          <div className="px-5 py-4">
+                            <p className="text-[10px] font-bold tracking-widest uppercase mb-3"
+                              style={{ color: "rgba(80,65,40,0.42)" }}>
+                              Detail Barang
+                            </p>
+                            <div className="rounded-xl overflow-hidden border"
+                              style={{ borderColor: "rgba(42,31,8,0.08)" }}>
+                              <table className="w-full items-table">
+                                <thead>
+                                  <tr style={{ background: "rgba(42,31,8,0.03)" }}>
+                                    <th>Nama Barang</th>
+                                    <th>Jumlah</th>
+                                    <th>Harga Satuan</th>
+                                    <th>Subtotal</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {po.items.map((item, i) => (
+                                    <tr key={i}>
+                                      <td className="font-semibold" style={{ color: "#212121" }}>{item.nama}</td>
+                                      <td>{item.jumlah} {item.satuan}</td>
+                                      <td>{fmt(item.harga)}</td>
+                                      <td className="font-semibold" style={{ color: "#2a1f08" }}>
+                                        {fmt(item.harga * item.jumlah)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                                <tfoot>
+                                  <tr style={{ borderTop: "1.5px solid rgba(42,31,8,0.10)", background: "rgba(42,31,8,0.03)" }}>
+                                    <td colSpan={3} className="font-bold text-[11px]"
+                                      style={{ padding: "10px 12px", color: "rgba(80,65,40,0.55)" }}>
+                                      Total
+                                    </td>
+                                    <td className="font-['Plus_Jakarta_Sans'] font-black text-sm"
+                                      style={{ padding: "10px 12px", color: "#2a1f08" }}>
+                                      {fmt(totalPO)}
                                     </td>
                                   </tr>
-                                ))}
-                              </tbody>
-                              <tfoot>
-                                <tr style={{ borderTop: "1.5px solid rgba(42,31,8,0.10)", background: "rgba(42,31,8,0.03)" }}>
-                                  <td colSpan={3} className="font-bold text-[11px]"
-                                    style={{ padding: "10px 12px", color: "rgba(80,65,40,0.55)" }}>
-                                    Total
-                                  </td>
-                                  <td className="font-['Plus_Jakarta_Sans'] font-black text-sm"
-                                    style={{ padding: "10px 12px", color: "#2a1f08" }}>
-                                    {fmt(totalPO)}
-                                  </td>
-                                </tr>
-                              </tfoot>
-                            </table>
+                                </tfoot>
+                              </table>
+                            </div>
+
+                            {/* Catatan */}
+                            {po.catatan && (
+                              <div className="mt-3 flex items-start gap-2 px-3 py-2.5 rounded-xl"
+                                style={{ background: "rgba(42,31,8,0.04)", border: "1px solid rgba(42,31,8,0.07)" }}>
+                                <IconNote size={12} />
+                                <p className="text-[11px] font-medium" style={{ color: "rgba(42,31,8,0.65)" }}>
+                                  {po.catatan}
+                                </p>
+                              </div>
+                            )}
                           </div>
 
-                          {/* Catatan */}
-                          {po.catatan && (
-                            <div className="mt-3 flex items-start gap-2 px-3 py-2.5 rounded-xl"
-                              style={{ background: "rgba(42,31,8,0.04)", border: "1px solid rgba(42,31,8,0.07)" }}>
-                              <IconNote size={12} />
-                              <p className="text-[11px] font-medium" style={{ color: "rgba(42,31,8,0.65)" }}>
-                                {po.catatan}
-                              </p>
+                          {/* Action buttons — only if menunggu */}
+                          {po.status === "menunggu" && (
+                            <div className="px-5 pb-5 flex items-center gap-3">
+                              <button className="btn-confirm"
+                                onClick={() => setModal({ po, action: "konfirmasi" })}>
+                                <IconCheck size={13} /> Konfirmasi PO
+                              </button>
+                              <button className="btn-reject"
+                                onClick={() => setModal({ po, action: "tolak" })}>
+                                <IconX size={13} /> Tolak PO
+                              </button>
                             </div>
                           )}
                         </div>
-
-                        {/* Action buttons — only if menunggu */}
-                        {po.status === "menunggu" && (
-                          <div className="px-5 pb-5 flex items-center gap-3">
-                            <button className="btn-confirm"
-                              onClick={() => setModal({ po, action: "konfirmasi" })}>
-                              <IconCheck size={13} /> Konfirmasi PO
-                            </button>
-                            <button className="btn-reject"
-                              onClick={() => setModal({ po, action: "tolak" })}>
-                              <IconX size={13} /> Tolak PO
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 
@@ -564,10 +609,10 @@ export default function SupplierPortal() {
                 { val: `${stats.menunggu}`,           label: "Menunggu", danger: stats.menunggu > 0 },
                 { val: `${stats.dikonfirmasi}`,       label: "Dikonfirmasi" },
               ].map((s, i) => (
-                <div key={i} className="flex items-center gap-6">
-                  {i > 0 && <div className="w-px h-7 hidden sm:block" style={{ background: "rgba(249,249,250,0.08)" }} />}
+                <div key={i} className="flex items-center gap-6" style={{ display: "flex" }}>
+                  {i > 0 && <div className="w-px h-7 hidden sm:block" style={{ background: "rgba(249,249,250,0.08)", margin: "0 15px" }} />}
                   <div className="text-center cursor-default">
-                    <p className={`font-['Plus_Jakarta_Sans'] font-black text-base ${(s as any).danger ? "text-yellow-400" : "text-[#F9F9FA]"}`}>{s.val}</p>
+                    <p className={`font-['Plus_Jakarta_Sans'] font-black text-base ${s.danger ? "text-yellow-400" : "text-[#F9F9FA]"}`}>{s.val}</p>
                     <p className="text-[9px] font-medium mt-0.5" style={{ color: "rgba(249,249,250,0.28)" }}>{s.label}</p>
                   </div>
                 </div>

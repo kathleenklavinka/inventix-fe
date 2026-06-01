@@ -5,26 +5,12 @@ import Footer from "../../../components/footer";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
+import Cookies from "js-cookie";
+import { COOKIE_NAME } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const SATUAN_OPTIONS = ["kg", "gram", "liter", "ml", "pcs", "botol", "dus", "karton", "lusin", "sak"];
 
-// Mock data — sama seperti /stock
-const stokData = [
-  { id: 1,  nama: "Tepung Terigu",    jumlah: 0,   satuan: "kg",    max: 100 },
-  { id: 2,  nama: "Gula Pasir",       jumlah: 50,  satuan: "kg",    max: 100 },
-  { id: 3,  nama: "Minyak Goreng",    jumlah: 0,   satuan: "liter", max: 80  },
-  { id: 4,  nama: "Susu UHT",         jumlah: 120, satuan: "pcs",   max: 200 },
-  { id: 5,  nama: "Kopi Arabika",     jumlah: 30,  satuan: "kg",    max: 60  },
-  { id: 6,  nama: "Teh Hijau",        jumlah: 15,  satuan: "pcs",   max: 50  },
-  { id: 7,  nama: "Beras Premium",    jumlah: 200, satuan: "kg",    max: 300 },
-  { id: 8,  nama: "Garam Halus",      jumlah: 8,   satuan: "kg",    max: 40  },
-  { id: 9,  nama: "Mentega",          jumlah: 0,   satuan: "pcs",   max: 60  },
-  { id: 10, nama: "Coklat Bubuk",     jumlah: 22,  satuan: "kg",    max: 50  },
-  { id: 11, nama: "Vanilla Essence",  jumlah: 40,  satuan: "botol", max: 80  },
-  { id: 12, nama: "Baking Powder",    jumlah: 5,   satuan: "pcs",   max: 30  },
-];
 
 // ── SVG ICONS ──
 const IconArrowLeft = ({ size = 14, color = "currentColor" }) => (
@@ -152,31 +138,71 @@ export default function EditStokPage() {
   const params = useParams();
   const id = Number(params?.id);
 
-  const original = stokData.find(d => d.id === id) ?? null;
-
   const [mounted, setMounted] = useState(false);
+  const [original, setOriginal] = useState<any | null>(null);
   const [form, setForm] = useState({
     nama: "",
     jumlah: "",
     satuan: "kg",
+    klasifikasi_id: "",
+    supplier_id: "",
+    kode_sku: "",
+    max: 100
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const namaRef = useRef<HTMLInputElement>(null);
 
-  // Prefill form dari data asli
+  const [userInitials, setUserInitials] = useState("AP");
+  const [kategoriList, setKategoriList] = useState<any[]>([]);
+  const [supplierList, setSupplierList] = useState<any[]>([]);
+
   useEffect(() => {
-    setTimeout(() => setMounted(true), 80);
-    if (original) {
-      setForm({
-        nama: original.nama,
-        jumlah: String(original.jumlah),
-        satuan: original.satuan,
-      });
-      setTimeout(() => namaRef.current?.focus(), 380);
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+
+    const loadData = async () => {
+      try {
+        const resKat = await api.klasifikasiStok.getAll();
+        setKategoriList(resKat.data);
+
+        const resSup = await api.supplier.getAll();
+        setSupplierList(resSup.data);
+
+        const resStok = await api.stok.getById(id);
+        const item = resStok.data;
+        const mapped = {
+          ...item,
+          jumlah: item.jumlah_saat_ini,
+          kategori: item.klasifikasi?.jenis || "Umum",
+          max: item.max || 100
+        };
+        setOriginal(mapped);
+        setForm({
+          nama: mapped.nama,
+          jumlah: String(mapped.jumlah_saat_ini),
+          satuan: mapped.satuan,
+          klasifikasi_id: String(mapped.klasifikasi_id || ""),
+          supplier_id: String(mapped.supplier_id || ""),
+          kode_sku: mapped.kode_sku || "",
+          max: mapped.max || 100
+        });
+        
+        setTimeout(() => namaRef.current?.focus(), 380);
+      } catch (err) {
+        console.error("Gagal memuat data:", err);
+      } finally {
+        setMounted(true);
+      }
+    };
+
+    if (id) {
+      loadData();
+    } else {
+      setMounted(true);
     }
-  }, []);
+  }, [id]);
 
   function validate() {
     const e: Record<string, string> = {};
@@ -185,6 +211,8 @@ export default function EditStokPage() {
     if (form.jumlah === "" || isNaN(Number(form.jumlah))) e.jumlah = "Jumlah wajib diisi dengan angka.";
     else if (Number(form.jumlah) < 0) e.jumlah = "Jumlah tidak boleh negatif.";
     if (!form.satuan) e.satuan = "Satuan wajib dipilih.";
+    if (!form.klasifikasi_id) e.klasifikasi_id = "Kategori wajib dipilih.";
+    if (!form.supplier_id) e.supplier_id = "Supplier wajib dipilih.";
     return e;
   }
 
@@ -193,19 +221,37 @@ export default function EditStokPage() {
     if (errors[k]) setErrors(e => { const next = { ...e }; delete next[k]; return next; });
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setSubmitting(true);
-    setTimeout(() => { setSubmitting(false); setSuccess(true); }, 1400);
+    try {
+      await api.stok.update(id, {
+        nama: form.nama,
+        kode_sku: form.kode_sku || `SKU-${form.nama.toUpperCase().substring(0, 6)}`,
+        klasifikasi_id: Number(form.klasifikasi_id),
+        supplier_id: Number(form.supplier_id),
+        satuan: form.satuan,
+        jumlah_saat_ini: Number(form.jumlah),
+      });
+      setSuccess(true);
+    } catch (err: any) {
+      alert(err.message || "Gagal memperbarui barang.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleReset() {
     if (!original) return;
     setForm({
       nama: original.nama,
-      jumlah: String(original.jumlah),
+      jumlah: String(original.jumlah_saat_ini),
       satuan: original.satuan,
+      klasifikasi_id: String(original.klasifikasi_id || ""),
+      supplier_id: String(original.supplier_id || ""),
+      kode_sku: original.kode_sku || "",
+      max: original.max || 100
     });
     setErrors({});
     setSuccess(false);
@@ -217,8 +263,10 @@ export default function EditStokPage() {
   // Cek apakah ada perubahan dari data original
   const isDirty = original && (
     form.nama !== original.nama ||
-    form.jumlah !== String(original.jumlah) ||
-    form.satuan !== original.satuan
+    form.jumlah !== String(original.jumlah_saat_ini) ||
+    form.satuan !== original.satuan ||
+    form.klasifikasi_id !== String(original.klasifikasi_id || "") ||
+    form.supplier_id !== String(original.supplier_id || "")
   );
 
   // 404 state — id tidak ditemukan
@@ -226,7 +274,7 @@ export default function EditStokPage() {
     return (
       <>
         <div className="min-h-screen font-['Inter']" style={{ background: "#F9F9FA" }}>
-          <Header hasNotification={false} userInitials={user.initials} />
+          <Header hasNotification={false} userInitials={userInitials} />
           <main className="w-full">
             <section className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
               style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}>
@@ -394,7 +442,7 @@ export default function EditStokPage() {
         className={`min-h-screen text-[#2a1f08] font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#F9F9FA" }}>
 
-        <Header hasNotification={false} userInitials={user.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main className="w-full">
 
@@ -504,6 +552,23 @@ export default function EditStokPage() {
                           <select className="form-select" value={form.satuan}
                             onChange={e => handleChange("satuan", e.target.value)}>
                             {SATUAN_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        </FormField>
+                        {/* Kategori */}
+                        <FormField label="Kategori" required error={errors.klasifikasi_id}>
+                          <select className="form-select" value={form.klasifikasi_id}
+                            onChange={e => handleChange("klasifikasi_id", e.target.value)}>
+                            <option value="">— Pilih Kategori —</option>
+                            {kategoriList.map(k => <option key={k.id} value={k.id}>{k.jenis}</option>)}
+                          </select>
+                        </FormField>
+
+                        {/* Supplier */}
+                        <FormField label="Supplier" required error={errors.supplier_id}>
+                          <select className="form-select" value={form.supplier_id}
+                            onChange={e => handleChange("supplier_id", e.target.value)}>
+                            <option value="">— Pilih Supplier —</option>
+                            {supplierList.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
                           </select>
                         </FormField>
                       </div>

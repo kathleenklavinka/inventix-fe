@@ -4,24 +4,9 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
-const isAdmin = true;
-
-const stokData = [
-  { id: 1,  nama: "Tepung Terigu",    jumlah: 0,   satuan: "kg",    max: 100, kategori: "Tepung & Kering" },
-  { id: 2,  nama: "Gula Pasir",       jumlah: 50,  satuan: "kg",    max: 100, kategori: "Pemanis" },
-  { id: 3,  nama: "Minyak Goreng",    jumlah: 0,   satuan: "liter", max: 80,  kategori: "Lemak & Minyak" },
-  { id: 4,  nama: "Susu UHT",         jumlah: 120, satuan: "pcs",   max: 200, kategori: "Susu & Dairy" },
-  { id: 5,  nama: "Kopi Arabika",     jumlah: 30,  satuan: "kg",    max: 60,  kategori: "Minuman" },
-  { id: 6,  nama: "Teh Hijau",        jumlah: 15,  satuan: "pcs",   max: 50,  kategori: "Minuman" },
-  { id: 7,  nama: "Beras Premium",    jumlah: 200, satuan: "kg",    max: 300, kategori: "Tepung & Kering" },
-  { id: 8,  nama: "Garam Halus",      jumlah: 8,   satuan: "kg",    max: 40,  kategori: "Bumbu" },
-  { id: 9,  nama: "Mentega",          jumlah: 0,   satuan: "pcs",   max: 60,  kategori: "Lemak & Minyak" },
-  { id: 10, nama: "Coklat Bubuk",     jumlah: 22,  satuan: "kg",    max: 50,  kategori: "Pemanis" },
-  { id: 11, nama: "Vanilla Essence",  jumlah: 40,  satuan: "botol", max: 80,  kategori: "Bumbu" },
-  { id: 12, nama: "Baking Powder",    jumlah: 5,   satuan: "pcs",   max: 30,  kategori: "Tepung & Kering" },
-];
+import Cookies from "js-cookie";
+import { COOKIE_NAME, COOKIE_ROLE } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const SHOW_OPTIONS = [5, 10, 25, 50];
 const HARI = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
@@ -162,16 +147,48 @@ export default function StockPage() {
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
-  const [data, setData] = useState(stokData);
-  const [deleteModal, setDeleteModal] = useState<typeof stokData[0] | null>(null);
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<any | null>(null);
+  const [toast, setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [filterKategori, setFilterKategori] = useState("Semua");
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+
+  const [userName, setUserName] = useState("Andi Pratama");
+  const [userRole, setUserRole] = useState("user");
+  const [userInitials, setUserInitials] = useState("AP");
 
   const adaStokHabis = data.some((d) => d.jumlah === 0);
   const kategoriList = ["Semua", ...Array.from(new Set(data.map(d => d.kategori)))];
 
+  const loadStok = async () => {
+    try {
+      setLoading(true);
+      const res = await api.stok.getAll();
+      const mapped = res.data.map((item: any) => ({
+        ...item,
+        jumlah: item.jumlah_saat_ini,
+        kategori: item.klasifikasi?.jenis || "Umum",
+        max: item.max || 100,
+        harga: item.harga || 15000
+      }));
+      setData(mapped);
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal memuat stok.", type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    const role = Cookies.get(COOKIE_ROLE) || "user";
+    setUserName(decodeURIComponent(name));
+    setUserRole(role);
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+
+    loadStok();
+
     const update = () => {
       const now = new Date();
       setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
@@ -179,6 +196,8 @@ export default function StockPage() {
     update();
     setTimeout(() => { setMounted(true); setAnimIn(true); }, 100);
   }, []);
+
+  const isAdmin = userRole === "admin" || userRole === "owner";
 
   useEffect(() => {
     if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }
@@ -209,10 +228,15 @@ export default function StockPage() {
     setPage(1);
   }
 
-  function handleDelete(item: typeof stokData[0]) {
-    setData(prev => prev.filter(d => d.id !== item.id));
-    setDeleteModal(null);
-    setToast({ msg: `${item.nama} berhasil dihapus.`, type: "success" });
+  async function handleDelete(item: any) {
+    try {
+      await api.stok.delete(item.id);
+      setData(prev => prev.filter(d => d.id !== item.id));
+      setDeleteModal(null);
+      setToast({ msg: `${item.nama} berhasil dihapus.`, type: "success" });
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal menghapus stok.", type: "error" });
+    }
   }
 
   function SortIcon({ col }: { col: string }) {
@@ -378,7 +402,7 @@ export default function StockPage() {
       <div className={`min-h-screen text-[#212121] font-['Inter'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#F9F9FA" }}>
 
-        <Header hasNotification={adaStokHabis} userInitials={user.initials} />
+        <Header hasNotification={adaStokHabis} userInitials={userInitials} />
 
         <main className="w-full">
 

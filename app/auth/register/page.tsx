@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+import { api } from "@/lib/api";
+
 export default function AuthRegister() {
   const router = useRouter();
   const LOGO_URL = "/logo-inventix.png";
@@ -20,7 +22,7 @@ export default function AuthRegister() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -28,8 +30,17 @@ export default function AuthRegister() {
       return;
     }
 
-    alert(`Mencoba mendaftar Akun Baru:\nNama: ${fullName}\nEmail: ${email}`);
-    router.push("/auth/login");
+    try {
+      await api.auth.register({
+        nama: fullName,
+        email,
+        password,
+      });
+      alert("Pendaftaran berhasil! Silakan login.");
+      router.push("/auth/login");
+    } catch (err: any) {
+      alert(err.message || "Gagal mendaftar. Silakan coba lagi.");
+    }
   };
 
   return (
