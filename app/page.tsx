@@ -262,20 +262,15 @@ export default function OnboardingBoarding() {
                     background: "radial-gradient(circle, rgba(239,240,163,0.12) 0%, transparent 70%)",
                     transform: "scale(2.8)",
                   }} />
-                <div className="relative w-[80px] h-[80px] rounded-[24px] flex items-center justify-center overflow-hidden"
-                  style={{
-                    background: "linear-gradient(145deg, #1a1408, #2e2208)",
-                    boxShadow: "0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.08)",
-                  }}>
-                  {/* The actual Inventix logo */}
+                <div className="relative flex items-center justify-center">
                   <img
                     src="/logo-inventix.png"
                     alt="Inventix"
-                    className="w-12 h-12 object-contain relative z-10"
-                    style={{ filter: "brightness(1.05)" }}
+                    className="w-[84px] h-[84px] object-contain relative z-10"
+                    style={{
+                      filter: "drop-shadow(0 10px 28px rgba(239,240,163,0.18)) brightness(1.04)",
+                    }}
                   />
-                  {/* Shine overlay */}
-                  <div className="logo-shine absolute inset-0 z-20 rounded-[24px]" />
                 </div>
               </div>
             )}
@@ -358,9 +353,9 @@ export default function OnboardingBoarding() {
         .blob-b2 { animation:blobFloat 12s ease-in-out infinite reverse; animation-delay:3s; }
 
         .btn-lanjut {
-          font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:13px;
+          font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:12px;
           background:#212121; color:#F6F5FA;
-          padding:11px 22px; border-radius:14px; border:none; cursor:pointer;
+          padding:10px 16px; border-radius:14px; border:none; cursor:pointer;
           transition:transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s, background .18s;
           display:inline-flex; align-items:center; gap:7px;
           box-shadow:0 4px 16px rgba(33,33,33,0.20);
@@ -369,9 +364,9 @@ export default function OnboardingBoarding() {
         .btn-lanjut:active { transform:scale(0.97); }
 
         .btn-mulai {
-          font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px;
+          font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:12px;
           background:#EFF0A3; color:#212121;
-          padding:11px 22px; border-radius:14px; border:1.5px solid rgba(33,33,33,0.14); cursor:pointer;
+          padding:10px 16px; border-radius:14px; border:1.5px solid rgba(33,33,33,0.14); cursor:pointer;
           transition:transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s, background .18s;
           display:inline-flex; align-items:center; gap:7px;
           box-shadow:0 4px 16px rgba(239,240,163,0.28);
@@ -380,7 +375,7 @@ export default function OnboardingBoarding() {
         .btn-mulai:active { transform:scale(0.97); }
 
         .btn-kembali {
-          font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13px;
+          font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:12px;
           background:rgba(33,33,33,0.06); color:rgba(33,33,33,0.50);
           padding:11px 18px; border-radius:14px; border:none; cursor:pointer;
           transition:background .18s, color .18s, transform .2s;
@@ -416,7 +411,7 @@ export default function OnboardingBoarding() {
         <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 min-h-screen">
 
           {/*  LEFT PANEL  */}
-          <div className="h-[60vh] md:h-screen flex flex-col justify-between relative overflow-hidden"
+          <div className="min-h-screen md:h-screen flex flex-col justify-between relative overflow-hidden"
             style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 50%, #f9f7f2 100%)" }}>
 
             <div className="blob-b1 absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none"
@@ -425,19 +420,17 @@ export default function OnboardingBoarding() {
               style={{ background: "#CFDECA", filter: "blur(55px)", opacity: 0.25 }} />
 
             {/* Header */}
-            <div className="fu-d1 flex items-center justify-between px-8 sm:px-12 lg:px-16 pt-8 sm:pt-10 flex-shrink-0 relative z-10">
+            <div className="fu-d1 flex items-center justify-between px-5 sm:px-12 lg:px-16 pt-5 sm:pt-10 flex-shrink-0 relative z-10">
               <div className="flex items-center gap-3">
                 {/* Logo mark with actual Inventix logo */}
-                <div className="w-8 h-8 rounded-[10px] flex items-center justify-center overflow-hidden"
-                  style={{
-                    background: "linear-gradient(145deg, #1a1408, #2e2208)",
-                    boxShadow: "0 3px 12px rgba(42,31,8,0.30)",
-                  }}>
+                <div className="flex items-center justify-center">
                   <img
                     src="/logo-inventix.png"
                     alt="Inventix"
-                    className="w-5 h-5 object-contain"
-                    style={{ filter: "brightness(1.05)" }}
+                    className="w-8 h-8 object-contain"
+                    style={{
+                      filter: "drop-shadow(0 3px 10px rgba(42,31,8,0.15))",
+                    }}
                   />
                 </div>
                 <span className="font-['Plus_Jakarta_Sans'] font-black tracking-[0.18em] text-[13px] text-[#2a1f08]">
@@ -451,7 +444,7 @@ export default function OnboardingBoarding() {
             </div>
 
             {/* Slide content */}
-            <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-16 py-6 relative z-10 overflow-hidden">
+            <div className="flex-1 flex flex-col justify-center px-5 sm:px-12 lg:px-16 py-4 sm:py-6 relative z-10 overflow-hidden">
               <div
                 key={`slide-${slideKey}`}
                 className={slideDir === "next" ? "slide-next" : "slide-prev"}
@@ -464,12 +457,12 @@ export default function OnboardingBoarding() {
                 </div>
 
                 {/* Title */}
-                <h1 className="font-['Plus_Jakarta_Sans'] font-black text-2xl sm:text-3xl lg:text-[2.35rem] text-[#2a1f08] leading-[1.18] tracking-tight mb-4">
+                <h1 className="font-['Plus_Jakarta_Sans'] font-black text-[1.75rem] sm:text-3xl lg:text-[2.35rem] text-[#2a1f08] leading-[1.18] tracking-tight mb-4">
                   {slides[currentSlide].title}
                 </h1>
 
                 {/* Description */}
-                <p className="font-['Inter'] font-normal text-[#212121]/55 text-sm sm:text-[15px] leading-relaxed mb-6 max-w-md">
+                <p className="font-['Inter'] font-normal text-[#212121]/55 text-[13px] sm:text-[15px] leading-relaxed mb-6 max-w-md">
                   {slides[currentSlide].description}
                 </p>
 
@@ -486,7 +479,7 @@ export default function OnboardingBoarding() {
             </div>
 
             {/* Navigation */}
-            <div className="px-8 sm:px-12 lg:px-16 pb-8 sm:pb-10 relative z-10">
+            <div className="px-5 sm:px-12 lg:px-16 pb-5 sm:pb-10 relative z-10">
               <div className="border-t pt-5 flex items-center justify-between" style={{ borderColor: "rgba(42,31,8,0.12)" }}>
                 {/* Dots */}
                 <div className="flex gap-1.5 items-center">
@@ -560,7 +553,7 @@ export default function OnboardingBoarding() {
                     {slides[currentSlide].tagline}
                   </span>
                 </div>
-                <p className="font-['Plus_Jakarta_Sans'] font-bold text-white text-sm sm:text-[15px] leading-snug">
+                <p className="font-['Plus_Jakarta_Sans'] font-bold text-white text-[13px] sm:text-[15px] leading-snug">
                   {slides[currentSlide].title}
                 </p>
               </div>
