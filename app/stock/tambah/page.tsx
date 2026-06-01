@@ -10,7 +10,7 @@ import { api } from "@/lib/api";
 
 const SATUAN_OPTIONS = ["kg", "gram", "liter", "ml", "pcs", "botol", "dus", "karton", "lusin", "sak"];
 
-// ── SVG ICONS ──
+//  SVG ICONS 
 const IconArrowLeft = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
@@ -129,7 +129,8 @@ export default function TambahStokPage() {
     jumlah: "", 
     satuan: "kg", 
     klasifikasi_id: "",
-    supplier_id: ""
+    supplier_id: "",
+    tanggal_expired: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -175,6 +176,7 @@ export default function TambahStokPage() {
     else if (Number(form.jumlah) < 0) e.jumlah = "Jumlah tidak boleh negatif.";
     if (!form.klasifikasi_id) e.klasifikasi_id = "Kategori wajib dipilih.";
     if (!form.supplier_id) e.supplier_id = "Supplier wajib dipilih.";
+    if (!form.tanggal_expired) e.tanggal_expired = "Tanggal expired wajib diisi.";
     return e;
   }
 
@@ -197,7 +199,8 @@ export default function TambahStokPage() {
         klasifikasi_id: Number(form.klasifikasi_id),
         supplier_id: Number(form.supplier_id),
         satuan: form.satuan,
-        jumlah_saat_ini: Number(form.jumlah),
+          jumlah_saat_ini: Number(form.jumlah),
+          tanggal_expired: form.tanggal_expired ? form.tanggal_expired : null,
       });
       
       setSuccess(true);
@@ -214,6 +217,7 @@ export default function TambahStokPage() {
       nama: "",
       jumlah: "",
       satuan: "kg",
+      tanggal_expired: "",
     }));
     setErrors({});
     setSuccess(false);
@@ -342,7 +346,7 @@ export default function TambahStokPage() {
 
         <main className="w-full">
 
-          {/* ── HERO ── */}
+          {/*  HERO  */}
           <section className="w-full relative overflow-hidden pt-16 pb-10 sm:pt-20 sm:pb-12"
             style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 45%, #f9f7f2 100%)" }}>
 
@@ -440,6 +444,11 @@ export default function TambahStokPage() {
                             {SATUAN_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                           </select>
                         </FormField>
+                        {/* Tanggal Expired (required) */}
+                        <FormField label="Tanggal Expired" required error={errors.tanggal_expired}>
+                          <input type="date" className={`form-input${errors.tanggal_expired ? " error" : ""}`} value={form.tanggal_expired || ""}
+                            onChange={e => handleChange("tanggal_expired", e.target.value)} />
+                        </FormField>
                         {/* Kategori */}
                         <FormField label="Kategori" required error={errors.klasifikasi_id}>
                           <select className="form-select" value={form.klasifikasi_id}
@@ -450,13 +459,15 @@ export default function TambahStokPage() {
                         </FormField>
 
                         {/* Supplier */}
-                        <FormField label="Supplier" required error={errors.supplier_id}>
-                          <select className="form-select" value={form.supplier_id}
-                            onChange={e => handleChange("supplier_id", e.target.value)}>
-                            <option value="">— Pilih Supplier —</option>
-                            {supplierList.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
-                          </select>
-                        </FormField>
+                        <div className="sm:col-span-2">
+                          <FormField label="Supplier" required error={errors.supplier_id}>
+                            <select className="form-select" value={form.supplier_id}
+                              onChange={e => handleChange("supplier_id", e.target.value)}>
+                              <option value="">— Pilih Supplier —</option>
+                              {supplierList.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
+                            </select>
+                          </FormField>
+                        </div>
                       </div>
 
                       <div className="my-6" style={{ height: "1px", background: "rgba(140,110,60,0.10)" }} />
@@ -539,6 +550,11 @@ export default function TambahStokPage() {
                       </p>
                       <p className="text-[11px] font-medium" style={{ color: "rgba(80,65,40,0.50)" }}>
                         {form.jumlah || "–"} {form.satuan}
+                        {form.tanggal_expired && (
+                          <span className="block text-[11px] mt-1" style={{ color: "rgba(80,65,40,0.42)" }}>
+                            Exp: {new Date(form.tanggal_expired).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                          </span>
+                        )}
                       </p>
                       <div className="mt-3 w-full h-1.5 rounded-full overflow-hidden"
                         style={{ background: "rgba(140,110,60,0.18)" }}>
