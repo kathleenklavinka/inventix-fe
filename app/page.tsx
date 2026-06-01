@@ -174,7 +174,7 @@ export default function OnboardingBoarding() {
     setTimeout(() => router.push("/auth/login"), 500);
   };
 
-  // ── SPLASH ──
+  //  SPLASH 
   if (phase === "splash") {
     return (
       <>
@@ -317,7 +317,7 @@ export default function OnboardingBoarding() {
     );
   }
 
-  // ── BOARDING ──
+  //  BOARDING 
   return (
     <>
       <style>{`
@@ -415,7 +415,7 @@ export default function OnboardingBoarding() {
       >
         <div className="w-full h-full grid grid-cols-1 md:grid-cols-2 min-h-screen">
 
-          {/* ── LEFT PANEL ── */}
+          {/*  LEFT PANEL  */}
           <div className="h-[60vh] md:h-screen flex flex-col justify-between relative overflow-hidden"
             style={{ background: "linear-gradient(160deg, #f5f0e8 0%, #ede8da 50%, #f9f7f2 100%)" }}>
 
@@ -532,7 +532,7 @@ export default function OnboardingBoarding() {
             </div>
           </div>
 
-          {/* ── RIGHT PANEL ── */}
+          {/*  RIGHT PANEL  */}
           <div className="hidden md:block h-screen relative overflow-hidden">
             <div
               key={`img-${currentSlide}`}
