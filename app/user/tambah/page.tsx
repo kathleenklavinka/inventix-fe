@@ -5,8 +5,9 @@ import Footer from "../../components/footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-
-const currentUser = { id: 1, nama: "Andi Pratama", role: "Admin", initials: "AP" };
+import Cookies from "js-cookie";
+import { COOKIE_NAME } from "@/lib/auth";
+import { api, mapRoleToBackend, mapRoleToFrontend } from "@/lib/api";
 
 function getInitials(nama: string): string {
   const parts = nama.trim().split(" ").filter(Boolean);
@@ -85,9 +86,9 @@ const IconAlertCircle = ({ size = 14, color = "currentColor" }) => (
     <line x1="12" y1="16" x2="12.01" y2="16"/>
   </svg>
 );
-const IconChevronDown = ({ size = 14, color = "currentColor" }) => (
+const IconCrown = ({ size = 15, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"/>
+    <path d="M2 20h20M4 20L2 8l6 4 6-8 6 8 6-4-2 12"/>
   </svg>
 );
 
@@ -112,15 +113,15 @@ type FormData = {
   email: string;
   password: string;
   konfirmasi: string;
-  role: "Admin" | "User";
+  role: "User" | "Admin" | "Owner" | "Supplier";
   aktif: boolean;
 };
-type FormErrors = Partial<Record<keyof FormData, string>>;
+type FormErrors = Partial<Record<keyof FormData | "submit", string>>;
 
 export default function TambahUserPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [userInitials, setUserInitials] = useState("AP");
 
   const [form, setForm] = useState<FormData>({
     nama: "",
@@ -142,6 +143,8 @@ export default function TambahUserPage() {
   const avatarColor = pickAvatarColor(initials === "?" ? "??" : initials);
 
   useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Admin Inventix";
+    setUserInitials(decodeURIComponent(name).split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase());
     setTimeout(() => setMounted(true), 80);
   }, []);
 
@@ -195,7 +198,7 @@ export default function TambahUserPage() {
     return e;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const allTouched: Partial<Record<keyof FormData, boolean>> = { nama: true, email: true, password: true, konfirmasi: true };
     setTouched(allTouched);
     const e = validateAll();
@@ -203,11 +206,22 @@ export default function TambahUserPage() {
     if (Object.values(e).some(Boolean)) return;
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const backendRole = mapRoleToBackend(form.role.toLowerCase());
+      const payload = {
+        nama: form.nama,
+        email: form.email,
+        password: form.password,
+        peran: backendRole
+      };
+      await api.akun.create(payload);
       setSuccess(true);
       setTimeout(() => router.push("/user"), 1800);
-    }, 1200);
+    } catch (err: any) {
+      setErrors(prev => ({ ...prev, submit: err.message || "Gagal menyimpan user ke server." }));
+    } finally {
+      setLoading(false);
+    }
   }
 
   const inputBase = `
@@ -266,15 +280,15 @@ export default function TambahUserPage() {
         .pw-toggle:hover{color:rgba(33,33,33,0.70)}
 
         .role-card{
-          border:1.5px solid rgba(33,33,33,0.10);border-radius:12px;padding:14px 16px;
+          border:1.5px solid rgba(33,33,33,0.10);border-radius:12px;padding:12px 14px;
           cursor:pointer;transition:border-color .18s,background .18s,box-shadow .2s;
-          display:flex;align-items:flex-start;gap:12px;
+          display:flex;align-items:flex-start;gap:10px;
         }
         .role-card:hover{border-color:rgba(33,33,33,0.25);background:rgba(33,33,33,0.02)}
         .role-card.selected{border-color:#2a1f08;background:rgba(42,31,8,0.03);box-shadow:0 0 0 3px rgba(42,31,8,0.07)}
 
         .radio-dot{
-          width:18px;height:18px;border-radius:50%;border:2px solid rgba(33,33,33,0.20);
+          width:16px;height:16px;border-radius:50%;border:2px solid rgba(33,33,33,0.20);
           flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;
           transition:border-color .15s,background .15s;
         }
@@ -303,7 +317,6 @@ export default function TambahUserPage() {
         }
 
         .success-overlay{
-          animation:fadeIn .2s ease both;
           position:fixed;inset:0;z-index:60;
           background:rgba(33,33,33,0.40);backdrop-filter:blur(8px);
           display:flex;align-items:center;justify-content:center;padding:1rem;
@@ -324,7 +337,7 @@ export default function TambahUserPage() {
         className={`min-h-screen font-['Inter'] text-[#212121] transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#F4F4F5" }}
       >
-        <Header hasNotification={false} userInitials={currentUser.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main className="w-full">
 
@@ -372,14 +385,24 @@ export default function TambahUserPage() {
                     <p className="text-[11px] mt-0.5 min-h-[16px]" style={{ color: "rgba(33,33,33,0.40)" }}>
                       {form.email || <span style={{ color: "rgba(33,33,33,0.22)" }}>email@contoh.com</span>}
                     </p>
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center justify-center gap-2 mt-3">
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg"
                         style={form.role === "Admin"
                           ? { background: "#e8dfc8", color: "#7a5c2e" }
+                          : form.role === "Owner"
+                          ? { background: "#f5e6cc", color: "#92400e" }
+                          : form.role === "Supplier"
+                          ? { background: "#e0d5f5", color: "#5b21b6" }
                           : { background: "#D8DFE9", color: "#2a3a52" }}>
-                        {form.role === "Admin"
-                          ? <><IconShield size={9} color="#7a5c2e" /> Admin</>
-                          : <><IconUser size={9} color="#2a3a52" /> User</>}
+                        {form.role === "Admin" ? (
+                          <><IconShield size={9} color="#7a5c2e" /> Admin</>
+                        ) : form.role === "Owner" ? (
+                          <><IconCrown size={9} color="#92400e" /> Owner</>
+                        ) : form.role === "Supplier" ? (
+                          <><IconUser size={9} color="#5b21b6" /> Supplier</>
+                        ) : (
+                          <><IconUser size={9} color="#2a3a52" /> User</>
+                        )}
                       </span>
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg"
                         style={form.aktif
@@ -573,7 +596,7 @@ export default function TambahUserPage() {
                               <IconUser size={13} color={form.role === "User" ? "#2a1f08" : "rgba(33,33,33,0.45)"} />
                               <p className="text-[13px] font-bold" style={{ color: form.role === "User" ? "#2a1f08" : "rgba(33,33,33,0.70)" }}>User</p>
                             </div>
-                            <p className="text-[11px]" style={{ color: "rgba(33,33,33,0.42)" }}>Akses terbatas — hanya bisa melihat stok.</p>
+                            <p className="text-[11px]" style={{ color: "rgba(33,33,33,0.42)" }}>Akses terbatas — hanya mengelola dan melihat stok.</p>
                           </div>
                         </div>
 
@@ -589,7 +612,39 @@ export default function TambahUserPage() {
                               <IconShield size={13} color={form.role === "Admin" ? "#2a1f08" : "rgba(33,33,33,0.45)"} />
                               <p className="text-[13px] font-bold" style={{ color: form.role === "Admin" ? "#2a1f08" : "rgba(33,33,33,0.70)" }}>Admin</p>
                             </div>
-                            <p className="text-[11px]" style={{ color: "rgba(33,33,33,0.42)" }}>Akses penuh — kelola stok, penjualan & user.</p>
+                            <p className="text-[11px]" style={{ color: "rgba(33,33,33,0.42)" }}>Akses penuh — kelola stok, penjualan & PO.</p>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`role-card ${form.role === "Owner" ? "selected" : ""}`}
+                          onClick={() => handleChange("role", "Owner")}
+                        >
+                          <div className="radio-dot mt-0.5">
+                            {form.role === "Owner" && <div className="radio-inner" />}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <IconCrown size={13} color={form.role === "Owner" ? "#2a1f08" : "rgba(33,33,33,0.45)"} />
+                              <p className="text-[13px] font-bold" style={{ color: form.role === "Owner" ? "#2a1f08" : "rgba(33,33,33,0.70)" }}>Owner</p>
+                            </div>
+                            <p className="text-[11px]" style={{ color: "rgba(33,33,33,0.42)" }}>Pemilik Sistem — hak akses absolut ke segala modul.</p>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`role-card ${form.role === "Supplier" ? "selected" : ""}`}
+                          onClick={() => handleChange("role", "Supplier")}
+                        >
+                          <div className="radio-dot mt-0.5">
+                            {form.role === "Supplier" && <div className="radio-inner" />}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <IconUser size={13} color={form.role === "Supplier" ? "#2a1f08" : "rgba(33,33,33,0.45)"} />
+                              <p className="text-[13px] font-bold" style={{ color: form.role === "Supplier" ? "#2a1f08" : "rgba(33,33,33,0.70)" }}>Supplier</p>
+                            </div>
+                            <p className="text-[11px]" style={{ color: "rgba(33,33,33,0.42)" }}>Akses khusus portal supplier untuk konfirmasi PO.</p>
                           </div>
                         </div>
                       </div>
@@ -613,6 +668,12 @@ export default function TambahUserPage() {
                       </button>
                     </div>
                   </div>
+
+                  {errors.submit && (
+                    <div className="px-4 py-3 border rounded-xl text-xs font-semibold" style={{ borderColor: "#fee2e2", background: "#fef2f2", color: "#991b1b" }}>
+                      {errors.submit}
+                    </div>
+                  )}
 
                   <div className="anim-fade-up d300 flex items-center justify-between gap-3 pt-1">
                     <Link href="/user">

@@ -5,52 +5,25 @@ import Footer from "../components/footer";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { canEdit, canDeleteAdmin, COOKIE_ROLE, COOKIE_NAME, type UserRole } from "@/lib/auth";
+import { canEdit, COOKIE_ROLE, COOKIE_NAME } from "@/lib/auth";
+import { api, mapRoleToFrontend, FrontendRole } from "@/lib/api";
 import Cookies from "js-cookie";
-
-const SESSION_ROLE  = (Cookies.get(COOKIE_ROLE) ?? "admin") as UserRole;
-const SESSION_NAME  = Cookies.get(COOKIE_NAME)  ?? "Admin Inventix";
-const SESSION_ID    = 1; // ID user yang sedang login
-
-const currentUser = {
-  id:       SESSION_ID,
-  nama:     SESSION_NAME,
-  role:     SESSION_ROLE,
-  initials: SESSION_NAME.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
-};
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const initialUsers = [
-  { id: 1,  nama: "Owner Inventix",  email: "owner@inventix.id",   role: "owner",  bergabung: "01 Jan 2025", avatar: "OI", aktif: true  },
-  { id: 2,  nama: "Admin Inventix",  email: "admin@inventix.id",   role: "admin",  bergabung: "12 Jan 2025", avatar: "AI", aktif: true  },
-  { id: 3,  nama: "Budi Santoso",    email: "budi@inventix.id",    role: "user",   bergabung: "18 Jan 2025", avatar: "BS", aktif: true  },
-  { id: 4,  nama: "Citra Dewi",      email: "citra@inventix.id",   role: "user",   bergabung: "22 Feb 2025", avatar: "CD", aktif: true  },
-  { id: 5,  nama: "Dian Kusuma",     email: "dian@inventix.id",    role: "admin",  bergabung: "01 Mar 2025", avatar: "DK", aktif: true  },
-  { id: 6,  nama: "Eko Prasetyo",    email: "eko@inventix.id",     role: "user",   bergabung: "15 Mar 2025", avatar: "EP", aktif: false },
-  { id: 7,  nama: "Fajar Nugroho",   email: "fajar@inventix.id",   role: "user",   bergabung: "02 Apr 2025", avatar: "FN", aktif: true  },
-  { id: 8,  nama: "Gita Larasati",   email: "gita@inventix.id",    role: "admin",  bergabung: "10 Apr 2025", avatar: "GL", aktif: true  },
-  { id: 9,  nama: "Hendra Wijaya",   email: "hendra@inventix.id",  role: "user",   bergabung: "28 Apr 2025", avatar: "HW", aktif: false },
-  { id: 10, nama: "Indah Permata",   email: "indah@inventix.id",   role: "user",   bergabung: "05 Mei 2025", avatar: "IP", aktif: true  },
-  { id: 11, nama: "Joko Susilo",     email: "joko@inventix.id",    role: "user",   bergabung: "20 Mei 2025", avatar: "JS", aktif: true  },
-  { id: 12, nama: "Kartika Sari",    email: "kartika@inventix.id", role: "user",   bergabung: "08 Jun 2025", avatar: "KS", aktif: true  },
-];
 
 const PAGE_SIZE = 8;
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
-const ROLE_RANK: Record<string, number> = { owner: 3, admin: 2, user: 1, supplier: 0 };
-
-function canDeleteTarget(actorRole: UserRole, targetRole: UserRole, isSelf: boolean): boolean {
+function canDeleteTarget(actorRole: string, targetRole: string, isSelf: boolean): boolean {
   if (isSelf) return false;
-  if (actorRole === "owner") return targetRole === "admin" || targetRole === "user";
-  if (actorRole === "admin") return targetRole === "user";
+  if (actorRole === "owner") return targetRole === "admin" || targetRole === "user" || targetRole === "supplier";
+  if (actorRole === "admin") return targetRole === "user" || targetRole === "supplier";
   return false;
 }
 
-function deleteBlockedReason(actorRole: UserRole, targetRole: UserRole, isSelf: boolean): string | null {
+function deleteBlockedReason(actorRole: string, targetRole: string, isSelf: boolean): string | null {
   if (targetRole === "owner") return "Akun owner tidak dapat dihapus.";
   if (actorRole === "admin" && targetRole === "admin") return "Anda tidak memiliki izin.";
+  if (isSelf) return "Anda tidak bisa menghapus akun Anda sendiri.";
   return null;
 }
 
@@ -135,7 +108,15 @@ function Inner({ children, className = "" }: { children: React.ReactNode; classN
   return <div className={`max-w-6xl mx-auto px-4 sm:px-8 ${className}`}>{children}</div>;
 }
 
-type UserType = typeof initialUsers[0];
+interface UserType {
+  id: number;
+  nama: string;
+  email: string;
+  role: string;
+  bergabung: string;
+  avatar: string;
+  aktif: boolean;
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function UserPage() {
@@ -143,9 +124,9 @@ export default function UserPage() {
 
   const [mounted, setMounted]         = useState(false);
   const [tanggal, setTanggal]         = useState("");
-  const [users, setUsers]             = useState(initialUsers);
+  const [users, setUsers]             = useState<UserType[]>([]);
   const [search, setSearch]           = useState("");
-  const [filterRole, setFilterRole]   = useState<"semua" | "owner" | "admin" | "user">("semua");
+  const [filterRole, setFilterRole]   = useState<"semua" | "owner" | "admin" | "user" | "supplier">("semua");
   const [filterAktif, setFilterAktif] = useState<"semua" | "aktif" | "nonaktif">("semua");
   const [view, setView]               = useState<"grid" | "list">("grid");
   const [page, setPage]               = useState(1);
@@ -153,14 +134,67 @@ export default function UserPage() {
   const [blockedToast, setBlockedToast] = useState<string | null>(null);
   const [toast, setToast]             = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  // ── Guard: role "user" tidak boleh akses halaman ini ──
-  useEffect(() => {
-    if (SESSION_ROLE === "user" || SESSION_ROLE === "supplier") {
-      router.replace("/dashboard");
+  const [currentUser, setCurrentUser] = useState({
+    id: 0,
+    nama: "Admin Inventix",
+    role: "admin" as FrontendRole,
+    initials: "AI"
+  });
+
+  const loadCurrentUser = async () => {
+    try {
+      const res = await api.akun.profile();
+      const profile = res.data;
+      setCurrentUser({
+        id: profile.id,
+        nama: profile.nama,
+        role: mapRoleToFrontend(profile.peran),
+        initials: profile.nama.split(" ").map((w: any) => w[0]).join("").slice(0, 2).toUpperCase()
+      });
+    } catch (err) {
+      console.error("Gagal memuat profil pengguna:", err);
     }
-  }, [router]);
+  };
+
+  const loadUsers = async () => {
+    try {
+      const res = await api.akun.getAll();
+      const mapped = res.data.map((u: any) => {
+        const fRole = mapRoleToFrontend(u.peran);
+        const nameInitials = u.nama.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
+        
+        let joiningDate = "–";
+        if (u.dibuat_pada) {
+          const d = new Date(u.dibuat_pada);
+          const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+          joiningDate = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+
+        return {
+          id: u.id,
+          nama: u.nama,
+          email: u.email,
+          role: fRole,
+          bergabung: joiningDate,
+          avatar: nameInitials,
+          aktif: true
+        };
+      });
+      setUsers(mapped);
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal memuat daftar user.", type: "error" });
+    }
+  };
 
   useEffect(() => {
+    const role = Cookies.get(COOKIE_ROLE) || "user";
+    if (role === "user" || role === "supplier") {
+      router.replace("/dashboard");
+    } else {
+      loadCurrentUser();
+      loadUsers();
+    }
+
     const now = new Date();
     setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
     setTimeout(() => setMounted(true), 100);
@@ -174,8 +208,8 @@ export default function UserPage() {
     if (blockedToast) { const t = setTimeout(() => setBlockedToast(null), 4000); return () => clearTimeout(t); }
   }, [blockedToast]);
 
-  // Jika bukan owner/admin, render kosong (redirect sedang berjalan)
-  if (SESSION_ROLE === "user" || SESSION_ROLE === "supplier") return null;
+  const userRoleCookie = Cookies.get(COOKIE_ROLE) || "user";
+  if (userRoleCookie === "user" || userRoleCookie === "supplier") return null;
 
   // ── Filter & pagination ──
   const filtered = users.filter(u => {
@@ -193,19 +227,24 @@ export default function UserPage() {
   // ── Delete logic ──
   function handleDeleteClick(u: UserType) {
     const isSelf = u.id === currentUser.id;
-    const allowed = canDeleteTarget(currentUser.role, u.role as UserRole, isSelf);
+    const allowed = canDeleteTarget(currentUser.role, u.role, isSelf);
     if (!allowed) {
-      const reason = deleteBlockedReason(currentUser.role, u.role as UserRole, isSelf);
+      const reason = deleteBlockedReason(currentUser.role, u.role, isSelf);
       setBlockedToast(reason);
       return;
     }
     setDeleteModal(u);
   }
 
-  function handleDelete(u: UserType) {
-    setUsers(prev => prev.filter(x => x.id !== u.id));
-    setDeleteModal(null);
-    setToast({ msg: `User ${u.nama} berhasil dihapus.`, type: "success" });
+  async function handleDelete(u: UserType) {
+    try {
+      await api.akun.delete(u.id);
+      setUsers(prev => prev.filter(x => x.id !== u.id));
+      setDeleteModal(null);
+      setToast({ msg: `User ${u.nama} berhasil dihapus.`, type: "success" });
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal menghapus user.", type: "error" });
+    }
   }
 
   function changeFilter(type: "role" | "aktif", val: string) {
@@ -214,7 +253,6 @@ export default function UserPage() {
     setPage(1);
   }
 
-  const totalOwner    = users.filter(u => u.role === "owner").length;
   const totalAdmin    = users.filter(u => u.role === "admin").length;
   const totalUser     = users.filter(u => u.role === "user").length;
   const totalNonaktif = users.filter(u => !u.aktif).length;
@@ -339,7 +377,7 @@ export default function UserPage() {
                 <div className="role-banner err-bar" style={{ background: "#E6F1FB", border: "1px solid rgba(24,95,165,0.18)" }}>
                   <IconAlertTri size={14} color="#185FA5" />
                   <p style={{ color: "#185FA5" }}>
-                    <strong>Admin</strong> hanya bisa menghapus user dengan role <strong>User</strong>
+                    <strong>Admin</strong> hanya bisa menghapus user dengan role <strong>User</strong> atau <strong>Supplier</strong>
                   </p>
                 </div>
               )}
@@ -362,7 +400,7 @@ export default function UserPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  {(["semua", "owner", "admin", "user"] as const).map(r => (
+                  {(["semua", "owner", "admin", "user", "supplier"] as const).map(r => (
                     <button key={r} onClick={() => changeFilter("role", r)}
                       className={`${pillBase} ${filterRole === r ? pillActive : pillIdle} capitalize`}>
                       {r === "semua" ? "Semua role" : r}
@@ -401,8 +439,8 @@ export default function UserPage() {
                     <div className="col-span-full py-16 text-center text-sm" style={{ color: "rgba(33,33,33,0.35)" }}>Tidak ada user ditemukan.</div>
                   ) : paginated.map(u => {
                     const isSelf    = u.id === currentUser.id;
-                    const allowed   = canDeleteTarget(currentUser.role, u.role as UserRole, isSelf);
-                    const lockReason = deleteBlockedReason(currentUser.role, u.role as UserRole, isSelf);
+                    const allowed   = canDeleteTarget(currentUser.role, u.role, isSelf);
+                    const lockReason = deleteBlockedReason(currentUser.role, u.role, isSelf);
                     return (
                       <div key={u.id} className="user-card">
                         {isSelf && (
@@ -448,8 +486,8 @@ export default function UserPage() {
                     <div className="py-16 text-center text-sm" style={{ color: "rgba(33,33,33,0.35)" }}>Tidak ada user ditemukan.</div>
                   ) : paginated.map(u => {
                     const isSelf     = u.id === currentUser.id;
-                    const allowed    = canDeleteTarget(currentUser.role, u.role as UserRole, isSelf);
-                    const lockReason = deleteBlockedReason(currentUser.role, u.role as UserRole, isSelf);
+                    const allowed    = canDeleteTarget(currentUser.role, u.role, isSelf);
+                    const lockReason = deleteBlockedReason(currentUser.role, u.role, isSelf);
                     return (
                       <div key={u.id} className="list-row">
                         <Avatar initials={u.avatar} size={38} radius={10} />

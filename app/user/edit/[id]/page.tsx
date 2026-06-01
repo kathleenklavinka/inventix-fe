@@ -5,26 +5,13 @@ import Footer from "../../../components/footer";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-
-const currentUser = { id: 1, nama: "Andi Pratama", role: "Admin", initials: "AP" };
-
-const usersDB = [
-  { id: 1,  nama: "Andi Pratama",    email: "andi@inventix.id",    role: "Admin", bergabung: "12 Jan 2025", avatar: "AP", aktif: true  },
-  { id: 2,  nama: "Budi Santoso",    email: "budi@inventix.id",    role: "User",  bergabung: "18 Jan 2025", avatar: "BS", aktif: true  },
-  { id: 3,  nama: "Citra Dewi",      email: "citra@inventix.id",   role: "User",  bergabung: "22 Feb 2025", avatar: "CD", aktif: true  },
-  { id: 4,  nama: "Dian Kusuma",     email: "dian@inventix.id",    role: "Admin", bergabung: "01 Mar 2025", avatar: "DK", aktif: true  },
-  { id: 5,  nama: "Eko Prasetyo",    email: "eko@inventix.id",     role: "User",  bergabung: "15 Mar 2025", avatar: "EP", aktif: false },
-  { id: 6,  nama: "Fajar Nugroho",   email: "fajar@inventix.id",   role: "User",  bergabung: "02 Apr 2025", avatar: "FN", aktif: true  },
-  { id: 7,  nama: "Gita Larasati",   email: "gita@inventix.id",    role: "Admin", bergabung: "10 Apr 2025", avatar: "GL", aktif: true  },
-  { id: 8,  nama: "Hendra Wijaya",   email: "hendra@inventix.id",  role: "User",  bergabung: "28 Apr 2025", avatar: "HW", aktif: false },
-  { id: 9,  nama: "Indah Permata",   email: "indah@inventix.id",   role: "User",  bergabung: "05 Mei 2025", avatar: "IP", aktif: true  },
-  { id: 10, nama: "Joko Susilo",     email: "joko@inventix.id",    role: "User",  bergabung: "20 Mei 2025", avatar: "JS", aktif: true  },
-  { id: 11, nama: "Kartika Sari",    email: "kartika@inventix.id", role: "User",  bergabung: "08 Jun 2025", avatar: "KS", aktif: true  },
-  { id: 12, nama: "Lukman Hakim",    email: "lukman@inventix.id",  role: "Admin", bergabung: "17 Jun 2025", avatar: "LH", aktif: true  },
-];
+import Cookies from "js-cookie";
+import { COOKIE_NAME } from "@/lib/auth";
+import { api, mapRoleToFrontend, mapRoleToBackend, FrontendRole } from "@/lib/api";
 
 const AVATAR_COLORS: Record<string, { bg: string; color: string }> = {
-  AP: { bg: "#e8dfc8", color: "#7a5c2e" },
+  OI: { bg: "#f5e6cc", color: "#92400e" },
+  AI: { bg: "#e8dfc8", color: "#7a5c2e" },
   BS: { bg: "#CFDECA", color: "#2d6a3f" },
   CD: { bg: "#D8DFE9", color: "#2a3a52" },
   DK: { bg: "#EFF0A3", color: "#5a6a00" },
@@ -111,12 +98,17 @@ const IconSave = ({ size = 14, color = "currentColor" }) => (
     <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
   </svg>
 );
+const IconCrown = ({ size = 11, color = "currentColor" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 20h20M4 20L2 8l6 4 6-8 6 8 6-4-2 12"/>
+  </svg>
+);
 
 function Inner({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`max-w-4xl mx-auto px-4 sm:px-8 ${className}`}>{children}</div>;
 }
 
-type FormErrors = Partial<Record<"nama" | "email" | "password" | "konfirmasi", string>>;
+type FormErrors = Partial<Record<"nama" | "email" | "password" | "konfirmasi" | "submit", string>>;
 
 export default function EditUserPage() {
   const params   = useParams();
@@ -124,13 +116,14 @@ export default function EditUserPage() {
   const rawId    = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const userId   = rawId ? parseInt(rawId, 10) : NaN;
 
-  const originalUser = usersDB.find(u => u.id === userId) ?? null;
-
   const [mounted, setMounted]         = useState(false);
-  const [nama, setNama]               = useState(originalUser?.nama ?? "");
-  const [email, setEmail]             = useState(originalUser?.email ?? "");
-  const [role, setRole]               = useState<"Admin" | "User">(originalUser?.role as "Admin" | "User" ?? "User");
-  const [aktif, setAktif]             = useState(originalUser?.aktif ?? true);
+  const [originalUser, setOriginalUser] = useState<any>(null);
+  const [loading, setLoading]         = useState(true);
+
+  const [nama, setNama]               = useState("");
+  const [email, setEmail]             = useState("");
+  const [role, setRole]               = useState<"User" | "Admin" | "Owner" | "Supplier">("User");
+  const [aktif, setAktif]             = useState(true);
   const [password, setPassword]       = useState("");
   const [konfirmasi, setKonfirmasi]   = useState("");
   const [showPass, setShowPass]       = useState(false);
@@ -139,12 +132,78 @@ export default function EditUserPage() {
   const [saving, setSaving]           = useState(false);
   const [saved, setSaved]             = useState(false);
 
+  const [currentUser, setCurrentUser] = useState({
+    id: 0,
+    nama: "Admin Inventix",
+    role: "admin",
+    initials: "AI"
+  });
+
   const isSelf = userId === currentUser.id;
 
   const previewInitials = getInitials(nama) || (originalUser?.avatar ?? "??");
   const avatarS = avatarStyle(originalUser?.avatar ?? previewInitials);
 
-  useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+  useEffect(() => {
+    async function loadCurrentUser() {
+      try {
+        const res = await api.akun.profile();
+        const profile = res.data;
+        setCurrentUser({
+          id: profile.id,
+          nama: profile.nama,
+          role: mapRoleToFrontend(profile.peran),
+          initials: profile.nama.split(" ").map((w: any) => w[0]).join("").slice(0, 2).toUpperCase()
+        });
+      } catch (err) {
+        console.error("Gagal memuat profil pengguna:", err);
+      }
+    }
+
+    async function loadUserData() {
+      setLoading(true);
+      try {
+        const res = await api.akun.getById(userId);
+        const u = res.data;
+        const fRole = mapRoleToFrontend(u.peran);
+        
+        let joiningDate = "–";
+        if (u.dibuat_pada) {
+          const d = new Date(u.dibuat_pada);
+          const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+          joiningDate = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+
+        const formattedRole = (fRole.charAt(0).toUpperCase() + fRole.slice(1)) as any; // "Admin" | "User" | "Owner" | "Supplier"
+
+        const mapped = {
+          id: u.id,
+          nama: u.nama,
+          email: u.email,
+          role: formattedRole,
+          bergabung: joiningDate,
+          avatar: u.nama.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
+          aktif: true
+        };
+
+        setOriginalUser(mapped);
+        setNama(mapped.nama);
+        setEmail(mapped.email);
+        setRole(mapped.role);
+        setAktif(mapped.aktif);
+      } catch (err: any) {
+        console.error("Gagal memuat detail user:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCurrentUser();
+    if (userId) {
+      loadUserData();
+    }
+    setTimeout(() => setMounted(true), 80);
+  }, [userId]);
 
   function validate(): boolean {
     const e: FormErrors = {};
@@ -160,21 +219,48 @@ export default function EditUserPage() {
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validate()) return;
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    setErrors({});
+    try {
+      const backendRole = mapRoleToBackend(role.toLowerCase());
+      const payload: any = {
+        nama: nama,
+        email: email,
+        peran: backendRole
+      };
+      if (password) {
+        payload.password = password;
+      }
+      await api.akun.update(userId, payload);
       setSaved(true);
       setTimeout(() => router.push("/user"), 1200);
-    }, 900);
+    } catch (err: any) {
+      setErrors({ submit: err.message || "Gagal menyimpan perubahan ke server." });
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const isDirty = nama !== (originalUser?.nama ?? "") ||
-    email !== (originalUser?.email ?? "") ||
-    role  !== (originalUser?.role ?? "User") ||
-    aktif !== (originalUser?.aktif ?? true) ||
-    password !== "" || konfirmasi !== "";
+  const isDirty = originalUser ? (
+    nama !== originalUser.nama ||
+    email !== originalUser.email ||
+    role  !== originalUser.role ||
+    aktif !== originalUser.aktif ||
+    password !== "" || konfirmasi !== ""
+  ) : false;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#F4F4F5" }}>
+        <div className="text-center flex flex-col items-center gap-3">
+          <span className="animate-spin border-4 border-t-transparent border-[#2a1f08] rounded-full w-8 h-8" />
+          <p className="text-sm font-semibold text-[#2a1f08] animate-pulse">Memuat detail user dari server...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!originalUser) {
     return (
@@ -268,6 +354,9 @@ export default function EditUserPage() {
         .role-option:hover{border-color:rgba(33,33,33,0.22);background:rgba(33,33,33,0.02)}
         .role-option.selected-admin{border-color:#7a5c2e;background:#faf7f1;box-shadow:0 0 0 3px rgba(122,92,46,.07)}
         .role-option.selected-user{border-color:#2a3a52;background:#f4f7fb;box-shadow:0 0 0 3px rgba(42,58,82,.07)}
+        .role-option.selected-owner{border-color:#92400e;background:#faf4eb;box-shadow:0 0 0 3px rgba(146,64,14,.07)}
+        .role-option.selected-supplier{border-color:#5b21b6;background:#f5f3ff;box-shadow:0 0 0 3px rgba(91,33,182,.07)}
+
         .role-radio{
           width:17px;height:17px;border-radius:50%;border:2px solid rgba(33,33,33,0.20);
           flex-shrink:0;display:flex;align-items:center;justify-content:center;
@@ -275,6 +364,8 @@ export default function EditUserPage() {
         }
         .role-option.selected-admin .role-radio{border-color:#7a5c2e;background:#7a5c2e}
         .role-option.selected-user  .role-radio{border-color:#2a3a52;background:#2a3a52}
+        .role-option.selected-owner .role-radio{border-color:#92400e;background:#92400e}
+        .role-option.selected-supplier .role-radio{border-color:#5b21b6;background:#5b21b6}
 
         /* Toggle switch */
         .toggle-switch{
@@ -552,23 +643,26 @@ export default function EditUserPage() {
                       <p className="text-[10px] font-medium" style={{ color: "rgba(33,33,33,0.38)" }}>Hak akses user</p>
                     </div>
                   </div>
-                  <div className="px-5 py-4 flex gap-2.5">
-                    {(["Admin", "User"] as const).map(r => (
+                  <div className="px-5 py-4 flex flex-col gap-2.5">
+                    {[
+                      { r: "User" as const, label: "User", sub: "Akses Gudang (lihat & kelola stok)", icon: <IconUser size={11} color="#2a3a52" />, css: "selected-user" },
+                      { r: "Admin" as const, label: "Admin", sub: "Akses Pengadaan (CRUD stok, PO)", icon: <IconShield size={11} color="#7a5c2e" />, css: "selected-admin" },
+                      { r: "Owner" as const, label: "Owner", sub: "Akses Absolut (semua modul)", icon: <IconCrown size={11} color="#92400e" />, css: "selected-owner" },
+                      { r: "Supplier" as const, label: "Supplier", sub: "Akses Supplier Portal (PO saja)", icon: <IconUser size={11} color="#5b21b6" />, css: "selected-supplier" }
+                    ].map(({ r, label, sub, icon, css }) => (
                       <button key={r}
-                        className={`role-option ${role === r ? (r === "Admin" ? "selected-admin" : "selected-user") : ""}`}
+                        className={`role-option ${role === r ? css : ""}`}
                         onClick={() => setRole(r)}>
                         <div className="role-radio">
                           {role === r && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#fff" }} />}
                         </div>
                         <div className="text-left">
                           <div className="flex items-center gap-1.5 mb-0.5">
-                            {r === "Admin"
-                              ? <IconShield size={11} color="#7a5c2e" />
-                              : <IconUser size={11} color="#2a3a52" />}
-                            <p className="font-['Plus_Jakarta_Sans'] font-black text-[12.5px]" style={{ color: "#212121" }}>{r}</p>
+                            {icon}
+                            <p className="font-['Plus_Jakarta_Sans'] font-black text-[12.5px]" style={{ color: "#212121" }}>{label}</p>
                           </div>
                           <p className="text-[9.5px] font-medium leading-snug" style={{ color: "rgba(33,33,33,0.40)" }}>
-                            {r === "Admin" ? "Akses penuh ke semua fitur" : "Akses terbatas, hanya lihat"}
+                            {sub}
                           </p>
                         </div>
                       </button>
@@ -617,10 +711,15 @@ export default function EditUserPage() {
 
                 <div className="anim-fade-up d350 form-card">
                   <div className="px-5 py-4 flex flex-col gap-2.5">
+                    {errors.submit && (
+                      <div className="px-3 py-2.5 border rounded-xl text-[11px] font-semibold text-center mb-1" style={{ borderColor: "#fee2e2", background: "#fef2f2", color: "#991b1b" }}>
+                        {errors.submit}
+                      </div>
+                    )}
                     <button
                       className="btn-primary w-full justify-center"
                       onClick={handleSubmit}
-                      disabled={saving || saved}>
+                      disabled={saving || saved || !isDirty}>
                       {saving ? (
                         <><div className="spinner" /> Menyimpan…</>
                       ) : saved ? (
@@ -634,7 +733,7 @@ export default function EditUserPage() {
                         Batal
                       </button>
                     </Link>
-                    {Object.keys(errors).length > 0 && (
+                    {Object.keys(errors).filter(k => k !== "submit").length > 0 && (
                       <p className="text-[11px] text-center font-medium" style={{ color: "#dc2626" }}>
                         Periksa kembali kolom yang merah di atas.
                       </p>
