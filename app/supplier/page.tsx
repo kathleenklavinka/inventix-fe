@@ -4,20 +4,9 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
-const isAdmin = true;
-
-const supplierData = [
-  { id: 1, nama: "PT Sumber Makmur",  alamat: "Jl. Raya Bogor No. 45, Jakarta Timur",   telepon: "021-8765432",  kategori: "Bahan Pokok",    aktif: true  },
-  { id: 2, nama: "CV Mitra Pangan",   alamat: "Jl. Gatot Subroto No. 12, Bandung",       telepon: "022-5543210",  kategori: "Bumbu & Rempah", aktif: true  },
-  { id: 3, nama: "UD Berkah Jaya",    alamat: "Jl. Pemuda No. 78, Surabaya",             telepon: "031-3456789",  kategori: "Minuman",        aktif: false },
-  { id: 4, nama: "PT Agro Nusantara", alamat: "Jl. Sudirman Kav. 22, Jakarta Pusat",    telepon: "021-5501234",  kategori: "Bahan Pokok",    aktif: true  },
-  { id: 5, nama: "CV Delta Sejahtera",alamat: "Jl. Ahmad Yani No. 90, Semarang",         telepon: "024-7654321",  kategori: "Kemasan",        aktif: true  },
-  { id: 6, nama: "PT Indah Lestari",  alamat: "Jl. Diponegoro No. 33, Yogyakarta",       telepon: "0274-543210",  kategori: "Minuman",        aktif: false },
-  { id: 7, nama: "UD Mandiri Sukses", alamat: "Jl. Veteran No. 15, Malang",              telepon: "0341-876543",  kategori: "Bumbu & Rempah", aktif: true  },
-  { id: 8, nama: "PT Fortuna Abadi",  alamat: "Jl. Imam Bonjol No. 8, Medan",            telepon: "061-4567890",  kategori: "Kemasan",        aktif: true  },
-];
+import Cookies from "js-cookie";
+import { COOKIE_NAME, COOKIE_ROLE } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const SHOW_OPTIONS = [5, 10, 25, 50];
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
@@ -79,16 +68,48 @@ export default function SupplierPage() {
   const [sortDir, setSortDir]           = useState<"asc"|"desc">("asc");
   const [page, setPage]                 = useState(1);
   const [viewMode, setViewMode]         = useState<"table"|"grid">("table");
-  const [data, setData]                 = useState(supplierData);
-  const [deleteModal, setDeleteModal]   = useState<typeof supplierData[0] | null>(null);
+  const [data, setData]                 = useState<any[]>([]);
+  const [deleteModal, setDeleteModal]   = useState<any | null>(null);
   const [toast, setToast]               = useState<{ msg: string; type: "success"|"error" } | null>(null);
   const [filterKategori, setFilterKategori] = useState("Semua");
 
+  const [userName, setUserName] = useState("Andi Pratama");
+  const [userRole, setUserRole] = useState("user");
+  const [userInitials, setUserInitials] = useState("AP");
+
+  const loadSupplier = async () => {
+    try {
+      const res = await api.supplier.getAll();
+      const mapped = res.data.map((item: any) => ({
+        id: item.id,
+        nama: item.nama,
+        alamat: item.alamat || "Alamat tidak tersedia",
+        telepon: item.nomor_telepon || "–",
+        kategori: item.deskripsi || "Bahan Pokok",
+        aktif: true,
+        raw: item
+      }));
+      setData(mapped);
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal memuat supplier.", type: "error" });
+    }
+  };
+
   useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    const role = Cookies.get(COOKIE_ROLE) || "user";
+    setUserName(decodeURIComponent(name));
+    setUserRole(role);
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+    
+    loadSupplier();
+
     const now = new Date();
     setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
     setTimeout(() => setMounted(true), 80);
   }, []);
+
+  const isAdmin = userRole === "admin" || userRole === "owner";
 
   useEffect(() => {
     if (toast) { const t = setTimeout(() => setToast(null), 3000); return () => clearTimeout(t); }
@@ -121,10 +142,15 @@ export default function SupplierPage() {
     setPage(1);
   }
 
-  function handleDelete(item: typeof supplierData[0]) {
-    setData(prev => prev.filter(d => d.id !== item.id));
-    setDeleteModal(null);
-    setToast({ msg: `${item.nama} berhasil dihapus.`, type: "success" });
+  async function handleDelete(item: any) {
+    try {
+      await api.supplier.delete(item.id);
+      setData(prev => prev.filter(d => d.id !== item.id));
+      setDeleteModal(null);
+      setToast({ msg: `${item.nama} berhasil dihapus.`, type: "success" });
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal menghapus supplier.", type: "error" });
+    }
   }
 
   function SortIcon({ col }: { col: string }) {
@@ -219,7 +245,7 @@ export default function SupplierPage() {
       <div className={`min-h-screen text-[#064e3b] font-['DM_Sans'] relative overflow-x-hidden transition-opacity duration-500 ${mounted?"opacity-100":"opacity-0"}`}
         style={{ background:"#f0fdf4" }}>
 
-        <Header hasNotification={false} userInitials={user.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main>
           {/* HERO */}

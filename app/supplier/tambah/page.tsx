@@ -4,8 +4,9 @@ import Header from "../../components/header";
 import Footer from "../../components/footer";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
+import Cookies from "js-cookie";
+import { COOKIE_NAME, COOKIE_ROLE } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const KATEGORI_OPTIONS = ["Bahan Pokok", "Bumbu & Rempah", "Minuman", "Kemasan", "Lainnya"];
 const PROVINSI_OPTIONS = [
@@ -46,23 +47,9 @@ const IconPhone = ({ size = 18, color = "currentColor" }) => (
   </svg>
 );
 
-const IconTag = ({ size = 18, color = "currentColor" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-    <line x1="7" y1="7" x2="7.01" y2="7"/>
-  </svg>
-);
-
 const IconPlus = ({ size = 15, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-  </svg>
-);
-
-const IconRefresh = ({ size = 14, color = "currentColor" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="1 4 1 10 7 10"/>
-    <path d="M3.51 15a9 9 0 1 0 .49-3.36"/>
   </svg>
 );
 
@@ -159,16 +146,43 @@ export default function TambahSupplierPage() {
   const [form, setForm] = useState({
     nama: "", kategori: "Bahan Pokok", aktif: true,
     alamat: "", kota: "", provinsi: "DKI Jakarta", kodePos: "",
-    telepon: "", email: "", namaKontak: "",
+    telepon: "", email: "", namaKontak: "", user_id: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const namaRef = useRef<HTMLInputElement>(null);
 
+  const [userName, setUserName] = useState("Andi Pratama");
+  const [userRole, setUserRole] = useState("user");
+  const [userInitials, setUserInitials] = useState("AP");
+
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+
   useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    const role = Cookies.get(COOKIE_ROLE) || "user";
+    setUserName(decodeURIComponent(name));
+    setUserRole(role);
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+
+    async function fetchAccounts() {
+      setLoadingAccounts(true);
+      try {
+        const res = await api.akun.getAll();
+        const supplierAccounts = res.data.filter((a: any) => a.peran === "SUPPLIER");
+        setAccounts(supplierAccounts);
+      } catch (err: any) {
+        console.error("Gagal memuat akun supplier", err);
+      } finally {
+        setLoadingAccounts(false);
+      }
+    }
+
     setTimeout(() => setMounted(true), 80);
     setTimeout(() => namaRef.current?.focus(), 350);
+    fetchAccounts();
   }, []);
 
   function handleChange(k: string, v: string | boolean) {
@@ -180,6 +194,7 @@ export default function TambahSupplierPage() {
     const e: Record<string, string> = {};
     if (!form.nama.trim()) e.nama = "Nama supplier wajib diisi.";
     else if (form.nama.trim().length < 3) e.nama = "Nama minimal 3 karakter.";
+    if (!form.user_id) e.user_id = "Akun pengguna supplier wajib dipilih.";
     return e;
   }
 
@@ -206,13 +221,29 @@ export default function TambahSupplierPage() {
     setStep(s => s + 1);
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     setSubmitting(true);
-    setTimeout(() => { setSubmitting(false); setSuccess(true); }, 1400);
+    setErrors({});
+    try {
+      const payload = {
+        nama: form.nama,
+        alamat: `${form.alamat}, ${form.kota}, ${form.provinsi}${form.kodePos ? ' ' + form.kodePos : ''}`,
+        email: form.email || null,
+        nomor_telepon: form.telepon,
+        deskripsi: form.kategori,
+        user_id: Number(form.user_id),
+      };
+      await api.supplier.create(payload);
+      setSuccess(true);
+    } catch (err: any) {
+      setErrors({ submit: err.message || "Gagal menyimpan supplier ke server." });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleReset() {
-    setForm({ nama: "", kategori: "Bahan Pokok", aktif: true, alamat: "", kota: "", provinsi: "DKI Jakarta", kodePos: "", telepon: "", email: "", namaKontak: "" });
+    setForm({ nama: "", kategori: "Bahan Pokok", aktif: true, alamat: "", kota: "", provinsi: "DKI Jakarta", kodePos: "", telepon: "", email: "", namaKontak: "", user_id: "" });
     setErrors({});
     setSuccess(false);
     setStep(0);
@@ -289,6 +320,7 @@ export default function TambahSupplierPage() {
           transition:border-color .2s, box-shadow .2s;
         }
         .form-select-g:focus { border-color:rgba(6,78,59,0.45); box-shadow:0 0 0 4px rgba(6,78,59,0.07); }
+        .form-select-g.error { border-color:rgba(185,28,28,0.50); box-shadow:0 0 0 3px rgba(185,28,28,0.06); }
 
         .form-textarea-g {
           width:100%; border:1.5px solid rgba(6,78,59,0.15); border-radius:12px;
@@ -356,7 +388,7 @@ export default function TambahSupplierPage() {
       <div className={`min-h-screen text-[#022c22] font-['DM_Sans'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#f0fdf4" }}>
 
-        <Header hasNotification={false} userInitials={user.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main>
           {/* HERO */}
@@ -430,6 +462,31 @@ export default function TambahSupplierPage() {
                             </select>
                           </FormField>
 
+                          <FormField label="Akun Pengguna Supplier" required error={errors.user_id} hint="Hubungkan dengan akun bertipe SUPPLIER untuk login portal">
+                            {loadingAccounts ? (
+                              <div className="flex items-center gap-2 py-2 px-3 border rounded-xl" style={{ borderColor: "rgba(6,78,59,0.10)" }}>
+                                <IconLoader size={12} color="#064e3b" />
+                                <span className="text-[11px] font-medium text-[#064e3b]">Memuat akun...</span>
+                              </div>
+                            ) : accounts.length === 0 ? (
+                              <div className="p-3 border rounded-xl" style={{ borderColor: "#fee2e2", background: "#fef2f2" }}>
+                                <p className="text-[10px] font-semibold" style={{ color: "#991b1b" }}>
+                                  Belum ada akun bertipe SUPPLIER. Buat akun supplier baru di menu Manajemen User terlebih dahulu.
+                                </p>
+                              </div>
+                            ) : (
+                              <select className={`form-select-g${errors.user_id ? " error" : ""}`} value={form.user_id}
+                                onChange={e => handleChange("user_id", e.target.value)}>
+                                <option value="">-- Pilih Akun --</option>
+                                {accounts.map(acc => (
+                                  <option key={acc.id} value={acc.id}>
+                                    {acc.nama} ({acc.email})
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </FormField>
+
                           <FormField label="Status Supplier">
                             <div className="toggle-wrap" onClick={() => handleChange("aktif", !form.aktif)}>
                               <div className="toggle-track" style={{ background: form.aktif ? "#064e3b" : "rgba(6,78,59,0.18)" }}>
@@ -448,8 +505,8 @@ export default function TambahSupplierPage() {
 
                           <FormField label="Nama Kontak PIC" hint="Opsional — nama orang yang bisa dihubungi">
                             <input className="form-input-g" placeholder="cth: Budi Santoso"
-                              value={form.namaKontak}
-                              onChange={e => handleChange("namaKontak", e.target.value)} />
+                                   value={form.namaKontak}
+                                   onChange={e => handleChange("namaKontak", e.target.value)} />
                           </FormField>
                         </div>
                       )}
@@ -534,6 +591,7 @@ export default function TambahSupplierPage() {
                               { label: "Nama Supplier", val: form.nama },
                               { label: "Kategori", val: form.kategori },
                               { label: "Status", val: form.aktif ? "Aktif" : "Nonaktif" },
+                              ...(form.user_id ? [{ label: "User ID Terkoneksi", val: form.user_id }] : []),
                               ...(form.namaKontak ? [{ label: "Kontak PIC", val: form.namaKontak }] : []),
                             ].map((r, i) => (
                               <div key={i} className="review-row">
@@ -559,6 +617,13 @@ export default function TambahSupplierPage() {
                               </div>
                             ))}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Error submit backend */}
+                      {errors.submit && (
+                        <div className="mt-5 px-4 py-3 border rounded-xl text-xs font-semibold" style={{ borderColor: "#fee2e2", background: "#fef2f2", color: "#991b1b" }}>
+                          {errors.submit}
                         </div>
                       )}
 

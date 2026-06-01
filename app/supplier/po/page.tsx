@@ -3,40 +3,11 @@
 import Header from "../../components/header";
 import Footer from "../../components/footer";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-
-// Static Data
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
-
-const supplierList = [
-  { id: 1, nama: "PT Sumber Makmur",   kategori: "Bahan Pokok"    },
-  { id: 2, nama: "CV Mitra Pangan",    kategori: "Bumbu & Rempah" },
-  { id: 3, nama: "UD Berkah Jaya",     kategori: "Minuman"        },
-  { id: 4, nama: "PT Agro Nusantara",  kategori: "Bahan Pokok"    },
-  { id: 5, nama: "CV Delta Sejahtera", kategori: "Kemasan"        },
-  { id: 6, nama: "PT Indah Lestari",   kategori: "Minuman"        },
-  { id: 7, nama: "UD Mandiri Sukses",  kategori: "Bumbu & Rempah" },
-  { id: 8, nama: "PT Fortuna Abadi",   kategori: "Kemasan"        },
-];
-
-const produkOptions = [
-  "Beras 5 Kg",
-  "Tepung Terigu 1 Kg",
-  "Gula Pasir 1 Kg",
-  "Minyak Goreng 2 L",
-  "Garam 500 gr",
-  "Kecap Manis 600 ml",
-  "Saus Sambal 340 gr",
-  "Air Mineral 600 ml",
-  "Plastik Kemasan S",
-  "Plastik Kemasan M",
-  "Plastik Kemasan L",
-  "Bawang Merah 1 Kg",
-  "Bawang Putih 1 Kg",
-  "Lada Bubuk 100 gr",
-  "Produk Lainnya",
-];
+import Cookies from "js-cookie";
+import { COOKIE_NAME, COOKIE_ROLE } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const HARI  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -46,7 +17,6 @@ const IcPlus      = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="
 const IcTrash     = ({ size=13 }: { size?: number }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>;
 const IcCheck     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
 const IcX         = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
-const IcFile      = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
 const IcChevDown  = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>;
 const IcPrinter   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>;
 const IcSend      = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
@@ -57,6 +27,7 @@ const IcInfo      = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="
 // Types
 interface POItem {
   id: number;
+  stok_id: string | number;
   produk: string;
   satuan: string;
   qty: number;
@@ -80,13 +51,14 @@ function Inner({ children, className="" }: { children: React.ReactNode; classNam
   return <div className={`max-w-5xl mx-auto px-4 sm:px-8 ${className}`}>{children}</div>;
 }
 
-export default function POPage() {
+function POPageInner() {
   const searchParams  = useSearchParams();
   const [mounted, setMounted] = useState(false);
   const [tanggal, setTanggal] = useState("");
   const [noPO,    setNoPO]    = useState("");
   const [toast,   setToast]   = useState<{ msg: string; type: "success"|"error" } | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Form fields
@@ -100,18 +72,48 @@ export default function POPage() {
   const [metodeBayar,   setMetodeBayar]   = useState("Transfer Bank");
   const [catatan,       setCatatan]       = useState("");
   const [items,         setItems]         = useState<POItem[]>([
-    { id: 1, produk: "", satuan: "Pcs", qty: 1, harga: 0 },
+    { id: 1, stok_id: "", produk: "", satuan: "Pcs", qty: 1, harga: 0 },
   ]);
+
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [stocks, setStocks] = useState<any[]>([]);
+
+  const [userName, setUserName] = useState("Andi Pratama");
+  const [userRole, setUserRole] = useState("user");
+  const [userInitials, setUserInitials] = useState("AP");
 
   const satuanList   = ["Pcs", "Kg", "Gram", "Liter", "ml", "Dus", "Karton", "Lusin", "Roll", "Meter"];
   const bayarList    = ["Transfer Bank", "COD", "Net 30", "Net 60", "Kredit"];
 
   useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    const role = Cookies.get(COOKIE_ROLE) || "user";
+    setUserName(decodeURIComponent(name));
+    setUserRole(role);
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+
     const now = new Date();
     setTanggal(`${HARI[now.getDay()]}, ${now.getDate()} ${BULAN[now.getMonth()]} ${now.getFullYear()}`);
     const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,"0"), d = String(now.getDate()).padStart(2,"0");
     setTglPO(`${y}-${m}-${d}`);
     setNoPO(generateNoPO());
+
+    async function loadInitialData() {
+      try {
+        const [supsRes, stocksRes] = await Promise.all([
+          api.supplier.getAll(),
+          api.stok.getAll()
+        ]);
+        
+        setSuppliers(supsRes.data);
+        setStocks(stocksRes.data);
+      } catch (err: any) {
+        console.error("Gagal memuat data master:", err);
+        setToast({ msg: err.message || "Gagal memuat data dari server.", type: "error" });
+      }
+    }
+
+    loadInitialData();
     setTimeout(() => setMounted(true), 80);
   }, []);
 
@@ -122,17 +124,45 @@ export default function POPage() {
   // Sync supplier name when id changes manually
   function handleSupplierChange(id: number) {
     setSupplierId(id);
-    const found = supplierList.find(s => s.id === id);
+    const found = suppliers.find(s => s.id === id);
     setSupplierNama(found ? found.nama : "");
   }
 
   // Items CRUD
   function addItem() {
-    setItems(prev => [...prev, { id: Date.now(), produk:"", satuan:"Pcs", qty:1, harga:0 }]);
+    setItems(prev => [...prev, { id: Date.now(), stok_id: "", produk: "", satuan: "Pcs", qty: 1, harga: 0 }]);
   }
   function removeItem(id: number) {
     setItems(prev => prev.length > 1 ? prev.filter(i => i.id !== id) : prev);
   }
+  
+  function handleProductSelect(id: number, stokIdVal: string | number) {
+    const selectedStock = stocks.find(s => s.id === Number(stokIdVal));
+    if (selectedStock) {
+      setItems(prev =>
+        prev.map(i =>
+          i.id === id
+            ? {
+                ...i,
+                stok_id: selectedStock.id,
+                produk: selectedStock.nama,
+                satuan: selectedStock.satuan || "Pcs",
+                harga: selectedStock.harga || 15000
+              }
+            : i
+        )
+      );
+    } else {
+      setItems(prev =>
+        prev.map(i =>
+          i.id === id
+            ? { ...i, stok_id: "", produk: "", satuan: "Pcs", harga: 0 }
+            : i
+        )
+      );
+    }
+  }
+
   function updateItem(id: number, field: keyof POItem, value: string | number) {
     setItems(prev => prev.map(i => i.id === id ? { ...i, [field]: value } : i));
   }
@@ -141,13 +171,33 @@ export default function POPage() {
   const ppn      = Math.round(subtotal * 0.11);
   const total    = subtotal + ppn;
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!supplierId) { setToast({ msg: "Pilih supplier terlebih dahulu.", type:"error" }); return; }
     if (!tglKirim)   { setToast({ msg: "Tanggal pengiriman wajib diisi.", type:"error" }); return; }
-    if (items.some(i => !i.produk)) { setToast({ msg: "Semua produk wajib dipilih.", type:"error" }); return; }
+    if (items.some(i => !i.stok_id)) { setToast({ msg: "Semua produk wajib dipilih.", type:"error" }); return; }
     if (items.some(i => i.harga === 0)) { setToast({ msg: "Harga produk tidak boleh nol.", type:"error" }); return; }
-    setSubmitted(true);
-    setToast({ msg: `PO ${noPO} berhasil dibuat!`, type:"success" });
+    
+    setSubmitting(true);
+    try {
+      const payload = {
+        nomor_po: noPO,
+        supplier_id: Number(supplierId),
+        catatan: catatan || `Metode pembayaran: ${metodeBayar}. Pengiriman: ${tglKirim}`,
+        detail_po: items.map(item => ({
+          stok_id: Number(item.stok_id),
+          jumlah_dipesan: Number(item.qty),
+          harga_satuan: Number(item.harga)
+        }))
+      };
+      
+      await api.purchaseOrder.create(payload);
+      setSubmitted(true);
+      setToast({ msg: `PO ${noPO} berhasil dibuat!`, type:"success" });
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal mengirim PO ke server.", type: "error" });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handlePrint() {
@@ -160,12 +210,12 @@ export default function POPage() {
     setTglKirim("");
     setMetodeBayar("Transfer Bank");
     setCatatan("");
-    setItems([{ id: 1, produk:"", satuan:"Pcs", qty:1, harga:0 }]);
+    setItems([{ id: 1, stok_id: "", produk: "", satuan: "Pcs", qty: 1, harga: 0 }]);
     setNoPO(generateNoPO());
     setSubmitted(false);
   }
 
-  const selectedSupplier = supplierList.find(s => s.id === supplierId);
+  const selectedSupplier = suppliers.find(s => s.id === supplierId);
 
   return (
     <>
@@ -202,9 +252,9 @@ export default function POPage() {
 
         /* Buttons */
         .btn-primary{background:#064e3b;color:#ecfdf5;border:none;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;padding:11px 22px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s,background .18s}
-        .btn-primary:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 10px 28px rgba(6,78,59,0.28);background:#065f46}
-        .btn-primary:active{transform:scale(0.97)}
-        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+        .btn-primary:hover:not(:disabled){transform:translateY(-2px) scale(1.03);box-shadow:0 10px 28px rgba(6,78,59,0.28);background:#065f46}
+        .btn-primary:active:not(:disabled){transform:scale(0.97)}
+        .btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
 
         .btn-outline{background:transparent;color:#064e3b;border:1.5px solid rgba(6,78,59,0.25);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;padding:11px 22px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s}
         .btn-outline:hover{background:rgba(6,78,59,0.06);border-color:rgba(6,78,59,0.40)}
@@ -230,10 +280,6 @@ export default function POPage() {
         .summary-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(6,78,59,0.06)}
         .summary-total{display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;border-top:2px solid rgba(6,78,59,0.15);margin-top:4px}
 
-        /* Status badge */
-        .badge-draft{background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif}
-        .badge-sent{background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif}
-
         /* Toast */
         .toast-g{animation:slideIn .3s cubic-bezier(.22,1,.36,1) both}
 
@@ -244,9 +290,6 @@ export default function POPage() {
         /* Divider label */
         .section-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:13px;color:#022c22;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
         .section-title::before{content:'';display:block;width:3px;height:16px;background:#064e3b;border-radius:2px;flex-shrink:0}
-
-        /* Success overlay */
-        .success-overlay{animation:popIn .35s cubic-bezier(.22,1,.36,1) both}
 
         @media print {
           body * { visibility: hidden; }
@@ -259,7 +302,7 @@ export default function POPage() {
       <div className={`min-h-screen font-['DM_Sans'] relative overflow-x-hidden transition-opacity duration-500 ${mounted?"opacity-100":"opacity-0"}`}
         style={{ background:"#f0fdf4", color:"#064e3b" }}>
 
-        <Header hasNotification={false} userInitials={user.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main>
           {/* HERO */}
@@ -316,8 +359,8 @@ export default function POPage() {
                         <select className="sel-g" value={supplierId} disabled={submitted}
                           onChange={e => handleSupplierChange(Number(e.target.value))}>
                           <option value={0}>-- Pilih Supplier --</option>
-                          {supplierList.map(s => (
-                            <option key={s.id} value={s.id}>{s.nama} ({s.kategori})</option>
+                          {suppliers.map(s => (
+                            <option key={s.id} value={s.id}>{s.nama} ({s.deskripsi || "Bahan Pokok"})</option>
                           ))}
                         </select>
                         <span className="chev"><IcChevDown/></span>
@@ -326,7 +369,7 @@ export default function POPage() {
                         <div className="flex items-center gap-1.5 mt-2 text-[11px] font-medium"
                           style={{ color:"rgba(6,78,59,0.50)" }}>
                           <IcBuilding/>
-                          <span>Kategori: <strong style={{ color:"#064e3b" }}>{selectedSupplier.kategori}</strong></span>
+                          <span>Kategori: <strong style={{ color:"#064e3b" }}>{selectedSupplier.deskripsi || "Bahan Pokok"}</strong></span>
                         </div>
                       )}
                     </div>
@@ -389,10 +432,12 @@ export default function POPage() {
                         <div>
                           <label className="label-g sm:hidden">Produk</label>
                           <div className="sel-wrap">
-                            <select className="sel-g" value={item.produk} disabled={submitted}
-                              onChange={e => updateItem(item.id,"produk",e.target.value)}>
+                            <select className="sel-g" value={item.stok_id} disabled={submitted}
+                              onChange={e => handleProductSelect(item.id, e.target.value)}>
                               <option value="">-- Pilih Produk --</option>
-                              {produkOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                              {stocks.map(p => (
+                                <option key={p.id} value={p.id}>{p.nama}</option>
+                              ))}
                             </select>
                             <span className="chev"><IcChevDown/></span>
                           </div>
@@ -515,8 +560,17 @@ export default function POPage() {
                         <button className="btn-outline" onClick={handlePrint}>
                           <IcPrinter/> Preview Print
                         </button>
-                        <button className="btn-primary" onClick={handleSubmit}>
-                          <IcSend/> Kirim PO
+                        <button className="btn-primary" disabled={submitting} onClick={handleSubmit}>
+                          {submitting ? (
+                            <>
+                              <span className="animate-spin border-2 border-t-transparent border-white rounded-full w-3.5 h-3.5 mr-1 inline-block" />
+                              Mengirim…
+                            </>
+                          ) : (
+                            <>
+                              <IcSend/> Kirim PO
+                            </>
+                          )}
                         </button>
                       </>
                     )}
@@ -542,5 +596,17 @@ export default function POPage() {
         )}
       </div>
     </>
+  );
+}
+
+export default function POPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#F9F9FA] text-sm font-semibold text-[rgba(33,33,33,0.38)]">
+        Memuat formulir PO...
+      </div>
+    }>
+      <POPageInner />
+    </Suspense>
   );
 }

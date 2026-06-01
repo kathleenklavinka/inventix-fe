@@ -5,18 +5,9 @@ import Footer from "../../../components/footer";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-
-const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
-
-const supplierData: Record<number, {
-  id: number; nama: string; kategori: string; aktif: boolean;
-  alamat: string; kota: string; provinsi: string; kodePos: string;
-  telepon: string; email: string; namaKontak: string;
-}> = {
-  1: { id: 1, nama: "PT Sumber Makmur", kategori: "Bahan Pokok", aktif: true, alamat: "Jl. Raya Bogor No. 45, RT 03/02, Kelurahan Cibinong", kota: "Jakarta Timur", provinsi: "DKI Jakarta", kodePos: "13710", telepon: "021-8765432", email: "info@sumbermakmur.co.id", namaKontak: "Budi Santoso" },
-  2: { id: 2, nama: "CV Mitra Pangan", kategori: "Bumbu & Rempah", aktif: true, alamat: "Jl. Gatot Subroto No. 12", kota: "Bandung", provinsi: "Jawa Barat", kodePos: "40261", telepon: "022-5543210", email: "", namaKontak: "Siti Rahayu" },
-  3: { id: 3, nama: "UD Berkah Jaya", kategori: "Minuman", aktif: false, alamat: "Jl. Pemuda No. 78", kota: "Surabaya", provinsi: "Jawa Timur", kodePos: "60271", telepon: "031-3456789", email: "berkah@gmail.com", namaKontak: "" },
-};
+import Cookies from "js-cookie";
+import { COOKIE_NAME, COOKIE_ROLE } from "@/lib/auth";
+import { api } from "@/lib/api";
 
 const KATEGORI_OPTIONS = ["Bahan Pokok", "Bumbu & Rempah", "Minuman", "Kemasan", "Lainnya"];
 const PROVINSI_OPTIONS = ["DKI Jakarta","Jawa Barat","Jawa Tengah","Jawa Timur","Banten","DI Yogyakarta","Bali","Sumatera Utara","Sumatera Selatan","Kalimantan Timur","Sulawesi Selatan","Lainnya"];
@@ -133,21 +124,101 @@ function hasDiff(original: Record<string, unknown>, current: Record<string, unkn
 export default function EditSupplierPage() {
   const params = useParams();
   const id = Number(params?.id);
-  const original = supplierData[id];
 
   const [mounted, setMounted] = useState(false);
-  const [form, setForm] = useState(
-    original
-      ? { ...original }
-      : { id: 0, nama: "", kategori: "Bahan Pokok", aktif: true, alamat: "", kota: "", provinsi: "DKI Jakarta", kodePos: "", telepon: "", email: "", namaKontak: "" }
-  );
+  const [original, setOriginal] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [form, setForm] = useState({
+    id: 0, nama: "", kategori: "Bahan Pokok", aktif: true,
+    alamat: "", kota: "", provinsi: "DKI Jakarta", kodePos: "",
+    telepon: "", email: "", namaKontak: "", user_id: "",
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const [userName, setUserName] = useState("Andi Pratama");
+  const [userRole, setUserRole] = useState("user");
+  const [userInitials, setUserInitials] = useState("AP");
+
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+
   const isDirty = original ? hasDiff(original as unknown as Record<string, unknown>, form as unknown as Record<string, unknown>) : false;
 
-  useEffect(() => { setTimeout(() => setMounted(true), 80); }, []);
+  useEffect(() => {
+    const name = Cookies.get(COOKIE_NAME) || "Andi Pratama";
+    const role = Cookies.get(COOKIE_ROLE) || "user";
+    setUserName(decodeURIComponent(name));
+    setUserRole(role);
+    setUserInitials(decodeURIComponent(name).split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase());
+
+    async function loadData() {
+      setLoading(true);
+      try {
+        const [res, accs] = await Promise.all([
+          api.supplier.getById(id),
+          api.akun.getAll()
+        ]);
+
+        const item = res.data;
+        
+        // Filter accounts with peran === "SUPPLIER"
+        const supplierAccounts = accs.data.filter((a: any) => a.peran === "SUPPLIER");
+        setAccounts(supplierAccounts);
+
+        // Address parser
+        let street = item.alamat || "";
+        let city = "";
+        let prov = "DKI Jakarta";
+        let zip = "";
+        
+        if (item.alamat && item.alamat.includes(",")) {
+          const parts = item.alamat.split(",");
+          if (parts.length >= 3) {
+            street = parts.slice(0, parts.length - 2).join(",").trim();
+            city = parts[parts.length - 2].trim();
+            const lastPart = parts[parts.length - 1].trim();
+            const zipMatch = lastPart.match(/\d{5}/);
+            if (zipMatch) {
+              zip = zipMatch[0];
+              prov = lastPart.replace(zip, "").trim();
+            } else {
+              prov = lastPart;
+            }
+          }
+        }
+
+        const mapped = {
+          id: item.id,
+          nama: item.nama,
+          kategori: item.deskripsi || "Bahan Pokok",
+          aktif: true,
+          alamat: street,
+          kota: city || "Jakarta",
+          provinsi: prov || "DKI Jakarta",
+          kodePos: zip,
+          telepon: item.nomor_telepon || "",
+          email: item.email || "",
+          namaKontak: "",
+          user_id: item.user_id ? String(item.user_id) : "",
+        };
+
+        setOriginal(mapped);
+        setForm(mapped);
+      } catch (err: any) {
+        console.error("Gagal memuat supplier", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      loadData();
+    }
+    setTimeout(() => setMounted(true), 80);
+  }, [id]);
 
   function handleChange(k: string, v: string | boolean) {
     setForm(f => ({ ...f, [k]: v }));
@@ -162,14 +233,31 @@ export default function EditSupplierPage() {
     if (!form.telepon.trim()) e.telepon = "Nomor telepon wajib diisi.";
     else if (!/^[\d\-+() ]{8,16}$/.test(form.telepon)) e.telepon = "Format telepon tidak valid.";
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Format email tidak valid.";
+    if (!form.user_id) e.user_id = "Akun pengguna supplier wajib dipilih.";
     return e;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
     setSubmitting(true);
-    setTimeout(() => { setSubmitting(false); setSuccess(true); }, 1400);
+    setErrors({});
+    try {
+      const payload = {
+        nama: form.nama,
+        alamat: `${form.alamat}, ${form.kota}, ${form.provinsi}${form.kodePos ? ' ' + form.kodePos : ''}`,
+        email: form.email || null,
+        nomor_telepon: form.telepon,
+        deskripsi: form.kategori,
+        user_id: Number(form.user_id),
+      };
+      await api.supplier.update(id, payload);
+      setSuccess(true);
+    } catch (err: any) {
+      setErrors({ submit: err.message || "Gagal memperbarui data supplier ke server." });
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleReset() {
@@ -185,7 +273,6 @@ export default function EditSupplierPage() {
     "Lainnya": { bg: "#f3f4f6", text: "#374151" },
   };
 
-  // Changed fields tracker
   const changedFields = original
     ? Object.keys(original).filter(k => (original as any)[k] !== (form as any)[k])
     : [];
@@ -213,10 +300,6 @@ export default function EditSupplierPage() {
         @keyframes shimmer {
           0%   { background-position:-200% center; }
           100% { background-position:200% center; }
-        }
-        @keyframes pulse-border {
-          0%,100% { border-color: rgba(6,78,59,0.28); }
-          50%     { border-color: rgba(6,78,59,0.55); }
         }
 
         .su-fade-up { animation:fadeUp 0.55s cubic-bezier(.22,1,.36,1) both; }
@@ -258,6 +341,7 @@ export default function EditSupplierPage() {
         }
         .form-select-g:focus { border-color:rgba(6,78,59,0.45); box-shadow:0 0 0 4px rgba(6,78,59,0.07); }
         .form-select-g.changed { border-color:rgba(6,78,59,0.40); background-color:rgba(209,250,229,0.30); }
+        .form-select-g.error { border-color:rgba(185,28,28,0.50); box-shadow:0 0 0 3px rgba(185,28,28,0.06); }
 
         .form-textarea-g {
           width:100%; border:1.5px solid rgba(6,78,59,0.15); border-radius:12px;
@@ -333,7 +417,7 @@ export default function EditSupplierPage() {
         .success-check { animation:checkPop .5s cubic-bezier(.22,1,.36,1) both; }
 
         .section-divider {
-          display:flex; align-items:center; gap:3 gap-10px; margin:20px 0 16px;
+          display:flex; align-items:center; gap:10px; margin:20px 0 16px;
         }
         .section-divider-line { flex:1; height:1px; background:rgba(6,78,59,0.08); }
         .section-divider-label {
@@ -345,7 +429,7 @@ export default function EditSupplierPage() {
       <div className={`min-h-screen text-[#022c22] font-['DM_Sans'] relative overflow-x-hidden transition-opacity duration-500 ${mounted ? "opacity-100" : "opacity-0"}`}
         style={{ background: "#f0fdf4" }}>
 
-        <Header hasNotification={false} userInitials={user.initials} />
+        <Header hasNotification={false} userInitials={userInitials} />
 
         <main>
           {/* HERO */}
@@ -391,7 +475,12 @@ export default function EditSupplierPage() {
           {/* FORM */}
           <section className="w-full py-10 sm:py-12" style={{ background: "#ffffff" }}>
             <Inner>
-              {!original ? (
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-3">
+                  <IconLoader size={32} color="#064e3b" />
+                  <p className="text-sm font-semibold text-[#064e3b] animate-pulse">Memuat data supplier dari server...</p>
+                </div>
+              ) : !original ? (
                 <div className="text-center py-16">
                   <p className="text-sm" style={{ color: "rgba(6,78,59,0.45)" }}>Supplier tidak ditemukan.</p>
                   <Link href="/supplier">
@@ -441,6 +530,31 @@ export default function EditSupplierPage() {
                               onChange={e => handleChange("kategori", e.target.value)}>
                               {KATEGORI_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
                             </select>
+                          </FormField>
+
+                          <FormField label="Akun Pengguna Supplier" required error={errors.user_id}>
+                            {loadingAccounts ? (
+                              <div className="flex items-center gap-2 py-2 px-3 border rounded-xl" style={{ borderColor: "rgba(6,78,59,0.10)" }}>
+                                <IconLoader size={12} color="#064e3b" />
+                                <span className="text-[11px] font-medium text-[#064e3b]">Memuat akun...</span>
+                              </div>
+                            ) : accounts.length === 0 ? (
+                              <div className="p-3 border rounded-xl" style={{ borderColor: "#fee2e2", background: "#fef2f2" }}>
+                                <p className="text-[10px] font-semibold" style={{ color: "#991b1b" }}>
+                                  Belum ada akun bertipe SUPPLIER. Buat akun supplier baru di menu Manajemen User terlebih dahulu.
+                                </p>
+                              </div>
+                            ) : (
+                              <select className={`form-select-g${errors.user_id ? " error" : changedFields.includes("user_id") ? " changed" : ""}`} value={form.user_id}
+                                onChange={e => handleChange("user_id", e.target.value)}>
+                                <option value="">-- Pilih Akun --</option>
+                                {accounts.map(acc => (
+                                  <option key={acc.id} value={acc.id}>
+                                    {acc.nama} ({acc.email})
+                                  </option>
+                                ))}
+                              </select>
+                            )}
                           </FormField>
 
                           <FormField label="Status Supplier">
@@ -519,8 +633,14 @@ export default function EditSupplierPage() {
                           </div>
                         </div>
 
-                        {/* Unsaved warning */}
-                        {isDirty && (
+                        {/* Unsaved/backend errors */}
+                        {errors.submit && (
+                          <div className="mt-5 px-4 py-3 border rounded-xl text-xs font-semibold" style={{ borderColor: "#fee2e2", background: "#fef2f2", color: "#991b1b" }}>
+                            {errors.submit}
+                          </div>
+                        )}
+
+                        {isDirty && !errors.submit && (
                           <div className="mt-5 flex items-center gap-2.5 px-4 py-3 border rounded-2xl"
                             style={{ background: "rgba(254,243,199,0.60)", borderColor: "rgba(217,119,6,0.20)" }}>
                             <IconAlertTriangle size={14} color="#b45309" />
