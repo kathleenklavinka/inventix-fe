@@ -10,7 +10,7 @@ const footerCols = [
     links: [
       { label: "Dashboard", href: "/dashboard" },
       { label: "Stok Barang", href: "/stock" },
-      { label: "Purchase Order Recap", href: "/" },
+      { label: "Laporan", href: "/laporan" },
       { label: "Supplier", href: "/supplier" },
     ],
   },
