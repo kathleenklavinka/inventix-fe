@@ -12,18 +12,18 @@ const SATUAN_OPTIONS = ["kg", "gram", "liter", "ml", "pcs", "botol", "dus", "kar
 
 // Mock data — sama seperti /stock
 const stokData = [
-  { id: 1,  nama: "Tepung Terigu",    jumlah: 0,   satuan: "kg",    harga: 12000,  max: 100 },
-  { id: 2,  nama: "Gula Pasir",       jumlah: 50,  satuan: "kg",    harga: 15500,  max: 100 },
-  { id: 3,  nama: "Minyak Goreng",    jumlah: 0,   satuan: "liter", harga: 18000,  max: 80  },
-  { id: 4,  nama: "Susu UHT",         jumlah: 120, satuan: "pcs",   harga: 7500,   max: 200 },
-  { id: 5,  nama: "Kopi Arabika",     jumlah: 30,  satuan: "kg",    harga: 85000,  max: 60  },
-  { id: 6,  nama: "Teh Hijau",        jumlah: 15,  satuan: "pcs",   harga: 22000,  max: 50  },
-  { id: 7,  nama: "Beras Premium",    jumlah: 200, satuan: "kg",    harga: 14000,  max: 300 },
-  { id: 8,  nama: "Garam Halus",      jumlah: 8,   satuan: "kg",    harga: 5000,   max: 40  },
-  { id: 9,  nama: "Mentega",          jumlah: 0,   satuan: "pcs",   harga: 32000,  max: 60  },
-  { id: 10, nama: "Coklat Bubuk",     jumlah: 22,  satuan: "kg",    harga: 45000,  max: 50  },
-  { id: 11, nama: "Vanilla Essence",  jumlah: 40,  satuan: "botol", harga: 28000,  max: 80  },
-  { id: 12, nama: "Baking Powder",    jumlah: 5,   satuan: "pcs",   harga: 12500,  max: 30  },
+  { id: 1,  nama: "Tepung Terigu",    jumlah: 0,   satuan: "kg",    max: 100 },
+  { id: 2,  nama: "Gula Pasir",       jumlah: 50,  satuan: "kg",    max: 100 },
+  { id: 3,  nama: "Minyak Goreng",    jumlah: 0,   satuan: "liter", max: 80  },
+  { id: 4,  nama: "Susu UHT",         jumlah: 120, satuan: "pcs",   max: 200 },
+  { id: 5,  nama: "Kopi Arabika",     jumlah: 30,  satuan: "kg",    max: 60  },
+  { id: 6,  nama: "Teh Hijau",        jumlah: 15,  satuan: "pcs",   max: 50  },
+  { id: 7,  nama: "Beras Premium",    jumlah: 200, satuan: "kg",    max: 300 },
+  { id: 8,  nama: "Garam Halus",      jumlah: 8,   satuan: "kg",    max: 40  },
+  { id: 9,  nama: "Mentega",          jumlah: 0,   satuan: "pcs",   max: 60  },
+  { id: 10, nama: "Coklat Bubuk",     jumlah: 22,  satuan: "kg",    max: 50  },
+  { id: 11, nama: "Vanilla Essence",  jumlah: 40,  satuan: "botol", max: 80  },
+  { id: 12, nama: "Baking Powder",    jumlah: 5,   satuan: "pcs",   max: 30  },
 ];
 
 // ── SVG ICONS ──
@@ -97,25 +97,6 @@ const IconCheck = ({ size = 14, color = "currentColor" }) => (
   </svg>
 );
 
-const IconLightbulb = ({ size = 13, color = "currentColor" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/>
-    <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
-  </svg>
-);
-
-const IconChevronUp = ({ size = 10 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="18 15 12 9 6 15"/>
-  </svg>
-);
-
-const IconChevronDown = ({ size = 10 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"/>
-  </svg>
-);
-
 const IconAlertTriangle = ({ size = 40, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -128,6 +109,18 @@ const IconEdit = ({ size = 18, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+
+const IconChevronUp = ({ size = 10 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="18 15 12 9 6 15"/>
+  </svg>
+);
+
+const IconChevronDown = ({ size = 10 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="6 9 12 15 18 9"/>
   </svg>
 );
 
@@ -166,7 +159,6 @@ export default function EditStokPage() {
     nama: "",
     jumlah: "",
     satuan: "kg",
-    harga: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -181,7 +173,6 @@ export default function EditStokPage() {
         nama: original.nama,
         jumlah: String(original.jumlah),
         satuan: original.satuan,
-        harga: original.harga.toLocaleString("id-ID"),
       });
       setTimeout(() => namaRef.current?.focus(), 380);
     }
@@ -194,19 +185,12 @@ export default function EditStokPage() {
     if (form.jumlah === "" || isNaN(Number(form.jumlah))) e.jumlah = "Jumlah wajib diisi dengan angka.";
     else if (Number(form.jumlah) < 0) e.jumlah = "Jumlah tidak boleh negatif.";
     if (!form.satuan) e.satuan = "Satuan wajib dipilih.";
-    if (form.harga === "" || isNaN(Number(form.harga.replace(/\D/g, "")))) e.harga = "Harga wajib diisi dengan angka.";
-    else if (Number(form.harga.replace(/\D/g, "")) <= 0) e.harga = "Harga harus lebih dari 0.";
     return e;
   }
 
   function handleChange(k: string, v: string) {
     setForm(f => ({ ...f, [k]: v }));
     if (errors[k]) setErrors(e => { const next = { ...e }; delete next[k]; return next; });
-  }
-
-  function handleHargaInput(v: string) {
-    const num = v.replace(/\D/g, "");
-    handleChange("harga", num ? Number(num).toLocaleString("id-ID") : "");
   }
 
   function handleSubmit() {
@@ -222,23 +206,19 @@ export default function EditStokPage() {
       nama: original.nama,
       jumlah: String(original.jumlah),
       satuan: original.satuan,
-      harga: original.harga.toLocaleString("id-ID"),
     });
     setErrors({});
     setSuccess(false);
     setTimeout(() => namaRef.current?.focus(), 100);
   }
 
-  const hargaNum = Number(form.harga.replace(/\D/g, "")) || 0;
   const jumlahNum = Number(form.jumlah) || 0;
-  const totalVal = hargaNum * jumlahNum;
 
   // Cek apakah ada perubahan dari data original
   const isDirty = original && (
     form.nama !== original.nama ||
     form.jumlah !== String(original.jumlah) ||
-    form.satuan !== original.satuan ||
-    hargaNum !== original.harga
+    form.satuan !== original.satuan
   );
 
   // 404 state — id tidak ditemukan
@@ -526,17 +506,6 @@ export default function EditStokPage() {
                             {SATUAN_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                           </select>
                         </FormField>
-
-                        {/* Harga */}
-                        <div className="sm:col-span-2">
-                          <FormField label="Harga Satuan" required hint="Harga per satuan barang dalam Rupiah" error={errors.harga}>
-                            <input className={`form-input${errors.harga ? " error" : ""}`}
-                              placeholder="cth: 12.000"
-                              value={form.harga}
-                              onChange={e => handleHargaInput(e.target.value)}
-                              inputMode="numeric" />
-                          </FormField>
-                        </div>
                       </div>
 
                       <div className="my-6" style={{ height: "1px", background: "rgba(140,110,60,0.10)" }} />
@@ -570,7 +539,7 @@ export default function EditStokPage() {
                         <span className="font-semibold" style={{ color: "#2a1f08" }}>{form.nama}</span> berhasil diperbarui.
                       </p>
                       <p className="text-[11px] mb-7" style={{ color: "rgba(80,65,40,0.42)" }}>
-                        {jumlahNum} {form.satuan} · Rp {hargaNum.toLocaleString("id-ID")} / satuan
+                        {jumlahNum} {form.satuan}
                       </p>
                       <div className="flex flex-row gap-3 w-full max-w-xs">
                         <button className="btn-secondary" onClick={handleReset}>
@@ -618,7 +587,7 @@ export default function EditStokPage() {
                         {form.nama || <span style={{ color: "rgba(80,65,40,0.30)" }}>Nama Barang…</span>}
                       </p>
                       <p className="text-[11px] font-medium" style={{ color: "rgba(80,65,40,0.50)" }}>
-                        {form.jumlah || "–"} {form.satuan} · {form.harga ? `Rp ${form.harga}` : "Rp –"}
+                        {form.jumlah || "–"} {form.satuan}
                       </p>
                       <div className="mt-3 w-full h-1.5 rounded-full overflow-hidden"
                         style={{ background: "rgba(140,110,60,0.18)" }}>
@@ -645,29 +614,12 @@ export default function EditStokPage() {
                       {[
                         { label: "Nama",   val: original?.nama ?? "–" },
                         { label: "Jumlah", val: `${original?.jumlah} ${original?.satuan}` },
-                        { label: "Harga",  val: `Rp ${original?.harga.toLocaleString("id-ID")}` },
                       ].map((r, i) => (
                         <div key={i} className="diff-row">
                           <span className="text-[11px] font-medium" style={{ color: "rgba(80,65,40,0.45)" }}>{r.label}</span>
                           <span className="text-[11px] font-semibold" style={{ color: "#2a1f08" }}>{r.val}</span>
                         </div>
                       ))}
-                    </div>
-
-                    {/* Total nilai sebelumnya */}
-                    <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(140,110,60,0.12)" }}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-medium" style={{ color: "rgba(80,65,40,0.45)" }}>Nilai stok lama</span>
-                        <span className="font-['Plus_Jakarta_Sans'] font-black text-sm" style={{ color: "rgba(80,65,40,0.55)" }}>
-                          Rp {((original?.harga ?? 0) * (original?.jumlah ?? 0)).toLocaleString("id-ID")}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between mt-1.5">
-                        <span className="text-[11px] font-bold" style={{ color: "#2a1f08" }}>Nilai stok baru</span>
-                        <span className="font-['Plus_Jakarta_Sans'] font-black text-sm" style={{ color: "#2a1f08" }}>
-                          {totalVal ? `Rp ${totalVal.toLocaleString("id-ID")}` : "–"}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>

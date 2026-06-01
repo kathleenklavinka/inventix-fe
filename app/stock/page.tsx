@@ -9,27 +9,23 @@ const user = { nama: "Andi Pratama", role: "Admin", initials: "AP" };
 const isAdmin = true;
 
 const stokData = [
-  { id: 1,  nama: "Tepung Terigu",    jumlah: 0,   satuan: "kg",    harga: 12000, max: 100, kategori: "Tepung & Kering" },
-  { id: 2,  nama: "Gula Pasir",       jumlah: 50,  satuan: "kg",    harga: 15500, max: 100, kategori: "Pemanis" },
-  { id: 3,  nama: "Minyak Goreng",    jumlah: 0,   satuan: "liter", harga: 18000, max: 80,  kategori: "Lemak & Minyak" },
-  { id: 4,  nama: "Susu UHT",         jumlah: 120, satuan: "pcs",   harga: 7500,  max: 200, kategori: "Susu & Dairy" },
-  { id: 5,  nama: "Kopi Arabika",     jumlah: 30,  satuan: "kg",    harga: 85000, max: 60,  kategori: "Minuman" },
-  { id: 6,  nama: "Teh Hijau",        jumlah: 15,  satuan: "pcs",   harga: 22000, max: 50,  kategori: "Minuman" },
-  { id: 7,  nama: "Beras Premium",    jumlah: 200, satuan: "kg",    harga: 14000, max: 300, kategori: "Tepung & Kering" },
-  { id: 8,  nama: "Garam Halus",      jumlah: 8,   satuan: "kg",    harga: 5000,  max: 40,  kategori: "Bumbu" },
-  { id: 9,  nama: "Mentega",          jumlah: 0,   satuan: "pcs",   harga: 32000, max: 60,  kategori: "Lemak & Minyak" },
-  { id: 10, nama: "Coklat Bubuk",     jumlah: 22,  satuan: "kg",    harga: 45000, max: 50,  kategori: "Pemanis" },
-  { id: 11, nama: "Vanilla Essence",  jumlah: 40,  satuan: "botol", harga: 28000, max: 80,  kategori: "Bumbu" },
-  { id: 12, nama: "Baking Powder",    jumlah: 5,   satuan: "pcs",   harga: 12500, max: 30,  kategori: "Tepung & Kering" },
+  { id: 1,  nama: "Tepung Terigu",    jumlah: 0,   satuan: "kg",    max: 100, kategori: "Tepung & Kering" },
+  { id: 2,  nama: "Gula Pasir",       jumlah: 50,  satuan: "kg",    max: 100, kategori: "Pemanis" },
+  { id: 3,  nama: "Minyak Goreng",    jumlah: 0,   satuan: "liter", max: 80,  kategori: "Lemak & Minyak" },
+  { id: 4,  nama: "Susu UHT",         jumlah: 120, satuan: "pcs",   max: 200, kategori: "Susu & Dairy" },
+  { id: 5,  nama: "Kopi Arabika",     jumlah: 30,  satuan: "kg",    max: 60,  kategori: "Minuman" },
+  { id: 6,  nama: "Teh Hijau",        jumlah: 15,  satuan: "pcs",   max: 50,  kategori: "Minuman" },
+  { id: 7,  nama: "Beras Premium",    jumlah: 200, satuan: "kg",    max: 300, kategori: "Tepung & Kering" },
+  { id: 8,  nama: "Garam Halus",      jumlah: 8,   satuan: "kg",    max: 40,  kategori: "Bumbu" },
+  { id: 9,  nama: "Mentega",          jumlah: 0,   satuan: "pcs",   max: 60,  kategori: "Lemak & Minyak" },
+  { id: 10, nama: "Coklat Bubuk",     jumlah: 22,  satuan: "kg",    max: 50,  kategori: "Pemanis" },
+  { id: 11, nama: "Vanilla Essence",  jumlah: 40,  satuan: "botol", max: 80,  kategori: "Bumbu" },
+  { id: 12, nama: "Baking Powder",    jumlah: 5,   satuan: "pcs",   max: 30,  kategori: "Tepung & Kering" },
 ];
 
 const SHOW_OPTIONS = [5, 10, 25, 50];
 const HARI = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-
-function fmt(n: number) {
-  return "Rp " + n.toLocaleString("id-ID");
-}
 
 //  SVG ICONS 
 const IconBox = ({ size = 18, color = "currentColor" }) => (
@@ -551,7 +547,6 @@ export default function StockPage() {
                             { label:"Kategori",    col:"kategori" },
                             { label:"Jumlah",      col:"jumlah" },
                             { label:"Satuan",      col:"satuan" },
-                            { label:"Harga",       col:"harga" },
                             { label:"Status",      col:null },
                             ...(isAdmin ? [{ label:"Aksi", col:null }] : []),
                           ].map((h, i) => (
@@ -568,7 +563,7 @@ export default function StockPage() {
                       </thead>
                       <tbody>
                         {paginated.length === 0 ? (
-                          <tr><td colSpan={isAdmin ? 8 : 7} className="px-6 py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>
+                          <tr><td colSpan={isAdmin ? 7 : 6} className="px-6 py-12 text-center text-sm" style={{ color:"rgba(33,33,33,0.35)" }}>
                             Tidak ada barang ditemukan.
                           </td></tr>
                         ) : paginated.map((item, i) => (
@@ -594,7 +589,6 @@ export default function StockPage() {
                               </div>
                             </td>
                             <td className="px-6 py-4 text-xs font-medium" style={{ color:"rgba(33,33,33,0.55)" }}>{item.satuan}</td>
-                            <td className="px-6 py-4 text-xs font-semibold" style={{ color:"rgba(33,33,33,0.65)" }}>{fmt(item.harga)}</td>
                             <td className="px-6 py-4"><StatusBadge jumlah={item.jumlah} max={item.max} /></td>
                             {isAdmin && (
                               <td className="px-6 py-4">
@@ -630,7 +624,7 @@ export default function StockPage() {
                                 style={{ background: "rgba(42,31,8,0.08)", color: "#2a1f08" }}>
                                 {item.kategori}
                               </span>
-                              <p className="text-[11px] font-medium" style={{ color:"rgba(33,33,33,0.45)" }}>{item.satuan} · {fmt(item.harga)}</p>
+                              <p className="text-[11px] font-medium" style={{ color:"rgba(33,33,33,0.45)" }}>{item.satuan}</p>
                             </div>
                           </div>
                           <StatusBadge jumlah={item.jumlah} max={item.max} />
@@ -693,9 +687,6 @@ export default function StockPage() {
                             style={{ width: animIn ? `${Math.min((item.jumlah/item.max)*100,100)}%` : "0%", transitionDelay:`${i*40}ms` }}
                           />
                         </div>
-                        <p className="text-[11px] font-semibold mt-2" style={{ color:"rgba(33,33,33,0.55)" }}>
-                          {fmt(item.harga)} <span className="font-normal text-[10px]">/ {item.satuan}</span>
-                        </p>
                       </div>
 
                       {/* Actions */}

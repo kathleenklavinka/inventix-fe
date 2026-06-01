@@ -123,7 +123,7 @@ function FormField({
 
 export default function TambahStokPage() {
   const [mounted, setMounted] = useState(false);
-  const [form, setForm] = useState({ nama: "", jumlah: "", satuan: "kg", harga: "" });
+  const [form, setForm] = useState({ nama: "", jumlah: "", satuan: "kg" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -141,19 +141,12 @@ export default function TambahStokPage() {
     if (form.jumlah === "" || isNaN(Number(form.jumlah))) e.jumlah = "Jumlah wajib diisi dengan angka.";
     else if (Number(form.jumlah) < 0) e.jumlah = "Jumlah tidak boleh negatif.";
     if (!form.satuan) e.satuan = "Satuan wajib dipilih.";
-    if (form.harga === "" || isNaN(Number(form.harga.replace(/\D/g, "")))) e.harga = "Harga wajib diisi dengan angka.";
-    else if (Number(form.harga.replace(/\D/g, "")) <= 0) e.harga = "Harga harus lebih dari 0.";
     return e;
   }
 
   function handleChange(k: string, v: string) {
     setForm(f => ({ ...f, [k]: v }));
     if (errors[k]) setErrors(e => { const next = { ...e }; delete next[k]; return next; });
-  }
-
-  function handleHargaInput(v: string) {
-    const num = v.replace(/\D/g, "");
-    handleChange("harga", num ? Number(num).toLocaleString("id-ID") : "");
   }
 
   function handleSubmit() {
@@ -164,16 +157,14 @@ export default function TambahStokPage() {
   }
 
   function handleReset() {
-    setForm({ nama: "", jumlah: "", satuan: "kg", harga: "" });
+    setForm({ nama: "", jumlah: "", satuan: "kg" });
     setErrors({});
     setSuccess(false);
     setTimeout(() => namaRef.current?.focus(), 100);
   }
 
-  const hargaNum = Number(form.harga.replace(/\D/g, "")) || 0;
   const jumlahNum = Number(form.jumlah) || 0;
-  const totalVal = hargaNum * jumlahNum;
-  const isFormDirty = form.nama || form.jumlah || form.harga;
+  const isFormDirty = form.nama || form.jumlah;
 
   return (
     <>
@@ -392,17 +383,6 @@ export default function TambahStokPage() {
                             {SATUAN_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                           </select>
                         </FormField>
-
-                        {/* Harga */}
-                        <div className="sm:col-span-2">
-                          <FormField label="Harga Satuan" required hint="Harga per satuan barang dalam Rupiah" error={errors.harga}>
-                            <input className={`form-input${errors.harga ? " error" : ""}`}
-                              placeholder="cth: 12.000"
-                              value={form.harga}
-                              onChange={e => handleHargaInput(e.target.value)}
-                              inputMode="numeric" />
-                          </FormField>
-                        </div>
                       </div>
 
                       <div className="my-6" style={{ height: "1px", background: "rgba(140,110,60,0.10)" }} />
@@ -436,7 +416,7 @@ export default function TambahStokPage() {
                         <span className="font-semibold" style={{ color: "#2a1f08" }}>{form.nama}</span> berhasil disimpan ke sistem.
                       </p>
                       <p className="text-[11px] mb-7" style={{ color: "rgba(80,65,40,0.42)" }}>
-                        {jumlahNum} {form.satuan} · Rp {hargaNum.toLocaleString("id-ID")} / satuan
+                        {jumlahNum} {form.satuan}
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
                         <button className="btn-secondary" onClick={handleReset}>
@@ -484,7 +464,7 @@ export default function TambahStokPage() {
                         {form.nama || <span style={{ color: "rgba(80,65,40,0.30)" }}>Nama Barang…</span>}
                       </p>
                       <p className="text-[11px] font-medium" style={{ color: "rgba(80,65,40,0.50)" }}>
-                        {form.jumlah || "–"} {form.satuan} · {form.harga ? `Rp ${form.harga}` : "Rp –"}
+                        {form.jumlah || "–"} {form.satuan}
                       </p>
                       <div className="mt-3 w-full h-1.5 rounded-full overflow-hidden"
                         style={{ background: "rgba(140,110,60,0.18)" }}>
@@ -493,34 +473,8 @@ export default function TambahStokPage() {
                     </div>
                   </div>
 
-                  {/* Kalkulasi */}
-                  <div className="anim-fade-up d300 zoom-card border p-5"
-                    style={{ background: "rgba(255,255,255,0.55)", backdropFilter: "blur(22px)", borderColor: "rgba(140,110,60,0.10)", borderRadius: "18px", boxShadow: "0 8px 28px rgba(42,31,8,0.06)" }}>
-                    <h3 className="font-['Plus_Jakarta_Sans'] font-bold text-sm mb-4" style={{ color: "#2a1f08" }}>
-                      Kalkulasi Nilai
-                    </h3>
-                    <div className="space-y-2.5">
-                      {[
-                        { label: "Jumlah stok",  val: jumlahNum ? `${jumlahNum} ${form.satuan}` : "–" },
-                        { label: "Harga satuan", val: hargaNum ? `Rp ${hargaNum.toLocaleString("id-ID")}` : "–" },
-                      ].map((r, i) => (
-                        <div key={i} className="flex items-center justify-between">
-                          <span className="text-[11px] font-medium" style={{ color: "rgba(80,65,40,0.45)" }}>{r.label}</span>
-                          <span className="text-[11px] font-semibold" style={{ color: "#2a1f08" }}>{r.val}</span>
-                        </div>
-                      ))}
-                      <div className="my-2" style={{ height: "1px", background: "rgba(140,110,60,0.12)" }} />
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold" style={{ color: "#2a1f08" }}>Total Nilai Stok</span>
-                        <span className="font-['Plus_Jakarta_Sans'] font-black text-sm" style={{ color: "#2a1f08" }}>
-                          {totalVal ? `Rp ${totalVal.toLocaleString("id-ID")}` : "–"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Tips */}
-                  <div className="anim-fade-up d350 border p-4"
+                  <div className="anim-fade-up d300 border p-4"
                     style={{ background: "rgba(232,223,200,0.40)", borderColor: "rgba(140,110,60,0.22)", borderRadius: "14px" }}>
                     <p className="text-[10px] font-bold tracking-[0.06em] uppercase mb-2.5 flex items-center gap-1.5"
                       style={{ color: "rgba(80,65,40,0.50)" }}>
@@ -530,7 +484,7 @@ export default function TambahStokPage() {
                       {[
                         "Gunakan nama barang yang spesifik dan unik",
                         "Cek satuan sebelum menyimpan",
-                        "Harga per satuan, bukan total stok",
+                        "Pastikan jumlah stok sesuai kondisi fisik",
                       ].map((t, i) => (
                         <li key={i} className="text-[11px] font-medium flex items-start gap-1.5"
                           style={{ color: "rgba(80,65,40,0.55)" }}>
