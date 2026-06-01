@@ -1,5 +1,3 @@
-// lib/auth.ts
-
 export type UserRole = "owner" | "admin" | "user" | "supplier";
 
 export interface DummyUser {

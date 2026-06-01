@@ -1,10 +1,9 @@
-// lib/api.ts
 import Cookies from "js-cookie";
 import { COOKIE_TOKEN } from "./auth";
 
 export const API_BASE_URL = "https://api.stockinventix.cloud/api";
 
-// ── Role Mapping Helper ──
+// Role Mapping Helper 
 export type FrontendRole = "owner" | "admin" | "user" | "supplier";
 export type BackendRole = "OWNER" | "ADMIN" | "GUDANG" | "SUPPLIER" | "PEMBELI";
 
@@ -38,7 +37,7 @@ export function mapRoleToBackend(role: string): BackendRole {
   }
 }
 
-// ── Generic HTTP Request Wrapper ──
+//  Generic HTTP Request Wrapper 
 async function apiRequest<T>(
   method: string,
   path: string,
@@ -85,7 +84,7 @@ async function apiRequest<T>(
   }
 }
 
-// ── API Endpoint Functions ──
+//  API Endpoint Functions 
 
 export const api = {
   // Auth
