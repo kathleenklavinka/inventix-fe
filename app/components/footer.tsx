@@ -18,7 +18,6 @@ const footerCols = [
     title: "Manajemen",
     links: [
       { label: "Tambah Barang", href: "/stock/tambah" },
-      { label: "Tambah Penjualan", href: "/penjualan/tambah" },
       { label: "Tambah Supplier", href: "/supplier/tambah" },
       { label: "Manajemen User", href: "/user" },
     ],
