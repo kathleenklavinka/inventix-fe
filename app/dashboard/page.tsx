@@ -608,11 +608,6 @@ export default function Dashboard() {
                           Total: <span className="font-semibold text-[#212121]">Rp {totalPembelian.toFixed(1).replace(".", ",")}jt</span>
                         </p>
                       </div>
-                      <Link href="/laporan"
-                        className="text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all"
-                        style={{ color: "#92650a", background: "rgba(146,101,10,0.08)", border: "1px solid rgba(146,101,10,0.15)" }}>
-                        <IconArrowRight size={9} color="#92650a" /> Lihat Laporan
-                      </Link>
                     </div>
                     <div className="flex items-end gap-2 sm:gap-3.5" style={{ height: "120px" }}>
                       {pembelianChart.map((d, i) => {
