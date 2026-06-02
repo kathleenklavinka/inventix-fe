@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { COOKIE_TOKEN } from "./auth";
 
-export const API_BASE_URL = "https://api.stockinventix.cloud/api";
+export const API_BASE_URL = "http://localhost:5000/api";
 
 // Role Mapping Helper 
 export type FrontendRole = "owner" | "admin" | "user" | "supplier";
@@ -225,6 +225,72 @@ export const api = {
       return apiRequest<{ data: any[]; message: string }>("GET", `/laporan/pengeluaran${qs}`);
     },
     getSummary: () =>
-      apiRequest<{ data: any; message: string }>("GET", "/laporan/summary"),
+      apiRequest<{ data: any; message: string }>("GET", "/laporan/pengeluaran/summary"),
+    export: (params?: { format?: string; start_date?: string; end_date?: string; id_supplier?: number }) => {
+      let qs = "";
+      if (params?.format) qs += `?format=${params.format}`;
+      if (params?.start_date) qs += `${qs ? "&" : "?"}start_date=${params.start_date}`;
+      if (params?.end_date) qs += `${qs ? "&" : "?"}end_date=${params.end_date}`;
+      if (params?.id_supplier) qs += `${qs ? "&" : "?"}id_supplier=${params.id_supplier}`;
+      return apiRequest<any>("GET", `/laporan/pengeluaran/export${qs}`);
+    },
+  },
+
+  // Dashboard Summary & Analytics
+  dashboard: {
+    getSummary: () =>
+      apiRequest<{ data: any; message: string }>("GET", "/dashboard/summary"),
+    getTrenPengeluaran: (params?: { page?: number; limit?: number }) => {
+      let qs = "";
+      if (params?.page) qs += `?page=${params.page}`;
+      if (params?.limit) qs += `${qs ? "&" : "?"}limit=${params.limit}`;
+      return apiRequest<{ data: any; message: string }>("GET", `/dashboard/tren-pengeluaran${qs}`);
+    },
+    getStokRendah: () =>
+      apiRequest<{ data: any[]; message: string }>("GET", "/dashboard/stok-rendah"),
+    getKadaluarsa: () =>
+      apiRequest<{ data: any[]; message: string }>("GET", "/dashboard/kadaluarsa"),
+    getWasteSummary: () =>
+      apiRequest<{ data: any; message: string }>("GET", "/dashboard/waste-summary"),
+  },
+
+  // Notifikasi
+  notifikasi: {
+    getAll: (params?: { page?: number; limit?: number; is_read?: boolean; jenis?: string }) => {
+      let qs = "";
+      if (params?.page) qs += `?page=${params.page}`;
+      if (params?.limit) qs += `${qs ? "&" : "?"}limit=${params.limit}`;
+      if (params?.is_read !== undefined) qs += `${qs ? "&" : "?"}is_read=${params.is_read}`;
+      if (params?.jenis) qs += `${qs ? "&" : "?"}jenis=${params.jenis}`;
+      return apiRequest<{ data: any[]; pagination: any; message: string }>("GET", `/notifikasi${qs}`);
+    },
+    read: (id: number) =>
+      apiRequest<{ data: any; message: string }>("PATCH", `/notifikasi/${id}/read`),
+    readAll: () =>
+      apiRequest<{ message: string }>("PATCH", "/notifikasi/read-all"),
+    check: () =>
+      apiRequest<{ message: string }>("POST", "/notifikasi/check"),
+  },
+
+  // Waste
+  waste: {
+    create: (body: { id_barang: number; jumlah_terbuang: number; keterangan?: string }) =>
+      apiRequest<{ data: any; message: string }>("POST", "/waste", body),
+    getAll: (params?: { page?: number; limit?: number; search?: string; start_date?: string; end_date?: string }) => {
+      let qs = "";
+      if (params?.page) qs += `?page=${params.page}`;
+      if (params?.limit) qs += `${qs ? "&" : "?"}limit=${params.limit}`;
+      if (params?.search) qs += `${qs ? "&" : "?"}search=${params.search}`;
+      if (params?.start_date) qs += `${qs ? "&" : "?"}start_date=${params.start_date}`;
+      if (params?.end_date) qs += `${qs ? "&" : "?"}end_date=${params.end_date}`;
+      return apiRequest<{ data: any[]; pagination: any; message: string }>("GET", `/waste${qs}`);
+    },
+    export: (params?: { format?: string; start_date?: string; end_date?: string }) => {
+      let qs = "";
+      if (params?.format) qs += `?format=${params.format}`;
+      if (params?.start_date) qs += `${qs ? "&" : "?"}start_date=${params.start_date}`;
+      if (params?.end_date) qs += `${qs ? "&" : "?"}end_date=${params.end_date}`;
+      return apiRequest<any>("GET", `/waste/export${qs}`);
+    },
   },
 };
