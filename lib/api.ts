@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { COOKIE_TOKEN } from "./auth";
 
-export const API_BASE_URL = "http://localhost:5000/api";
+export const API_BASE_URL = "https://api.stockinventix.cloud/api";
 
 // Role Mapping Helper 
 export type FrontendRole = "owner" | "admin" | "user" | "supplier";
