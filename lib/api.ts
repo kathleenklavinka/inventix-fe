@@ -131,6 +131,15 @@ export const api = {
       apiRequest<{ data: any; message: string }>("PUT", `/stok/${id}`, body),
     delete: (id: number) =>
       apiRequest<{ message: string }>("DELETE", `/stok/${id}`),
+    // Waste management — mark expired stock as waste
+    markAsWaste: (id: number) =>
+      apiRequest<{ data: any; message: string }>("PUT", `/stok/${id}`, {
+        status: "waste",
+        keterangan: "Ditandai sebagai limbah karena kedaluwarsa",
+      }),
+    // Fetch only expired items (backend filtered)
+    getExpired: () =>
+      apiRequest<{ data: any[]; message: string }>("GET", "/stok?status=expired"),
   },
 
   // Klasifikasi Stok
@@ -173,6 +182,26 @@ export const api = {
       apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, body),
     delete: (id: number) =>
       apiRequest<{ message: string }>("DELETE", `/purchase-order/${id}`),
+    // Owner approval workflow
+    approve: (id: number) =>
+      apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, {
+        status_owner: "DISETUJUI",
+        status: "approved",
+      }),
+    reject: (id: number) =>
+      apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, {
+        status_owner: "DITOLAK",
+        status: "rejected",
+      }),
+    // Supplier confirmation (updates stock automatically on backend)
+    supplierConfirm: (id: number) =>
+      apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, {
+        status_supplier: "DIKONFIRMASI",
+      }),
+    supplierReject: (id: number) =>
+      apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, {
+        status_supplier: "DITOLAK",
+      }),
   },
 
   // Pembelian Transaksi (Stock Transactions)
@@ -195,5 +224,17 @@ export const api = {
       apiRequest<{ data: any[]; message: string }>("GET", "/riwayat-aktivitas"),
     getById: (id: number) =>
       apiRequest<{ data: any; message: string }>("GET", `/riwayat-aktivitas/${id}`),
+  },
+
+  // Laporan Pengeluaran (Owner only)
+  laporan: {
+    getPengeluaran: (params?: { from?: string; to?: string }) => {
+      let qs = "";
+      if (params?.from) qs += `?from=${params.from}`;
+      if (params?.to)   qs += `${qs ? "&" : "?"}to=${params.to}`;
+      return apiRequest<{ data: any[]; message: string }>("GET", `/laporan/pengeluaran${qs}`);
+    },
+    getSummary: () =>
+      apiRequest<{ data: any; message: string }>("GET", "/laporan/summary"),
   },
 };

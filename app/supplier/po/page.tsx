@@ -59,6 +59,7 @@ function POPageInner() {
   const [toast,   setToast]   = useState<{ msg: string; type: "success"|"error" } | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [routingBanner, setRoutingBanner] = useState<"direct" | "approval" | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   // Form fields
@@ -192,6 +193,8 @@ function POPageInner() {
       
       await api.purchaseOrder.create(payload);
       setSubmitted(true);
+      // ── PO routing decision: auto-route if < 500k, else escalate to Owner ──
+      setRoutingBanner(total < 500_000 ? "direct" : "approval");
       setToast({ msg: `PO ${noPO} berhasil dibuat!`, type:"success" });
     } catch (err: any) {
       setToast({ msg: err.message || "Gagal mengirim PO ke server.", type: "error" });
@@ -541,7 +544,7 @@ function POPageInner() {
                 </div>
 
                 {/* Actions */}
-                <div className="po-fade-up d5 no-print flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 pb-6">
+                <div className="po-fade-up d5 no-print flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 pb-2">
                   <Link href="/supplier">
                     <button className="btn-outline">Kembali</button>
                   </Link>
@@ -576,6 +579,48 @@ function POPageInner() {
                     )}
                   </div>
                 </div>
+
+                {/* ── PO Routing Decision Banner ── */}
+                {routingBanner === "direct" && (
+                  <div className="po-fade-up" style={{ background:"linear-gradient(135deg,#d1fae5,#a7f3d0)", border:"1.5px solid #6ee7b7", borderRadius:16, padding:"16px 20px", display:"flex", alignItems:"flex-start", gap:14 }}>
+                    <div style={{ width:40, height:40, borderRadius:12, background:"rgba(255,255,255,0.70)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>
+                      ✅
+                    </div>
+                    <div>
+                      <p style={{ fontSize:13, fontWeight:800, color:"#064e3b", margin:"0 0 4px", fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                        PO Langsung Diteruskan ke Supplier
+                      </p>
+                      <p style={{ fontSize:11, color:"rgba(6,78,59,0.70)", margin:"0 0 6px", lineHeight:1.65 }}>
+                        Nilai PO ini <strong>{formatRupiah(total)}</strong> berada di bawah batas Rp 500.000, sehingga PO otomatis diteruskan ke supplier <strong>{supplierNama || "yang dipilih"}</strong> tanpa memerlukan persetujuan Owner.
+                      </p>
+                      <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:10, fontWeight:700, color:"rgba(6,78,59,0.55)" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Supplier akan mendapat notifikasi untuk mengkonfirmasi PO ini
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {routingBanner === "approval" && (
+                  <div className="po-fade-up" style={{ background:"linear-gradient(135deg,#fffbeb,#fef3c7)", border:"1.5px solid #fcd34d", borderRadius:16, padding:"16px 20px", display:"flex", alignItems:"flex-start", gap:14 }}>
+                    <div style={{ width:40, height:40, borderRadius:12, background:"rgba(255,255,255,0.70)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>
+                      ⏳
+                    </div>
+                    <div>
+                      <p style={{ fontSize:13, fontWeight:800, color:"#92400e", margin:"0 0 4px", fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+                        Menunggu Persetujuan Owner
+                      </p>
+                      <p style={{ fontSize:11, color:"rgba(146,64,14,0.75)", margin:"0 0 6px", lineHeight:1.65 }}>
+                        Nilai PO <strong>{formatRupiah(total)}</strong> melebihi batas Rp 500.000. PO ini memerlukan persetujuan Owner sebelum diteruskan ke supplier <strong>{supplierNama || "yang dipilih"}</strong>.
+                      </p>
+                      <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:10, fontWeight:700, color:"rgba(146,64,14,0.55)" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Notifikasi persetujuan sudah dikirim ke Owner — pantau status di halaman Notifikasi
+                      </div>
+                    </div>
+                  </div>
+                )}
+
 
               </div>
             </Inner>

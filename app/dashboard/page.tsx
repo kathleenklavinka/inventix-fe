@@ -18,13 +18,10 @@ const IconBox = ({ size = 20, color = "currentColor" }) => (
   </svg>
 );
 
-const IconReceipt = ({ size = 20, color = "currentColor" }) => (
+const IconShoppingCart = ({ size = 20, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/>
-    <line x1="16" y1="13" x2="8" y2="13"/>
-    <line x1="16" y1="17" x2="8" y2="17"/>
-    <polyline points="10 9 9 9 8 9"/>
+    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
   </svg>
 );
 
@@ -59,10 +56,13 @@ const IconEdit = ({ size = 14, color = "currentColor" }) => (
   </svg>
 );
 
-const IconSale = ({ size = 14, color = "currentColor" }) => (
+const IconPO = ({ size = 14, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="1" x2="12" y2="23"/>
-    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+    <line x1="16" y1="17" x2="8" y2="17"/>
+    <polyline points="10 9 9 9 8 9"/>
   </svg>
 );
 
@@ -122,14 +122,14 @@ const IconCheck = ({ size = 10, color = "currentColor" }) => (
 
 const CARD_ICONS = [
   <IconBox size={20} color="#2a3a52" />,
-  <IconReceipt size={20} color="#2d6a3f" />,
+  <IconShoppingCart size={20} color="#2d6a3f" />,
   <IconFactory size={20} color="#7a6a10" />,
   <IconUsers size={20} color="#2a3a52" />,
 ];
 
 const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
   edit:     <IconEdit size={14} color="#7a6a10" />,
-  sale:     <IconSale size={14} color="#2d6a3f" />,
+  po:       <IconPO size={14} color="#2d6a3f" />,
   supplier: <IconSupplier size={14} color="#2a3a52" />,
   user:     <IconUserPlus size={14} color="#2a3a52" />,
   warning:  <IconWarning size={14} color="#dc2626" />,
@@ -187,20 +187,20 @@ export default function Dashboard() {
 
   const [user, setUser] = useState({ nama: "Memuat...", role: "...", initials: "??" });
   const [summaryCards, setSummaryCards] = useState<any[]>([
-    { label: "Total Item Stok",    value: "0",      trend: "memuat...",  trendUp: null,  bg: "#D8DFE9", progress: 0 },
-    { label: "Penjualan Hari Ini", value: "Rp 0",   trend: "memuat...",  trendUp: null,  bg: "#CFDECA", progress: 0 },
-    { label: "Jumlah Supplier",    value: "0",      trend: "memuat...",  trendUp: null,  bg: "#EFF0A3", progress: 0 },
-    { label: "Jumlah User",        value: "0",      trend: "memuat...",  trendUp: null,  bg: "#D8DFE9", progress: 0 },
+    { label: "Total Item Stok",  value: "0",    trend: "memuat...", trendUp: null, bg: "#D8DFE9", progress: 0 },
+    { label: "Total Pembelian",  value: "Rp 0", trend: "memuat...", trendUp: null, bg: "#CFDECA", progress: 0 },
+    { label: "Jumlah Supplier",  value: "0",    trend: "memuat...", trendUp: null, bg: "#EFF0A3", progress: 0 },
+    { label: "Jumlah User",      value: "0",    trend: "memuat...", trendUp: null, bg: "#D8DFE9", progress: 0 },
   ]);
 
   const [stokTerbaru, setStokTerbaru] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
-  const [salesChart, setSalesChart] = useState<any[]>([]);
-  const [topBarang, setTopBarang] = useState<any[]>([]);
-  
-  const adaStokHabis = stokTerbaru.some(item => item.jumlah === 0);
-  const totalPenjualan = salesChart.reduce((a, b) => a + b.val, 0);
-  const maxVal = Math.max(...salesChart.map(d => d.val), 1);
+  const [pembelianChart, setPembelianChart] = useState<any[]>([]);
+  const [topPembelian, setTopPembelian] = useState<any[]>([]);
+
+  const adaStokHabis   = stokTerbaru.some(item => item.jumlah === 0);
+  const totalPembelian = pembelianChart.reduce((a, b) => a + b.val, 0);
+  const maxVal         = Math.max(...pembelianChart.map(d => d.val), 1);
 
   const loadDashboardData = async () => {
     try {
@@ -210,185 +210,170 @@ export default function Dashboard() {
       setUser({
         nama: profile.nama || "User",
         role: fRole.charAt(0).toUpperCase() + fRole.slice(1),
-        initials: profile.nama ? profile.nama.split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? "").join("") : "??"
+        initials: profile.nama
+          ? profile.nama.split(" ").slice(0, 2).map((w: string) => w[0]?.toUpperCase() ?? "").join("")
+          : "??",
       });
 
-      // Load other datasets
-      const [resStok, resSupplier, resAkun, resTrans, resAktivitas] = await Promise.all([
+      // Load all required datasets in parallel
+      const [resStok, resSupplier, resAkun, resPO, resAktivitas] = await Promise.all([
         api.stok.getAll().catch(() => ({ data: [] })),
         api.supplier.getAll().catch(() => ({ data: [] })),
         api.akun.getAll().catch(() => ({ data: [] })),
-        api.pembelianTransaksi.getAll().catch(() => ({ data: [] })),
+        api.purchaseOrder.getAll().catch(() => ({ data: [] })),
         api.riwayatAktivitas.getAll().catch(() => ({ data: [] })),
       ]);
 
-      // 1. summary cards
-      const totalStok = resStok.data.length;
+      // ── 1. Summary cards ──
+      const totalStok     = resStok.data.length;
       const totalSupplier = resSupplier.data.length;
-      const totalAkun = resAkun.data.length;
+      const totalAkun     = resAkun.data.length;
 
-      // calculate sales today
-      const todayString = new Date().toDateString();
-      let salesToday = 0;
-      let salesYesterday = 0;
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayString = yesterday.toDateString();
+      // Aggregate PO spending for current month
+      const thisMonth = new Date().getMonth();
+      const thisYear  = new Date().getFullYear();
+      let totalPembelianBulanIni = 0;
+      let totalPembelianAll      = 0;
 
-      resTrans.data.forEach((item: any) => {
-        const itemVal = item.jumlah * (item.stok?.harga || 15000);
-        const itemDateStr = new Date(item.dibuat_pada).toDateString();
-        if (item.jenis === "keluar") {
-          if (itemDateStr === todayString) {
-            salesToday += itemVal;
-          } else if (itemDateStr === yesterdayString) {
-            salesYesterday += itemVal;
-          }
+      resPO.data.forEach((po: any) => {
+        const nilai   = Number(po.total_nilai ?? po.total ?? po.nilai ?? 0);
+        totalPembelianAll += nilai;
+        const poDate = new Date(po.tanggal_po || po.dibuat_pada || "");
+        if (poDate.getMonth() === thisMonth && poDate.getFullYear() === thisYear) {
+          totalPembelianBulanIni += nilai;
         }
       });
 
-      const salesTodayFormatted = salesToday > 1000000
-        ? `Rp ${(salesToday / 1000000).toFixed(1).replace(".", ",")}jt`
-        : `Rp ${salesToday.toLocaleString("id-ID")}`;
-
-      const saleTrendUp = salesToday >= salesYesterday;
-      const salePercentDiff = salesYesterday > 0
-        ? Math.round((Math.abs(salesToday - salesYesterday) / salesYesterday) * 100)
-        : 0;
+      const pembelianFormatted = totalPembelianBulanIni > 1_000_000
+        ? `Rp ${(totalPembelianBulanIni / 1_000_000).toFixed(1).replace(".", ",")}jt`
+        : `Rp ${totalPembelianBulanIni.toLocaleString("id-ID")}`;
 
       setSummaryCards([
         {
-          label: "Total Item Stok",
-          value: String(totalStok),
-          trend: `naik ${Math.min(4, totalStok)} item minggu ini`,
+          label:   "Total Item Stok",
+          value:   String(totalStok),
+          trend:   `naik ${Math.min(4, totalStok)} item minggu ini`,
           trendUp: true,
-          bg: "#D8DFE9",
-          progress: Math.min(100, Math.round((totalStok / 150) * 100))
+          bg:      "#D8DFE9",
+          progress: Math.min(100, Math.round((totalStok / 150) * 100)),
         },
         {
-          label: "Penjualan Hari Ini",
-          value: salesTodayFormatted,
-          trend: salePercentDiff > 0 ? `${salePercentDiff}% vs kemarin` : "sama seperti kemarin",
-          trendUp: salesToday === salesYesterday ? null : saleTrendUp,
-          bg: "#CFDECA",
-          progress: Math.min(100, Math.round((salesToday / 5000000) * 100))
+          label:   "Total Pembelian",
+          value:   pembelianFormatted,
+          trend:   `bulan ini · ${resPO.data.length} PO total`,
+          trendUp: totalPembelianBulanIni > 0 ? true : null,
+          bg:      "#CFDECA",
+          progress: Math.min(100, Math.round((totalPembelianBulanIni / 10_000_000) * 100)),
         },
         {
-          label: "Jumlah Supplier",
-          value: String(totalSupplier),
-          trend: "mitra aktif terdaftar",
+          label:   "Jumlah Supplier",
+          value:   String(totalSupplier),
+          trend:   "mitra aktif terdaftar",
           trendUp: null,
-          bg: "#EFF0A3",
-          progress: Math.min(100, Math.round((totalSupplier / 25) * 100))
+          bg:      "#EFF0A3",
+          progress: Math.min(100, Math.round((totalSupplier / 25) * 100)),
         },
         {
-          label: "Jumlah User",
-          value: String(totalAkun),
-          trend: "akses gudang & admin",
+          label:   "Jumlah User",
+          value:   String(totalAkun),
+          trend:   "akses gudang & admin",
           trendUp: true,
-          bg: "#D8DFE9",
-          progress: Math.min(100, Math.round((totalAkun / 10) * 100))
+          bg:      "#D8DFE9",
+          progress: Math.min(100, Math.round((totalAkun / 10) * 100)),
         },
       ]);
 
-      // 2. stok terbaru (tabel)
+      // ── 2. Stok terbaru (table) ──
       const formattedStok = resStok.data.slice(0, 5).map((item: any) => ({
-        nama: item.nama,
+        nama:   item.nama,
         jumlah: item.jumlah_saat_ini,
         satuan: item.satuan || "pcs",
-        harga: item.harga ? `Rp ${item.harga.toLocaleString("id-ID")}` : "Rp 15.000",
-        max: Math.max(item.jumlah_saat_ini * 2, 100)
+        harga:  item.harga ? `Rp ${item.harga.toLocaleString("id-ID")}` : "Rp 15.000",
+        max:    Math.max(item.jumlah_saat_ini * 2, 100),
       }));
       setStokTerbaru(formattedStok);
 
-      // 3. recent activity feed
+      // ── 3. Recent activity feed ──
       const formattedActivity = resAktivitas.data.slice(0, 5).map((item: any) => {
         const t = item.nama_tabel?.toLowerCase();
         const a = item.aksi?.toLowerCase();
-        let type = "edit";
+        let type  = "edit";
         let color = "#D8DFE9";
 
         if (a === "hapus") {
-          type = "warning";
-          color = "#fee2e2";
+          type = "warning"; color = "#fee2e2";
         } else if (t === "stok") {
-          type = "edit";
-          color = "#EFF0A3";
-        } else if (t === "pembeliantransaksi" || t === "pembelian_transaksi") {
-          type = "sale";
-          color = "#CFDECA";
+          type = "edit";   color = "#EFF0A3";
+        } else if (t === "purchaseorder" || t === "purchase_order") {
+          type = "po";     color = "#CFDECA";
         } else if (t === "supplier") {
-          type = "supplier";
-          color = "#D8DFE9";
+          type = "supplier"; color = "#D8DFE9";
         } else if (t === "akun") {
-          type = "user";
-          color = "#D8DFE9";
+          type = "user";   color = "#D8DFE9";
         }
 
         return {
           action: formatActivityAction(item.nama_tabel, item.aksi),
-          time: formatTimeAgo(item.dilakukan_pada),
+          time:   formatTimeAgo(item.dilakukan_pada),
           color,
-          type
+          type,
         };
       });
       setRecentActivity(formattedActivity);
 
-      // 4. sales chart (last 7 days)
+      // ── 4. Pembelian chart (last 7 days from PO tanggal_po) ──
       const DAYS_ABBR = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
       const chartData = [];
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dayName = DAYS_ABBR[d.getDay()];
+        const dayName   = DAYS_ABBR[d.getDay()];
         const dayString = d.toDateString();
-
         let dayTotal = 0;
-        resTrans.data.forEach((item: any) => {
-          if (item.jenis === "keluar" && new Date(item.dibuat_pada).toDateString() === dayString) {
-            dayTotal += item.jumlah * (item.stok?.harga || 15000);
+
+        resPO.data.forEach((po: any) => {
+          const poDate = new Date(po.tanggal_po || po.dibuat_pada || "");
+          if (poDate.toDateString() === dayString) {
+            dayTotal += Number(po.total_nilai ?? po.total ?? po.nilai ?? 0);
           }
         });
 
         chartData.push({
           day: dayName,
-          val: parseFloat((dayTotal / 1000000).toFixed(1)),
+          val: parseFloat((dayTotal / 1_000_000).toFixed(1)),
         });
       }
-      setSalesChart(chartData);
+      setPembelianChart(chartData);
 
-      // 5. top barang terjual
-      const itemSales: Record<string, { nama: string; terjual: number; satuan: string }> = {};
-      resTrans.data.forEach((item: any) => {
-        if (item.jenis === "keluar" && item.stok) {
-          const name = item.stok.nama;
-          if (!itemSales[name]) {
-            itemSales[name] = { nama: name, terjual: 0, satuan: item.stok.satuan || "pcs" };
+      // ── 5. Top barang dibeli (aggregated from detail_po) ──
+      const itemBeli: Record<string, { nama: string; terjual: number; satuan: string }> = {};
+      resPO.data.forEach((po: any) => {
+        (po.detail_po || []).forEach((detail: any) => {
+          const name = detail.stok?.nama || detail.nama_barang || "Barang";
+          const qty  = Number(detail.jumlah_dipesan || detail.qty || 0);
+          const sat  = detail.stok?.satuan || detail.satuan || "pcs";
+          if (!itemBeli[name]) {
+            itemBeli[name] = { nama: name, terjual: 0, satuan: sat };
           }
-          itemSales[name].terjual += item.jumlah;
-        }
+          itemBeli[name].terjual += qty;
+        });
       });
-      const sortedTop = Object.values(itemSales)
-        .sort((a, b) => b.terjual - a.terjual)
-        .slice(0, 4);
 
-      const maxTerjual = sortedTop[0]?.terjual || 1;
-      const mappedTopBarang = sortedTop.map(item => ({
+      const sortedTop   = Object.values(itemBeli).sort((a, b) => b.terjual - a.terjual).slice(0, 4);
+      const maxTerjual  = sortedTop[0]?.terjual || 1;
+      const mappedTop   = sortedTop.map(item => ({
         ...item,
         pct: Math.round((item.terjual / maxTerjual) * 100),
       }));
 
-      // fallback top barang if transactions are empty
-      if (mappedTopBarang.length === 0) {
-        setTopBarang([
-          { nama: "Kopi Arabika",  terjual: 0,  satuan: "kg",  pct: 0 },
-          { nama: "Susu UHT",      terjual: 0,  satuan: "pcs", pct: 0 },
-          { nama: "Gula Pasir",    terjual: 0,  satuan: "kg",  pct: 0 },
-        ]);
-      } else {
-        setTopBarang(mappedTopBarang);
-      }
-      
+      setTopPembelian(
+        mappedTop.length > 0
+          ? mappedTop
+          : [
+              { nama: "Belum ada pembelian", terjual: 0, satuan: "pcs", pct: 0 },
+            ]
+      );
+
     } catch (err) {
       console.error("Gagal memuat data dashboard:", err);
     } finally {
@@ -598,40 +583,42 @@ export default function Dashboard() {
             </Inner>
           </section>
 
-          {/* CHART + ACTIVITY */}
+          {/* CHART + ACTIVITY — now "Pembelian & Aktivitas" */}
           <section className="w-full relative overflow-hidden py-10 sm:py-12" style={{ background: "#edf5f0" }}>
-            <div className="absolute -top-10 -left-10 w-[500px] h-[500px] rounded-full pointer-events-none blob" style={{ background: "#7ecb8f", opacity: 0.22, filter: "blur(70px)" }} />
-            <div className="absolute -top-10 right-0 w-[360px] h-[360px] rounded-full pointer-events-none blob3" style={{ background: "#a8c4d8", opacity: 0.20, filter: "blur(55px)" }} />
-            <div className="absolute bottom-0 left-1/2 w-[340px] h-[280px] rounded-full pointer-events-none blob2" style={{ background: "#6db8d4", opacity: 0.15, filter: "blur(60px)" }} />
+            <div className="absolute -top-10 -left-10 w-[500px] h-[500px] rounded-full pointer-events-none blob"  style={{ background: "#7ecb8f", opacity: 0.22, filter: "blur(70px)" }} />
+            <div className="absolute -top-10 right-0   w-[360px] h-[360px] rounded-full pointer-events-none blob3" style={{ background: "#a8c4d8", opacity: 0.20, filter: "blur(55px)" }} />
+            <div className="absolute bottom-0 left-1/2  w-[340px] h-[280px] rounded-full pointer-events-none blob2" style={{ background: "#6db8d4", opacity: 0.15, filter: "blur(60px)" }} />
 
             <Inner className="relative z-10">
               <p className="anim-fade-up d200 text-[10px] sm:text-[11px] font-bold tracking-[0.16em] uppercase mb-6" style={{ color: "rgba(33,33,33,0.38)" }}>
-                Penjualan & Aktivitas
+                Pembelian &amp; Aktivitas
               </p>
               {loading ? (
-                <div className="text-center py-10 text-sm text-[rgba(33,33,33,0.38)] font-semibold">Memuat chart & aktivitas terbaru...</div>
+                <div className="text-center py-10 text-sm text-[rgba(33,33,33,0.38)] font-semibold">Memuat chart &amp; aktivitas terbaru...</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
 
-                  {/* Bar Chart */}
+                  {/* Bar Chart — Pembelian 7 Hari */}
                   <div className="anim-fade-up d300 sm:col-span-3 zoom-card p-5 sm:p-7 border"
                     style={{ background: "rgba(255,255,255,0.42)", backdropFilter: "blur(22px)", borderColor: "rgba(255,255,255,0.85)", borderRadius: "18px", boxShadow: "0 8px 32px rgba(33,33,33,0.08), inset 0 1px 0 rgba(255,255,255,0.95)" }}>
                     <div className="flex items-start justify-between mb-6">
                       <div>
-                        <h2 className="font-['Plus_Jakarta_Sans'] font-bold text-sm sm:text-[15px] text-[#212121]">Penjualan 7 Hari</h2>
+                        <h2 className="font-['Plus_Jakarta_Sans'] font-bold text-sm sm:text-[15px] text-[#212121]">Pembelian Barang 7 Hari</h2>
                         <p className="text-[11px] mt-0.5" style={{ color: "rgba(33,33,33,0.38)" }}>
-                          Total: <span className="font-semibold text-[#212121]">Rp {totalPenjualan.toFixed(1).replace(".", ",")}jt</span>
+                          Total: <span className="font-semibold text-[#212121]">Rp {totalPembelian.toFixed(1).replace(".", ",")}jt</span>
                         </p>
                       </div>
-                      <span className="text-[10px] sm:text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-xl flex items-center gap-1">
-                        <IconTrendUp size={10} color="#059669" /> +18%
-                      </span>
+                      <Link href="/laporan"
+                        className="text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-xl flex items-center gap-1 transition-all"
+                        style={{ color: "#92650a", background: "rgba(146,101,10,0.08)", border: "1px solid rgba(146,101,10,0.15)" }}>
+                        <IconArrowRight size={9} color="#92650a" /> Lihat Laporan
+                      </Link>
                     </div>
                     <div className="flex items-end gap-2 sm:gap-3.5" style={{ height: "120px" }}>
-                      {salesChart.map((d, i) => {
+                      {pembelianChart.map((d, i) => {
                         const heightPct = (d.val / maxVal) * 100;
                         const isHovered = hoveredBar === i;
-                        const isToday = i === salesChart.length - 1;
+                        const isToday   = i === pembelianChart.length - 1;
                         return (
                           <div key={i} className="flex-1 flex flex-col items-center gap-2 cursor-pointer group bar-wrap"
                             onMouseEnter={() => setHoveredBar(i)}
@@ -642,7 +629,7 @@ export default function Dashboard() {
                             <div className="w-full flex items-end rounded-t-xl overflow-hidden" style={{ height: "86px" }}>
                               <div className="w-full rounded-t-xl bar-col"
                                 style={{
-                                  height: animCards ? `${heightPct}%` : "4%",
+                                  height: animCards ? `${Math.max(heightPct, 2)}%` : "2%",
                                   transitionDelay: `${i * 60}ms`,
                                   background: isToday ? "#212121" : isHovered ? "rgba(33,33,33,0.30)" : "rgba(216,223,233,0.7)",
                                 }} />
@@ -688,23 +675,30 @@ export default function Dashboard() {
             </Inner>
           </section>
 
-          {/* TOP BARANG + STOK */}
+          {/* TOP BARANG DIBELI + STOK */}
           <section className="w-full relative overflow-hidden py-10 sm:py-12" style={{ background: "#FFFFFF" }}>
             <Inner className="relative z-10">
               <p className="anim-fade-up d300 text-[10px] sm:text-[11px] font-bold tracking-[0.16em] uppercase mb-6" style={{ color: "rgba(33,33,33,0.32)" }}>
-                Stok & Penjualan
+                Stok &amp; Pembelian
               </p>
               {loading ? (
                 <div className="text-center py-10 text-sm text-[rgba(33,33,33,0.38)] font-semibold">Memuat stok barang...</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
 
-                  {/* Top Barang */}
+                  {/* Top Barang Dibeli */}
                   <div className="anim-fade-up d350 sm:col-span-2 zoom-card p-5 sm:p-6 border"
                     style={{ background: "rgba(255,255,255,0.42)", backdropFilter: "blur(22px)", borderColor: "rgba(255,255,255,0.88)", borderRadius: "18px", boxShadow: "0 8px 32px rgba(33,33,33,0.07), inset 0 1px 0 rgba(255,255,255,0.95)" }}>
-                    <h2 className="font-['Plus_Jakarta_Sans'] font-bold text-sm sm:text-[15px] text-[#212121] mb-5">Top Barang Terjual</h2>
+                    <div className="flex items-center justify-between mb-5">
+                      <h2 className="font-['Plus_Jakarta_Sans'] font-bold text-sm sm:text-[15px] text-[#212121]">Top Barang Dibeli</h2>
+                      <Link href="/supplier/po"
+                        className="text-[10px] font-bold flex items-center gap-1 transition-colors"
+                        style={{ color: "rgba(33,33,33,0.32)" }}>
+                        + Buat PO <IconArrowRight size={9} color="rgba(33,33,33,0.32)" />
+                      </Link>
+                    </div>
                     <div className="space-y-4">
-                      {topBarang.map((item, i) => (
+                      {topPembelian.map((item, i) => (
                         <div key={i} className="space-y-1.5">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
@@ -813,7 +807,7 @@ export default function Dashboard() {
                   {[
                     { val: "99.8%", label: "Uptime sistem",      danger: false },
                     { val: "0.2s",  label: "Avg response",        danger: false },
-                    { val: `${salesChart[salesChart.length-1]?.val > 0 ? "Aktif" : "Normal"}`, label: "Aktivitas hari ini",  danger: false },
+                    { val: `${pembelianChart[pembelianChart.length - 1]?.val > 0 ? "Aktif" : "Normal"}`, label: "Pembelian hari ini", danger: false },
                     { val: `${stokTerbaru.filter(d => d.jumlah === 0).length}`, label: "Stok habis", danger: stokTerbaru.some(d => d.jumlah === 0) },
                   ].map((stat, i) => (
                     <div key={i} className="flex items-center gap-4 sm:gap-8">

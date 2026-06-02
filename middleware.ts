@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const ROLE_ROUTES: Record<string, string[]> = {
-  owner:    ["/dashboard", "/stock", "/penjualan", "/supplier", "/user"],
-  admin:    ["/dashboard", "/stock", "/penjualan", "/supplier", "/user"],
-  user:     ["/dashboard", "/stock"],
+  owner:    ["/dashboard", "/stock", "/penjualan", "/supplier", "/user", "/notification", "/laporan", "/profile"],
+  admin:    ["/dashboard", "/stock", "/penjualan", "/supplier", "/user", "/notification", "/profile"],
+  user:     ["/dashboard", "/stock", "/notification", "/profile"],
   supplier: ["/supplier/portal"],
 };
 
@@ -39,5 +39,8 @@ export const config = {
     "/penjualan/:path*",
     "/supplier/portal/:path*",
     "/user/:path*",
+    "/notification/:path*",
+    "/laporan/:path*",
+    "/profile/:path*",
   ],
 };

@@ -4,10 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import Cookies from "js-cookie";
+import { COOKIE_ROLE, COOKIE_NAME } from "@/lib/auth";
 
-const navItems = [
+const NAV_ITEMS = [
   { label: "Stock",     href: "/stock"     },
-  { label: "Laporan", href: "/laporan" },
+  { label: "Laporan",   href: "/laporan"   },
   { label: "Supplier",  href: "/supplier"  },
   { label: "User",      href: "/user"      },
 ];
@@ -21,12 +23,37 @@ export default function Header({
   userInitials = "AR",
   hasNotification = false,
 }: HeaderProps) {
-  const pathname  = usePathname();
-  const router    = useRouter();
-  const [isScrolled,    setIsScrolled]    = useState(false);
-  const [openMenu,      setOpenMenu]      = useState(false);
-  const [openProfile,   setOpenProfile]   = useState(false);
+  const pathname   = usePathname();
+  const router     = useRouter();
+  const [isScrolled,  setIsScrolled]  = useState(false);
+  const [openMenu,    setOpenMenu]    = useState(false);
+  const [openProfile, setOpenProfile] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  // Read role & name from cookies (client-side only)
+  const [userRole, setUserRole]   = useState<string>("");
+  const [userName, setUserName]   = useState<string>("User");
+  const [initials, setInitials]   = useState<string>(userInitials);
+
+  useEffect(() => {
+    const role = Cookies.get(COOKIE_ROLE) || "";
+    const name = Cookies.get(COOKIE_NAME) ? decodeURIComponent(Cookies.get(COOKIE_NAME)!) : "";
+    setUserRole(role);
+    if (name) {
+      setUserName(name);
+      const computed = name.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("");
+      setInitials(computed || userInitials);
+    }
+  }, [userInitials]);
+
+  // Derive role label
+  const roleLabel = userRole === "owner"    ? "Owner"
+    : userRole === "admin"    ? "Admin"
+    : userRole === "user"     ? "Gudang"
+    : userRole === "supplier" ? "Supplier"
+    : "User";
+
+  const isOwner = userRole === "owner";
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -48,6 +75,8 @@ export default function Header({
   const handleLogout = () => {
     localStorage.removeItem("token");
     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     router.push("/auth/login");
   };
 
@@ -83,6 +112,19 @@ export default function Header({
         .notif-btn.active { background:rgba(196,181,253,0.20) !important; border-color:rgba(196,181,253,0.6) !important; }
         .avatar-btn { transition:opacity .15s, transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s; }
         .avatar-btn:hover { opacity:0.85; transform:scale(1.05); box-shadow:0 4px 12px rgba(33,33,33,0.18); }
+
+        /* Owner-only laporan button */
+        .laporan-btn {
+          display:inline-flex; align-items:center; gap:5px;
+          padding:5px 11px; border-radius:10px; border:none;
+          font-size:11px; font-weight:700; letter-spacing:0.02em;
+          background:linear-gradient(135deg,#CAA017,#92650a);
+          color:#fff; text-decoration:none; cursor:pointer;
+          transition:transform .2s cubic-bezier(.22,1,.36,1), box-shadow .2s, opacity .15s;
+          box-shadow:0 2px 8px rgba(146,101,10,0.25);
+        }
+        .laporan-btn:hover { transform:translateY(-1px) scale(1.04); box-shadow:0 6px 18px rgba(146,101,10,0.32); }
+        .laporan-btn:active { transform:scale(0.97); }
       `}</style>
 
       <header
@@ -113,7 +155,7 @@ export default function Header({
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => {
+              {NAV_ITEMS.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 return (
                   <Link
@@ -129,6 +171,22 @@ export default function Header({
                   </Link>
                 );
               })}
+
+              {/* Owner-only: Laporan Pengeluaran button */}
+              {isOwner && (
+                <Link
+                  href="/laporan"
+                  id="btn-laporan-pengeluaran"
+                  className="laporan-btn ml-1"
+                  aria-label="Laporan Pengeluaran"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"/>
+                    <polyline points="17 6 23 6 23 12"/>
+                  </svg>
+                  Lap. Pengeluaran
+                </Link>
+              )}
             </nav>
 
             <div className="hidden md:block w-px h-5 bg-black/10" />
@@ -157,7 +215,7 @@ export default function Header({
                 className="avatar-btn w-8 h-8 rounded-full bg-[#212121] flex items-center justify-center"
               >
                 <span className="text-white text-[10px] font-bold tracking-wide">
-                  {userInitials}
+                  {initials}
                 </span>
               </button>
 
@@ -177,18 +235,18 @@ export default function Header({
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ background: "#212121" }}>
-                        <span className="text-white text-[10px] font-bold">{userInitials}</span>
+                        <span className="text-white text-[10px] font-bold">{initials}</span>
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#212121] truncate">Andi Pratama</p>
+                        <p className="text-xs font-bold text-[#212121] truncate">{userName || "User"}</p>
                         <p className="text-[10px] font-medium truncate" style={{ color: "rgba(33,33,33,0.38)" }}>
-                          andi.pratama@inventix.id
+                          inventix.id
                         </p>
                       </div>
                     </div>
                     <span className="mt-2 inline-block text-[9px] font-bold px-2 py-0.5 rounded-lg"
                       style={{ background: "#212121", color: "#EFF0A3", letterSpacing: "0.04em" }}>
-                      Admin
+                      {roleLabel}
                     </span>
                   </div>
 
@@ -214,6 +272,17 @@ export default function Header({
                       </svg>
                       Ganti Password
                     </Link>
+
+                    {/* Owner: shortcut to Laporan Pengeluaran */}
+                    {isOwner && (
+                      <Link href="/laporan" onClick={() => setOpenProfile(false)} className="dd-item">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"/>
+                          <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                        Laporan Pengeluaran
+                      </Link>
+                    )}
 
                     <div style={{ height: "1px", background: "rgba(33,33,33,0.07)", margin: "4px 0" }} />
 
@@ -244,11 +313,11 @@ export default function Header({
         {/* Mobile Menu */}
         <div
           className={`md:hidden overflow-hidden transition-all duration-300 ${
-            openMenu ? "max-h-72 pb-4" : "max-h-0"
+            openMenu ? "max-h-96 pb-4" : "max-h-0"
           } ${isScrolled ? "bg-white/60 backdrop-blur-xl" : "bg-[#F6F5FA]"}`}
         >
           <nav className="flex flex-col px-6 gap-3 pt-2">
-            {navItems.map((item) => {
+            {NAV_ITEMS.map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
                 <Link
@@ -263,6 +332,16 @@ export default function Header({
                 </Link>
               );
             })}
+
+            {/* Owner-only mobile laporan link */}
+            {isOwner && (
+              <Link href="/laporan" onClick={() => setOpenMenu(false)}
+                className="text-sm font-bold"
+                style={{ color: "#92650a" }}>
+                📊 Laporan Pengeluaran
+              </Link>
+            )}
+
             <Link href="/notification" onClick={() => setOpenMenu(false)}
               className={`text-sm font-medium ${pathname === "/notification" ? "text-[#7C5CBF] font-semibold" : "text-[#212121]/50"}`}>
               Notifikasi
