@@ -198,11 +198,13 @@ export default function SupplierPortal() {
 
   const filtered = activeTab === "semua"
     ? poList
-    : poList.filter(p => p.status === activeTab);
+    : activeTab === "menunggu"
+      ? poList.filter(p => p.status === "menunggu" || p.status === "menunggu_approval_owner")
+      : poList.filter(p => p.status === activeTab);
 
   const stats = {
     total:        poList.length,
-    menunggu:     poList.filter(p => p.status === "menunggu").length,
+    menunggu:     poList.filter(p => p.status === "menunggu" || p.status === "menunggu_approval_owner").length,
     dikonfirmasi: poList.filter(p => p.status === "dikonfirmasi").length,
     ditolak:      poList.filter(p => p.status === "ditolak").length,
   };
