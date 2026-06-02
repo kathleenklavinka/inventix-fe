@@ -12,6 +12,7 @@ type POStatus = "pending" | "approved" | "rejected" | "supplier_acc" | "complete
 
 interface ActivityLog {
   id: string;
+  poId?: string;
   timestamp: string;
   actor: Actor;
   actorName: string;
@@ -510,7 +511,7 @@ export default function NotificationPage() {
         const poAmount = category === "Purchase Order" && item.data_baru?.total_nilai
           ? parseFloat(item.data_baru.total_nilai) : undefined;
 
-        const isPOWarning = poAmount !== undefined && poAmount > 500000;
+        const isPOWarning = poAmount !== undefined && poAmount >= 500000;
 
         const status: "success" | "warning" | "info" = isPOWarning ? "warning"
           : item.aksi === "buat" ? "success"
@@ -519,6 +520,9 @@ export default function NotificationPage() {
 
         return {
           id: String(item.id),
+          poId: (item.nama_tabel?.toLowerCase() === 'purchase_order' || item.nama_tabel?.toLowerCase() === 'purchaseorder')
+            ? String(item.data_baru?.id || item.record_id || '')
+            : undefined,
           timestamp: item.dilakukan_pada || new Date().toISOString(),
           actor, actorName, category,
           action: formatActivityAction(item.nama_tabel, item.aksi),
@@ -629,9 +633,10 @@ export default function NotificationPage() {
       setToast({ msg: "Memproses persetujuan PO...", type: "info" });
 
       // Call real API
-      const numericId = parseInt(logId, 10);
-      if (!isNaN(numericId)) {
-        await api.purchaseOrder.approve(numericId);
+      const logItem = logs.find(l => l.id === logId);
+      const targetId = logItem?.poId ? parseInt(logItem.poId, 10) : parseInt(logId, 10);
+      if (!isNaN(targetId)) {
+        await api.purchaseOrder.approve(targetId);
       }
 
       setToast({ msg: "PO disetujui dan diteruskan ke supplier untuk di-ACC.", type: "info" });
@@ -654,9 +659,10 @@ export default function NotificationPage() {
         l.id === logId ? { ...l, poStatus: "rejected" as POStatus } : l
       ));
 
-      const numericId = parseInt(logId, 10);
-      if (!isNaN(numericId)) {
-        await api.purchaseOrder.reject(numericId);
+      const logItem = logs.find(l => l.id === logId);
+      const targetId = logItem?.poId ? parseInt(logItem.poId, 10) : parseInt(logId, 10);
+      if (!isNaN(targetId)) {
+        await api.purchaseOrder.reject(targetId);
       }
 
       setToast({ msg: "PO ditolak. Admin akan mendapat notifikasi.", type: "error" });
