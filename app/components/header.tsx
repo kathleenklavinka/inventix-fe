@@ -34,8 +34,10 @@ export default function Header({
   const [userRole, setUserRole]   = useState<string>("");
   const [userName, setUserName]   = useState<string>("User");
   const [initials, setInitials]   = useState<string>(userInitials);
+  const [mounted, setMounted]     = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const role = Cookies.get(COOKIE_ROLE) || "";
     const name = Cookies.get(COOKIE_NAME) ? decodeURIComponent(Cookies.get(COOKIE_NAME)!) : "";
     setUserRole(role);
@@ -45,6 +47,15 @@ export default function Header({
       setInitials(computed || userInitials);
     }
   }, [userInitials]);
+
+  const visibleItems = mounted
+    ? NAV_ITEMS.filter((item) => {
+        if (item.href === "/laporan") return userRole === "owner";
+        if (item.href === "/user") return userRole === "owner";
+        if (userRole === "supplier") return false;
+        return true;
+      })
+    : [];
 
   // Derive role label
   const roleLabel = userRole === "owner"    ? "Owner"
@@ -143,7 +154,7 @@ export default function Header({
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-1">
-              {NAV_ITEMS.map((item) => {
+              {visibleItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 return (
                   <Link
@@ -159,8 +170,6 @@ export default function Header({
                   </Link>
                 );
               })}
-
-
             </nav>
 
             <div className="hidden md:block w-px h-5 bg-black/10" />
@@ -282,7 +291,7 @@ export default function Header({
           } ${isScrolled ? "bg-white/60 backdrop-blur-xl" : "bg-[#F6F5FA]"}`}
         >
           <nav className="flex flex-col px-6 gap-3 pt-2">
-            {NAV_ITEMS.map((item) => {
+            {visibleItems.map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
                 <Link
