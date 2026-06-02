@@ -3,8 +3,8 @@ import type { NextRequest } from "next/server";
 
 const ROLE_ROUTES: Record<string, string[]> = {
   owner:    ["/dashboard", "/stock", "/penjualan", "/supplier", "/user", "/notification", "/laporan", "/profile"],
-  admin:    ["/dashboard", "/stock", "/penjualan", "/supplier", "/user", "/notification", "/profile"],
-  user:     ["/dashboard", "/stock", "/notification", "/profile"],
+  admin:    ["/dashboard", "/stock", "/penjualan", "/supplier", "/notification", "/profile"],
+  user:     ["/dashboard", "/stock", "/penjualan", "/supplier", "/notification", "/profile"],
   supplier: ["/supplier/portal"],
 };
 
@@ -34,13 +34,23 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/dashboard",
     "/dashboard/:path*",
+    "/stock",
     "/stock/:path*",
+    "/penjualan",
     "/penjualan/:path*",
+    "/supplier",
+    "/supplier/:path*",
+    "/supplier/portal",
     "/supplier/portal/:path*",
+    "/user",
     "/user/:path*",
+    "/notification",
     "/notification/:path*",
+    "/laporan",
     "/laporan/:path*",
+    "/profile",
     "/profile/:path*",
   ],
 };
