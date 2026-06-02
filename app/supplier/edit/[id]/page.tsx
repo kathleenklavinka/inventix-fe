@@ -116,7 +116,6 @@ function FormField({ label, required, hint, children, error }: {
   );
 }
 
-// Diff detector
 function hasDiff(original: Record<string, unknown>, current: Record<string, unknown>) {
   return Object.keys(original).some(k => original[k] !== current[k]);
 }
@@ -132,7 +131,7 @@ export default function EditSupplierPage() {
   const [form, setForm] = useState({
     id: 0, nama: "", kategori: "Bahan Pokok", aktif: true,
     alamat: "", kota: "", provinsi: "DKI Jakarta", kodePos: "",
-    telepon: "", email: "", namaKontak: "", user_id: "",
+    telepon: "", namaKontak: "", user_id: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -163,17 +162,15 @@ export default function EditSupplierPage() {
         ]);
 
         const item = res.data;
-        
-        // Filter accounts with peran === "SUPPLIER"
+
         const supplierAccounts = accs.data.filter((a: any) => a.peran === "SUPPLIER");
         setAccounts(supplierAccounts);
 
-        // Address parser
         let street = item.alamat || "";
         let city = "";
         let prov = "DKI Jakarta";
         let zip = "";
-        
+
         if (item.alamat && item.alamat.includes(",")) {
           const parts = item.alamat.split(",");
           if (parts.length >= 3) {
@@ -200,7 +197,6 @@ export default function EditSupplierPage() {
           provinsi: prov || "DKI Jakarta",
           kodePos: zip,
           telepon: item.nomor_telepon || "",
-          email: item.email || "",
           namaKontak: "",
           user_id: item.user_id ? String(item.user_id) : "",
         };
@@ -232,7 +228,6 @@ export default function EditSupplierPage() {
     if (!form.kota.trim()) e.kota = "Kota wajib diisi.";
     if (!form.telepon.trim()) e.telepon = "Nomor telepon wajib diisi.";
     else if (!/^[\d\-+() ]{8,16}$/.test(form.telepon)) e.telepon = "Format telepon tidak valid.";
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Format email tidak valid.";
     if (!form.user_id) e.user_id = "Akun pengguna supplier wajib dipilih.";
     return e;
   }
@@ -246,7 +241,6 @@ export default function EditSupplierPage() {
       const payload = {
         nama: form.nama,
         alamat: `${form.alamat}, ${form.kota}, ${form.provinsi}${form.kodePos ? ' ' + form.kodePos : ''}`,
-        email: form.email || null,
         nomor_telepon: form.telepon,
         deskripsi: form.kategori,
         user_id: Number(form.user_id),
@@ -581,7 +575,7 @@ export default function EditSupplierPage() {
                           </FormField>
                         </div>
 
-                        {/* SECTION: Lokasi */}
+                        {/* SECTION: Lokasi & Kontak */}
                         <div className="section-divider">
                           <div className="section-divider-line" />
                           <span className="section-divider-label">Lokasi & Kontak</span>
@@ -622,18 +616,9 @@ export default function EditSupplierPage() {
                               value={form.telepon}
                               onChange={e => handleChange("telepon", e.target.value)} />
                           </FormField>
-
-                          <div className="sm:col-span-2">
-                            <FormField label="Email" hint="Opsional" error={errors.email}>
-                              <input className={`form-input-g${errors.email ? " error" : changedFields.includes("email") ? " changed" : ""}`}
-                                type="email"
-                                value={form.email}
-                                onChange={e => handleChange("email", e.target.value)} />
-                            </FormField>
-                          </div>
                         </div>
 
-                        {/* Unsaved/backend errors */}
+                        {/* Errors */}
                         {errors.submit && (
                           <div className="mt-5 px-4 py-3 border rounded-xl text-xs font-semibold" style={{ borderColor: "#fee2e2", background: "#fef2f2", color: "#991b1b" }}>
                             {errors.submit}
