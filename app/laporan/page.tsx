@@ -112,16 +112,16 @@ function StatusBadge({ status }: { status: string }) {
 
 function parsePurchaseOrder(raw: unknown): PurchaseOrder {
   const item = raw as Record<string, unknown>;
-  const nilaiTotal = Number(item.total_nilai ?? item.total ?? item.nilai ?? item.nilai_total ?? item.nominal ?? 0) || 0;
-  const jumlah = Number(item.jumlah ?? item.jumlah_dipesan ?? item.qty ?? 0) || 0;
+  const nilaiTotal = Number(item.subtotal ?? item.total_nilai ?? item.total ?? item.nilai ?? item.nilai_total ?? item.nominal ?? 0) || 0;
+  const jumlah = Number(item.jumlah_dipesan ?? item.jumlah ?? item.qty ?? 0) || 0;
   return {
     id: String(item.id ?? item.po_id ?? item.purchase_order_id ?? "0"),
     nomorPO: String(item.nomor_po ?? item.nomorPO ?? item.nomor ?? `PO-${item.id ?? item.po_id ?? "000"}`),
-    supplier: String((item.supplier as Record<string, unknown>)?.nama ?? item.supplier_nama ?? item.supplierNama ?? (item.supplier as Record<string, unknown>)?.nama_supplier ?? (item.supplier as Record<string, unknown>)?.name ?? "Supplier"),
+    supplier: String(item.supplier_nama ?? (item.supplier as Record<string, unknown>)?.nama ?? item.supplierNama ?? (item.supplier as Record<string, unknown>)?.nama_supplier ?? (item.supplier as Record<string, unknown>)?.name ?? "Supplier"),
     tanggal: String(item.tanggal_po ?? item.dibuat_pada ?? item.tanggal ?? item.created_at ?? item.createdAt ?? ""),
     status: normalizeStatus(item.status ?? item.status_po ?? item.status_supplier ?? item.statusSupplier),
     nilaiTotal,
-    namaBarang: String(item.nama_barang ?? item.namaBarang ?? (item.stok as Record<string, unknown>)?.nama ?? item.produk ?? "-"),
+    namaBarang: String(item.barang_nama ?? item.nama_barang ?? item.namaBarang ?? (item.stok as Record<string, unknown>)?.nama ?? item.produk ?? "-"),
     jumlah,
     satuan: String(item.satuan ?? item.satuan_barang ?? item.unit ?? "pcs"),
     catatan: String(item.catatan ?? item.keterangan ?? item.notes ?? "-"),
@@ -151,7 +151,7 @@ export default function LaporanPOPage() {
   async function loadPurchaseOrders() {
     setLoading(true);
     try {
-      const res = await api.purchaseOrder.getAll();
+      const res = await api.laporan.getPengeluaran();
       if (res?.data) {
         const parsed = res.data.map(parsePurchaseOrder);
         setPoList(parsed);
