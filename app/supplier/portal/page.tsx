@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 import { api } from "@/lib/api";
 
 // Types
-type POStatus = "menunggu" | "dikonfirmasi" | "ditolak";
+type POStatus = "menunggu" | "menunggu_approval_owner" | "dikonfirmasi" | "ditolak";
 
 interface POItem {
   nama: string;
@@ -22,6 +22,7 @@ interface PurchaseOrder {
   dibuatOleh: string;
   items: POItem[];
   status: POStatus;
+  statusPO: string;
   catatan?: string;
 }
 
@@ -48,9 +49,10 @@ function StatusBadge({ status }: { status: string }) {
   const normalizedStatus = status ? status.toLowerCase() : "menunggu";
   
   const map = {
-    menunggu:     { bg: "#EFF0A3", color: "#2a1f08", icon: <IconClock size={9} />,  label: "Menunggu" },
-    dikonfirmasi: { bg: "#CFDECA", color: "#2d6a3f", icon: <IconCheck size={9} />,  label: "Dikonfirmasi" },
-    ditolak:      { bg: "#fee2e2", color: "#dc2626", icon: <IconX size={9} />,       label: "Ditolak" },
+    menunggu:                { bg: "#EFF0A3", color: "#2a1f08", icon: <IconClock size={9} />,  label: "Menunggu" },
+    menunggu_approval_owner: { bg: "#FFE8CC", color: "#92650a", icon: <IconClock size={9} />,  label: "Menunggu Approval Owner" },
+    dikonfirmasi:            { bg: "#CFDECA", color: "#2d6a3f", icon: <IconCheck size={9} />,  label: "Dikonfirmasi" },
+    ditolak:                 { bg: "#fee2e2", color: "#dc2626", icon: <IconX size={9} />,       label: "Ditolak" },
   };
   
   const s = map[normalizedStatus as keyof typeof map] || map["menunggu"];
@@ -106,8 +108,14 @@ export default function SupplierPortal() {
 
       const mapped: PurchaseOrder[] = filteredPOs.map((p: any) => {
         let mappedStatus: POStatus = "menunggu";
-        if (p.status_supplier === "DIKONFIRMASI") mappedStatus = "dikonfirmasi";
-        if (p.status_supplier === "DITOLAK") mappedStatus = "ditolak";
+        // If PO is still waiting for owner approval, mark it differently
+        if (p.status === 'MENUNGGU_PERSETUJUAN') {
+          mappedStatus = "menunggu_approval_owner" as POStatus;
+        } else if (p.status_supplier === "DIKONFIRMASI") {
+          mappedStatus = "dikonfirmasi";
+        } else if (p.status_supplier === "DITOLAK") {
+          mappedStatus = "ditolak";
+        }
 
         return {
           id: p.id,
@@ -115,6 +123,7 @@ export default function SupplierPortal() {
           tanggal: p.tanggal_po || p.dibuat_pada,
           dibuatOleh: "System Admin",
           status: mappedStatus,
+          statusPO: p.status || 'DRAFT',
           catatan: p.catatan,
           items: (p.detail_po || []).map((d: any) => ({
             nama: d.stok?.nama || "Barang",
@@ -147,8 +156,11 @@ export default function SupplierPortal() {
 
   const handleAction = async (po: PurchaseOrder, action: "konfirmasi" | "tolak") => {
     try {
-      const statusSupplierVal = action === "konfirmasi" ? "DIKONFIRMASI" : "DITOLAK";
-      await api.purchaseOrder.update(po.id, { status_supplier: statusSupplierVal });
+      if (action === "konfirmasi") {
+        await api.purchaseOrder.supplierConfirm(po.id);
+      } else {
+        await api.purchaseOrder.supplierReject(po.id);
+      }
 
       const updatedStatus: POStatus = action === "konfirmasi" ? "dikonfirmasi" : "ditolak";
 
@@ -161,7 +173,7 @@ export default function SupplierPortal() {
       setModal(null);
       setToast({
         msg: action === "konfirmasi"
-          ? `${po.noPO} berhasil dikonfirmasi.`
+          ? `${po.noPO} berhasil dikonfirmasi. Stok telah diperbarui.`
           : `${po.noPO} ditolak.`,
         type: action === "konfirmasi" ? "success" : "error",
       });
@@ -628,6 +640,13 @@ export default function SupplierPortal() {
                     <button className="btn-confirm flex-1 justify-center py-2.5" onClick={() => setModal({ po: selectedPO, action: "konfirmasi" })}>
                       <IconCheck size={13} /> Konfirmasi PO
                     </button>
+                  </div>
+                ) : selectedPO.status === "menunggu_approval_owner" ? (
+                  <div className="flex flex-col items-center gap-2 py-2">
+                    <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl w-full" style={{ background: "#FFF5E6", border: "1.5px solid #FFE0A0" }}>
+                      <IconClock size={14} />
+                      <p className="text-xs font-semibold" style={{ color: "#92650a" }}>PO ini masih menunggu persetujuan Owner. Anda belum bisa melakukan aksi.</p>
+                    </div>
                   </div>
                 ) : (
                   <button className="btn-ghost w-full justify-center py-2.5 text-xs font-bold cursor-not-allowed opacity-60" disabled>

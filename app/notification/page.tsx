@@ -530,7 +530,14 @@ export default function NotificationPage() {
           readBy: ["Owner", "Admin", "Gudang"] as Actor[],
           poAmount,
           isPOWarning,
-          poStatus: isPOWarning ? ("pending" as POStatus) : undefined,
+          poStatus: isPOWarning ? ((): POStatus => {
+            const s = (item.data_baru?.status || '').toUpperCase();
+            if (s === 'MENUNGGU_PERSETUJUAN' || s === 'DRAFT') return 'pending';
+            if (s === 'DISETUJUI') return 'approved';
+            if (s === 'DITOLAK' || s === 'DIBATALKAN') return 'rejected';
+            if (s === 'SELESAI') return 'completed';
+            return 'pending';
+          })() : undefined,
           supplierName: item.data_baru?.supplier_nama || item.data_baru?.nama_supplier || undefined,
           poQty: item.data_baru?.jumlah || undefined,
           poSatuan: item.data_baru?.satuan || undefined,

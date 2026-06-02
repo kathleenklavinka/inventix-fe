@@ -184,24 +184,14 @@ export const api = {
       apiRequest<{ message: string }>("DELETE", `/purchase-order/${id}`),
     // Owner approval workflow
     approve: (id: number) =>
-      apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, {
-        status_owner: "DISETUJUI",
-        status: "approved",
-      }),
+      apiRequest<{ data: any; message: string }>("PATCH", `/purchase-order/${id}/owner-approve`),
     reject: (id: number) =>
-      apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, {
-        status_owner: "DITOLAK",
-        status: "rejected",
-      }),
+      apiRequest<{ data: any; message: string }>("PATCH", `/purchase-order/${id}/owner-reject`),
     // Supplier confirmation (updates stock automatically on backend)
     supplierConfirm: (id: number) =>
-      apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, {
-        status_supplier: "DIKONFIRMASI",
-      }),
+      apiRequest<{ data: any; message: string }>("PATCH", `/purchase-order/${id}/supplier-confirm`),
     supplierReject: (id: number) =>
-      apiRequest<{ data: any; message: string }>("PUT", `/purchase-order/${id}`, {
-        status_supplier: "DITOLAK",
-      }),
+      apiRequest<{ data: any; message: string }>("PATCH", `/purchase-order/${id}/supplier-reject`),
   },
 
   // Pembelian Transaksi (Stock Transactions)

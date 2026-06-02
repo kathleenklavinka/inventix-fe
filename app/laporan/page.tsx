@@ -77,13 +77,20 @@ function formatDate(value: string) {
 }
 
 function normalizeStatus(status: unknown) {
-  const raw = String(status || "").toLowerCase();
-  if (raw.includes("reject") || raw.includes("tolak")) return "rejected";
-  if (raw.includes("complete") || raw.includes("selesai") || raw.includes("done")) return "completed";
-  if (raw.includes("supplier") && raw.includes("acc")) return "supplier_acc";
-  if (raw.includes("approve") || raw.includes("acc")) return "approved";
-  if (raw.includes("pending") || raw.includes("menunggu")) return "pending";
-  return raw || "pending";
+  const raw = String(status || "").toUpperCase();
+  if (raw === 'DITOLAK' || raw === 'DIBATALKAN') return "rejected";
+  if (raw === 'SELESAI') return "completed";
+  if (raw === 'DIKIRIM') return "supplier_acc";
+  if (raw === 'DISETUJUI') return "approved";
+  if (raw === 'MENUNGGU_PERSETUJUAN' || raw === 'DRAFT') return "pending";
+  // Fallback to English checks
+  const lower = raw.toLowerCase();
+  if (lower.includes("reject") || lower.includes("tolak")) return "rejected";
+  if (lower.includes("complete") || lower.includes("selesai") || lower.includes("done")) return "completed";
+  if (lower.includes("supplier") && lower.includes("acc")) return "supplier_acc";
+  if (lower.includes("approve") || lower.includes("acc")) return "approved";
+  if (lower.includes("pending") || lower.includes("menunggu")) return "pending";
+  return lower || "pending";
 }
 
 const PO_STATUS_CFG: Record<string, { label: string; bg: string; text: string; border: string }> = {
