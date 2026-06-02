@@ -92,7 +92,6 @@ function Inner({ children, className = "" }: { children: React.ReactNode; classN
   return <div className={`max-w-6xl mx-auto px-4 sm:px-8 ${className}`}>{children}</div>;
 }
 
-// Step indicator
 function StepBar({ step }: { step: number }) {
   const steps = ["Identitas", "Lokasi & Kontak", "Konfirmasi"];
   return (
@@ -204,7 +203,6 @@ export default function TambahSupplierPage() {
     if (!form.kota.trim()) e.kota = "Kota wajib diisi.";
     if (!form.telepon.trim()) e.telepon = "Nomor telepon wajib diisi.";
     else if (!/^[\d\-+() ]{8,16}$/.test(form.telepon)) e.telepon = "Format telepon tidak valid.";
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Format email tidak valid.";
     return e;
   }
 
@@ -559,16 +557,6 @@ export default function TambahSupplierPage() {
                               value={form.telepon}
                               onChange={e => handleChange("telepon", e.target.value)} />
                           </FormField>
-
-                          <div className="sm:col-span-2">
-                            <FormField label="Email" hint="Opsional — untuk korespondensi" error={errors.email}>
-                              <input className={`form-input-g${errors.email ? " error" : ""}`}
-                                placeholder="cth: info@sumbermakmur.co.id"
-                                type="email"
-                                value={form.email}
-                                onChange={e => handleChange("email", e.target.value)} />
-                            </FormField>
-                          </div>
                         </div>
                       )}
 
@@ -609,7 +597,6 @@ export default function TambahSupplierPage() {
                               { label: "Provinsi", val: form.provinsi },
                               ...(form.kodePos ? [{ label: "Kode Pos", val: form.kodePos }] : []),
                               { label: "Telepon", val: form.telepon },
-                              ...(form.email ? [{ label: "Email", val: form.email }] : []),
                             ].map((r, i) => (
                               <div key={i} className="review-row">
                                 <span className="text-[11px] font-medium flex-shrink-0" style={{ color: "rgba(6,78,59,0.48)" }}>{r.label}</span>
