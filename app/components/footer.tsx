@@ -26,7 +26,6 @@ const footerCols = [
     title: "Akun",
     links: [
       { label: "Profil", href: "/profil" },
-      { label: "Pengaturan", href: "/settings" },
       { label: "Keluar", href: "/auth/login" },
     ],
   },
