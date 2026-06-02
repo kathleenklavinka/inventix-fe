@@ -27,7 +27,6 @@ function deleteBlockedReason(actorRole: string, targetRole: string, isSelf: bool
   return null;
 }
 
-// ─── Avatar colors ────────────────────────────────────────────────────────────
 const AVATAR_COLORS: Record<string, { bg: string; color: string }> = {
   OI: { bg: "#f5e6cc", color: "#92400e" },
   AI: { bg: "#e8dfc8", color: "#7a5c2e" },
@@ -47,7 +46,6 @@ function avatarStyle(initials: string) {
   return AVATAR_COLORS[initials] ?? { bg: "#e8dfc8", color: "#7a5c2e" };
 }
 
-// ─── Icons ────────────────────────────────────────────────────────────────────
 const IconUsers        = ({ size = 18, color = "currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const IconShield       = ({ size = 18, color = "currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 const IconUser         = ({ size = 18, color = "currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
@@ -65,7 +63,6 @@ const IconList         = ({ size = 16, color = "currentColor" }) => <svg width={
 const IconLock         = ({ size = 13, color = "currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
 const IconCrown        = ({ size = 10, color = "currentColor" }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h20M4 20L2 8l6 4 6-8 6 8 6-4-2 12"/></svg>;
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
 function Avatar({ initials, size = 36, radius = 10 }: { initials: string; size?: number; radius?: number }) {
   const s = avatarStyle(initials);
   return (
@@ -91,19 +88,6 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-function AktifBadge({ aktif }: { aktif: boolean }) {
-  if (aktif) return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "#CFDECA", color: "#2d6a3f" }}>
-      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#2d6a3f", display: "inline-block" }} /> Aktif
-    </span>
-  );
-  return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ background: "rgba(33,33,33,0.07)", color: "rgba(33,33,33,0.40)" }}>
-      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(33,33,33,0.28)", display: "inline-block" }} /> Nonaktif
-    </span>
-  );
-}
-
 function Inner({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`max-w-6xl mx-auto px-4 sm:px-8 ${className}`}>{children}</div>;
 }
@@ -115,10 +99,8 @@ interface UserType {
   role: string;
   bergabung: string;
   avatar: string;
-  aktif: boolean;
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function UserPage() {
   const router = useRouter();
 
@@ -127,7 +109,6 @@ export default function UserPage() {
   const [users, setUsers]             = useState<UserType[]>([]);
   const [search, setSearch]           = useState("");
   const [filterRole, setFilterRole]   = useState<"semua" | "owner" | "admin" | "user" | "supplier">("semua");
-  const [filterAktif, setFilterAktif] = useState<"semua" | "aktif" | "nonaktif">("semua");
   const [view, setView]               = useState<"grid" | "list">("grid");
   const [page, setPage]               = useState(1);
   const [deleteModal, setDeleteModal] = useState<UserType | null>(null);
@@ -177,7 +158,6 @@ export default function UserPage() {
           role: fRole,
           bergabung: joiningDate,
           avatar: nameInitials,
-          aktif: true
         };
       });
       setUsers(mapped);
@@ -211,20 +191,17 @@ export default function UserPage() {
   const userRoleCookie = Cookies.get(COOKIE_ROLE) || "user";
   if (userRoleCookie === "user" || userRoleCookie === "supplier") return null;
 
-  // ── Filter & pagination ──
   const filtered = users.filter(u => {
     const q = search.toLowerCase();
     const matchSearch = u.nama.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
     const matchRole  = filterRole === "semua" || u.role === filterRole;
-    const matchAktif = filterAktif === "semua" || (filterAktif === "aktif" ? u.aktif : !u.aktif);
-    return matchSearch && matchRole && matchAktif;
+    return matchSearch && matchRole;
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage   = Math.min(page, totalPages);
   const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  // ── Delete logic ──
   function handleDeleteClick(u: UserType) {
     const isSelf = u.id === currentUser.id;
     const allowed = canDeleteTarget(currentUser.role, u.role, isSelf);
@@ -247,15 +224,13 @@ export default function UserPage() {
     }
   }
 
-  function changeFilter(type: "role" | "aktif", val: string) {
+  function changeFilter(type: "role", val: string) {
     if (type === "role") setFilterRole(val as typeof filterRole);
-    else setFilterAktif(val as typeof filterAktif);
     setPage(1);
   }
 
   const totalAdmin    = users.filter(u => u.role === "admin").length;
   const totalUser     = users.filter(u => u.role === "user").length;
-  const totalNonaktif = users.filter(u => !u.aktif).length;
 
   const pillBase   = "text-[11px] font-bold px-3 py-1.5 rounded-full cursor-pointer transition-all duration-150 border border-transparent";
   const pillActive = "bg-[#2a1f08] text-[#EFF0A3]";
@@ -351,12 +326,11 @@ export default function UserPage() {
                 )}
               </div>
 
-              <div className="anim-fade-up d200 grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+              <div className="anim-fade-up d200 grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
                 {[
                   { label: "Total User",  val: users.length,   icon: <IconUsers size={17} color="#7a5c2e" />,  bg: "#e8dfc8", valColor: "#2a1f08" },
                   { label: "Admin",       val: totalAdmin,     icon: <IconShield size={17} color="#185FA5" />, bg: "#E6F1FB", valColor: "#2a1f08" },
                   { label: "User biasa",  val: totalUser,      icon: <IconUser size={17} color="#0F6E56" />,   bg: "#E1F5EE", valColor: "#2a1f08" },
-                  { label: "Nonaktif",    val: totalNonaktif,  icon: <IconUserX size={17} color="#dc2626" />,  bg: "#fee2e2", valColor: totalNonaktif > 0 ? "#dc2626" : "#2a1f08" },
                 ].map((s, i) => (
                   <div key={i} className="stat-card">
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{s.icon}</div>
@@ -408,17 +382,6 @@ export default function UserPage() {
                   ))}
                 </div>
 
-                <div className="w-px h-5 hidden sm:block" style={{ background: "rgba(33,33,33,0.10)" }} />
-
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {(["semua", "aktif", "nonaktif"] as const).map(a => (
-                    <button key={a} onClick={() => changeFilter("aktif", a)}
-                      className={`${pillBase} capitalize ${filterAktif === a ? pillActive : pillIdle}`}>
-                      {a === "semua" ? "Semua status" : a}
-                    </button>
-                  ))}
-                </div>
-
                 <div className="view-toggle-wrap ml-auto">
                   <button className={`view-toggle-btn ${view === "grid" ? "active" : ""}`} onClick={() => setView("grid")} title="Grid view">
                     <IconGrid size={15} color="rgba(33,33,33,0.55)" />
@@ -452,7 +415,6 @@ export default function UserPage() {
                         <p className="text-[10px] mb-2.5 w-full truncate" style={{ color: "rgba(33,33,33,0.40)" }}>{u.email}</p>
                         <div className="flex items-center justify-center gap-1.5 mb-2 flex-wrap">
                           <RoleBadge role={u.role} />
-                          <AktifBadge aktif={u.aktif} />
                         </div>
                         <p className="flex items-center gap-1 text-[10px] mb-3" style={{ color: "rgba(33,33,33,0.35)" }}>
                           <IconCalendar size={10} /> {u.bergabung}
@@ -502,7 +464,6 @@ export default function UserPage() {
                         </div>
                         <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
                           <RoleBadge role={u.role} />
-                          <AktifBadge aktif={u.aktif} />
                           <span className="flex items-center gap-1 text-[10px] font-medium ml-1" style={{ color: "rgba(33,33,33,0.35)" }}>
                             <IconCalendar size={10} /> {u.bergabung}
                           </span>

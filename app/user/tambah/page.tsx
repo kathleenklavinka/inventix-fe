@@ -114,7 +114,6 @@ type FormData = {
   password: string;
   konfirmasi: string;
   role: "User" | "Admin" | "Owner" | "Supplier";
-  aktif: boolean;
 };
 type FormErrors = Partial<Record<keyof FormData | "submit", string>>;
 
@@ -129,7 +128,6 @@ export default function TambahUserPage() {
     password: "",
     konfirmasi: "",
     role: "User",
-    aktif: true,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPw, setShowPw]     = useState(false);
@@ -295,16 +293,6 @@ export default function TambahUserPage() {
         .role-card.selected .radio-dot{border-color:#2a1f08;background:#2a1f08}
         .radio-inner{width:6px;height:6px;border-radius:50%;background:#EFF0A3}
 
-        .toggle-wrap{
-          width:44px;height:24px;border-radius:12px;cursor:pointer;
-          transition:background .2s;position:relative;flex-shrink:0;border:none;padding:0;
-        }
-        .toggle-thumb{
-          width:18px;height:18px;border-radius:9px;background:#ffffff;
-          position:absolute;top:3px;transition:left .2s cubic-bezier(.22,1,.36,1);
-          box-shadow:0 1px 4px rgba(0,0,0,0.18);
-        }
-
         .strength-bar{
           height:3px;border-radius:2px;flex:1;
           transition:background .25s,opacity .25s;
@@ -403,13 +391,6 @@ export default function TambahUserPage() {
                         ) : (
                           <><IconUser size={9} color="#2a3a52" /> User</>
                         )}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg"
-                        style={form.aktif
-                          ? { background: "#CFDECA", color: "#2d6a3f" }
-                          : { background: "rgba(33,33,33,0.07)", color: "rgba(33,33,33,0.40)" }}>
-                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "currentColor", display: "inline-block" }} />
-                        {form.aktif ? "Aktif" : "Nonaktif"}
                       </span>
                     </div>
                   </div>
@@ -575,12 +556,12 @@ export default function TambahUserPage() {
 
                   <div className="bg-white border border-[rgba(33,33,33,0.08)] rounded-2xl p-5 sm:p-6">
                     <p className="text-[11px] font-bold tracking-[0.12em] uppercase mb-5" style={{ color: "rgba(33,33,33,0.32)" }}>
-                      Role & Status
+                      Role
                     </p>
 
-                    <div className="mb-5">
+                    <div className="mb-0">
                       <label className="block text-[12px] font-semibold mb-2.5" style={{ color: "rgba(33,33,33,0.65)" }}>
-                        Role <span style={{ color: "#dc2626" }}>*</span>
+                        Pilih Role <span style={{ color: "#dc2626" }}>*</span>
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
 
@@ -648,24 +629,6 @@ export default function TambahUserPage() {
                           </div>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="flex items-center justify-between py-3.5 border-t" style={{ borderColor: "rgba(33,33,33,0.07)" }}>
-                      <div>
-                        <p className="text-[13px] font-semibold" style={{ color: "rgba(33,33,33,0.75)" }}>Status Akun</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: "rgba(33,33,33,0.40)" }}>
-                          {form.aktif ? "User dapat langsung login setelah dibuat." : "User tidak bisa login sampai diaktifkan."}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="toggle-wrap"
-                        style={{ background: form.aktif ? "#2d6a3f" : "rgba(33,33,33,0.15)" }}
-                        onClick={() => handleChange("aktif", !form.aktif)}
-                        aria-label="Toggle status aktif"
-                      >
-                        <div className="toggle-thumb" style={{ left: form.aktif ? "23px" : "3px" }} />
-                      </button>
                     </div>
                   </div>
 

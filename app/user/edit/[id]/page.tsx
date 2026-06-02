@@ -53,12 +53,6 @@ const IconShield = ({ size = 16, color = "currentColor" }) => (
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
   </svg>
 );
-const IconToggle = ({ size = 16, color = "currentColor" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="1" y="5" width="22" height="14" rx="7" ry="7"/>
-    <circle cx="16" cy="12" r="3"/>
-  </svg>
-);
 const IconLock = ({ size = 16, color = "currentColor" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -123,7 +117,6 @@ export default function EditUserPage() {
   const [nama, setNama]               = useState("");
   const [email, setEmail]             = useState("");
   const [role, setRole]               = useState<"User" | "Admin" | "Owner" | "Supplier">("User");
-  const [aktif, setAktif]             = useState(true);
   const [password, setPassword]       = useState("");
   const [konfirmasi, setKonfirmasi]   = useState("");
   const [showPass, setShowPass]       = useState(false);
@@ -174,7 +167,7 @@ export default function EditUserPage() {
           joiningDate = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
         }
 
-        const formattedRole = (fRole.charAt(0).toUpperCase() + fRole.slice(1)) as any; // "Admin" | "User" | "Owner" | "Supplier"
+        const formattedRole = (fRole.charAt(0).toUpperCase() + fRole.slice(1)) as any;
 
         const mapped = {
           id: u.id,
@@ -183,14 +176,12 @@ export default function EditUserPage() {
           role: formattedRole,
           bergabung: joiningDate,
           avatar: u.nama.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
-          aktif: true
         };
 
         setOriginalUser(mapped);
         setNama(mapped.nama);
         setEmail(mapped.email);
         setRole(mapped.role);
-        setAktif(mapped.aktif);
       } catch (err: any) {
         console.error("Gagal memuat detail user:", err);
       } finally {
@@ -247,7 +238,6 @@ export default function EditUserPage() {
     nama !== originalUser.nama ||
     email !== originalUser.email ||
     role  !== originalUser.role ||
-    aktif !== originalUser.aktif ||
     password !== "" || konfirmasi !== ""
   ) : false;
 
@@ -366,21 +356,6 @@ export default function EditUserPage() {
         .role-option.selected-user  .role-radio{border-color:#2a3a52;background:#2a3a52}
         .role-option.selected-owner .role-radio{border-color:#92400e;background:#92400e}
         .role-option.selected-supplier .role-radio{border-color:#5b21b6;background:#5b21b6}
-
-        /* Toggle switch */
-        .toggle-switch{
-          width:44px;height:24px;border-radius:99px;border:none;cursor:pointer;
-          position:relative;transition:background .25s;flex-shrink:0;
-        }
-        .toggle-switch.on {background:#2d6a3f}
-        .toggle-switch.off{background:rgba(33,33,33,0.18)}
-        .toggle-knob{
-          position:absolute;top:3px;width:18px;height:18px;border-radius:50%;
-          background:#fff;transition:left .22s cubic-bezier(.22,1,.36,1);
-          box-shadow:0 1px 4px rgba(0,0,0,0.16);
-        }
-        .toggle-switch.on  .toggle-knob{left:23px}
-        .toggle-switch.off .toggle-knob{left:3px}
 
         /* Card */
         .form-card{
@@ -671,45 +646,6 @@ export default function EditUserPage() {
                 </div>
 
                 <div className="anim-fade-up d300 form-card">
-                  <div className="px-5 py-4 flex items-center gap-3 border-b" style={{ borderColor: "rgba(33,33,33,0.07)" }}>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: aktif ? "#CFDECA" : "rgba(33,33,33,0.08)" }}>
-                      <IconToggle size={14} color={aktif ? "#2d6a3f" : "rgba(33,33,33,0.35)"} />
-                    </div>
-                    <div>
-                      <p className="font-['Plus_Jakarta_Sans'] font-black text-[13.5px] text-[#212121]">Status Akun</p>
-                      <p className="text-[10px] font-medium" style={{ color: "rgba(33,33,33,0.38)" }}>Aktifkan atau nonaktifkan akun</p>
-                    </div>
-                  </div>
-                  <div className="px-5 py-4 flex items-center justify-between gap-4">
-                    <div>
-                      <p className="font-['Plus_Jakarta_Sans'] font-bold text-[13px] text-[#212121]">
-                        {aktif ? "Akun Aktif" : "Akun Nonaktif"}
-                      </p>
-                      <p className="text-[10.5px] mt-0.5 font-medium" style={{ color: "rgba(33,33,33,0.40)" }}>
-                        {aktif ? "User dapat login ke sistem" : "User tidak dapat login"}
-                      </p>
-                    </div>
-                    <button
-                      className={`toggle-switch ${aktif ? "on" : "off"}`}
-                      onClick={() => setAktif(v => !v)}
-                      disabled={isSelf}
-                      title={isSelf ? "Tidak bisa menonaktifkan akun sendiri" : undefined}
-                      style={isSelf ? { opacity: .4, cursor: "not-allowed" } : {}}>
-                      <div className="toggle-knob" />
-                    </button>
-                  </div>
-                  {isSelf && (
-                    <div className="px-5 pb-4">
-                      <p className="text-[10.5px] font-medium px-3 py-2 rounded-lg"
-                        style={{ background: "rgba(33,33,33,0.04)", color: "rgba(33,33,33,0.45)" }}>
-                        Tidak bisa menonaktifkan akun yang sedang kamu gunakan.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="anim-fade-up d350 form-card">
                   <div className="px-5 py-4 flex flex-col gap-2.5">
                     {errors.submit && (
                       <div className="px-3 py-2.5 border rounded-xl text-[11px] font-semibold text-center mb-1" style={{ borderColor: "#fee2e2", background: "#fef2f2", color: "#991b1b" }}>
@@ -748,7 +684,6 @@ export default function EditUserPage() {
                   {[
                     { label: "ID User",         val: `#${originalUser.id.toString().padStart(4, "0")}` },
                     { label: "Bergabung",        val: originalUser.bergabung },
-                    { label: "Status awal",      val: originalUser.aktif ? "Aktif" : "Nonaktif" },
                     { label: "Role awal",        val: originalUser.role },
                   ].map((row, i) => (
                     <div key={i} className="flex justify-between items-center py-1.5 border-t first:border-0"
