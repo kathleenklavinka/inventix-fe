@@ -650,7 +650,6 @@ export default function SupplierPage() {
                             { label:"Kategori", col:"kategori", width:120 },
                             { label:"Alamat", col:"alamat" },
                             { label:"Telepon", col:"telepon" },
-                            { label:"Status", col:null },
                             { label:"PO Aktif", col:null },
                             ...(isAdmin ? [{ label:"Aksi", col:null }] : []),
                           ].map((h, i) => (
@@ -664,7 +663,7 @@ export default function SupplierPage() {
                       </thead>
                       <tbody>
                         {paginated.length === 0 ? (
-                          <tr><td colSpan={isAdmin?8:7} className="px-5 py-12 text-center text-sm" style={{ color:"rgba(6,78,59,0.35)" }}>Tidak ada supplier ditemukan.</td></tr>
+                          <tr><td colSpan={isAdmin?7:6} className="px-5 py-12 text-center text-sm" style={{ color:"rgba(6,78,59,0.35)" }}>Tidak ada supplier ditemukan.</td></tr>
                         ) : paginated.map((item, i) => {
                           const hasPOAcc = item.pendingPOCount > 0;
                           return (
@@ -697,12 +696,6 @@ export default function SupplierPage() {
                                 <div className="flex items-center gap-1.5"><IconPhone size={11} color="rgba(6,78,59,0.40)"/> {item.telepon}</div>
                               </td>
                               <td className="px-5 py-4">
-                                {item.aktif
-                                  ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg" style={{ background:"#d1fae5", color:"#065f46" }}><IconCheck size={9} color="#065f46"/> Aktif</span>
-                                  : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg" style={{ background:"#fee2e2", color:"#991b1b" }}><IconX size={9} color="#991b1b"/> Nonaktif</span>
-                                }
-                              </td>
-                              <td className="px-5 py-4">
                                 {item.purchaseOrders.filter(p => p.status !== "completed" && p.status !== "rejected").length > 0 ? (
                                   <button onClick={() => setActiveDrawer(item)} className={`po-badge ${hasPOAcc?"po-badge-pulse":""}`}
                                     style={{ background:hasPOAcc?"#FEF0D6":"#D6F5E8", color:hasPOAcc?"#8A4A00":"#1A6647", border:`1.5px solid ${hasPOAcc?"#F5C878":"#A8DEBC"}`, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:5 }}>
@@ -715,14 +708,14 @@ export default function SupplierPage() {
                               </td>
                               {isAdmin && (
                                 <td className="px-5 py-4">
-                                  <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="flex items-center gap-2 flex-nowrap">
                                     <Link href={`/supplier/po?supplier=${item.id}&nama=${encodeURIComponent(item.nama)}`}>
                                       <button className="btn-po" style={{ padding:"6px 10px", fontSize:11 }}><IconFileText size={12} color="#064e3b"/> PO</button>
                                     </Link>
                                     <Link href={`/supplier/edit/${item.id}`}>
                                       <button className="btn-ghost-g"><IconEdit size={13}/> Edit</button>
                                     </Link>
-                                    <button className="btn-danger-g" style={{ padding:"8px 16px", fontSize:11 }} onClick={() => setDeleteModal(item)}>
+                                    <button className="btn-danger-g" style={{ padding:"6px 10px", fontSize:11 }} onClick={() => setDeleteModal(item)}>
                                       <IconTrash size={13} color="#dc2626"/> Hapus
                                     </button>
                                   </div>

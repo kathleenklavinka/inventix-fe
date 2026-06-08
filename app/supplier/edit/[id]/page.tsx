@@ -129,7 +129,7 @@ export default function EditSupplierPage() {
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
-    id: 0, nama: "", kategori: "Bahan Pokok", aktif: true,
+    id: 0, nama: "", kategori: "Bahan Pokok",
     alamat: "", kota: "", provinsi: "DKI Jakarta", kodePos: "",
     telepon: "", namaKontak: "", user_id: "",
   });
@@ -191,7 +191,6 @@ export default function EditSupplierPage() {
           id: item.id,
           nama: item.nama,
           kategori: item.deskripsi || "Bahan Pokok",
-          aktif: true,
           alamat: street,
           kota: city || "Jakarta",
           provinsi: prov || "DKI Jakarta",
@@ -549,29 +548,6 @@ export default function EditSupplierPage() {
                                 ))}
                               </select>
                             )}
-                          </FormField>
-
-                          <FormField label="Status Supplier">
-                            <div className={`toggle-wrap${changedFields.includes("aktif") ? " changed" : ""}`}
-                              onClick={() => handleChange("aktif", !form.aktif)}>
-                              <div className="toggle-track" style={{ background: form.aktif ? "#064e3b" : "rgba(6,78,59,0.18)" }}>
-                                <div className="toggle-thumb" style={{ left: form.aktif ? "19px" : "3px" }} />
-                              </div>
-                              <div>
-                                <p className="text-[13px] font-semibold" style={{ color: "#022c22" }}>
-                                  {form.aktif ? "Aktif" : "Nonaktif"}
-                                </p>
-                                <p className="text-[10px]" style={{ color: "rgba(6,78,59,0.45)" }}>
-                                  {form.aktif ? "Supplier bisa menerima order" : "Supplier dinonaktifkan"}
-                                </p>
-                              </div>
-                            </div>
-                          </FormField>
-
-                          <FormField label="Nama Kontak PIC" hint="Opsional">
-                            <input className={`form-input-g${changedFields.includes("namaKontak") ? " changed" : ""}`}
-                              value={form.namaKontak}
-                              onChange={e => handleChange("namaKontak", e.target.value)} />
                           </FormField>
                         </div>
 
