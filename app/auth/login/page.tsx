@@ -112,22 +112,9 @@ export default function AuthLogin() {
             type="submit"
             className="w-full font-['Inter'] font-bold text-sm bg-[#212121] text-[#F6F5FA] py-3 rounded-xl shadow-md hover:bg-[#212121]/90 transition-all active:scale-[0.98] mt-2"
           >
-            Masuk ke Aplikasi
+            Masuk
           </button>
         </form>
-
-        {/* Register link */}
-        <p className="font-['Inter'] text-center text-sm text-[#212121]/60 pt-2">
-          Belum punya akun?{" "}
-          <button
-            type="button"
-            onClick={() => router.push("/auth/register")}
-            className="font-bold text-[#212121] underline hover:text-[#212121]/80 transition-colors"
-          >
-            Daftar
-          </button>
-        </p>
-
       </div>
     </div>
   );
